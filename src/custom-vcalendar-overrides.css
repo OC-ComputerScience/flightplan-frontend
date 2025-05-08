@@ -1,0 +1,103 @@
+.vc-title-wrapper .vc-title span {
+  color: rgb(var(--v-theme-text)) !important;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.vc-header {
+  margin-bottom: 2%;
+}
+
+.vc-highlights .vc-day-layer {
+  margin-bottom: -1%;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.vc-highlight {
+  box-shadow: none !important;
+  border: none !important;
+  background-color: rgb(var(--v-theme-primary)) !important;
+  width: 50% !important;
+  height: 60% !important;
+}
+
+.vc-highlight-content {
+  box-shadow: none !important;
+  border: none !important;
+  background-color: transparent !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.vc-day-content:focus,
+.vc-day-content.vc-focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.vc-base-icon {
+  color: rgb(var(--v-theme-text)) !important;
+}
+
+.vc-nav-container {
+  background-color: rgb(var(--v-theme-background)) !important;
+  color: rgb(var(--v-theme-text)) !important;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.vc-nav-title {
+  color: rgb(var(--v-theme-text)) !important;
+}
+
+.vc-day-content {
+  font-size: 1.1rem !important; /* Adjust as needed */
+}
+
+.vc-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.vc-day-box-center-bottom {
+  margin-bottom: -4%;
+}
+
+.vc-weekday {
+  color: rgb(var(--v-theme-text)) !important;
+  font-weight: bold;
+  font-size: 1.2rem !important; /* Adjust as needed */
+  margin-bottom: 15%;
+}
+
+.vc-nav-item {
+  color: rgb(var(--v-theme-text)) !important;
+}
+
+.is-active {
+  color: rgb(var(--v-theme-textInverted)) !important;
+  background-color: rgb(var(--v-theme-secondary)) !important;
+}
+
+.vc-nav-item:hover {
+  color: rgb(var(--v-theme-textInverted)) !important;
+  background-color: rgba(var(--v-theme-secondary), 0.6) !important;
+  margin-bottom: 15%;
+}
+
+.vc-popover-content .vc-nav-container {
+  border: none;
+  padding: 8px;
+}
+
+.vc-popover-content {
+  border: rgba(var(--v-theme-text), 0.9);
+}
+
+.vc-day-past .vc-day-content {
+  opacity: 0.4;
+  pointer-events: none; /* disables clicks — optional */
+}
