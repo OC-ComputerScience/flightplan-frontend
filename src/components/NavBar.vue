@@ -197,10 +197,10 @@ const handleLogout = async () => {
             >
               <div class="nav-item-content">
                 <v-icon :size="32" color="backgroundDarken" class="mr-2">
-                  {{ isDark ? "mdi-weather-night" : "mdi-weather-sunny" }}
+                  {{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}
                 </v-icon>
                 <span class="nav-text text-backgroundDarken">{{
-                  isDark ? "Dark Mode" : "Light Mode"
+                  isDark ? "Light Mode" : "Dark Mode"
                 }}</span>
               </div>
             </v-list-item-title>
@@ -283,10 +283,10 @@ const handleLogout = async () => {
             >
               <div class="nav-item-content">
                 <v-icon :size="32" color="backgroundDarken" class="mr-2">
-                  {{ isDark ? "mdi-weather-night" : "mdi-weather-sunny" }}
+                  {{ isDark ? "mdi-weather-sunny" : "mdi-weather-night"  }}
                 </v-icon>
                 <span class="nav-text text-backgroundDarken">{{
-                  isDark ? "Dark Mode" : "Light Mode"
+                  isDark ? "Light Mode" : "Dark Mode"
                 }}</span>
               </div>
             </v-list-item-title>
