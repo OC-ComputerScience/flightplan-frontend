@@ -15,6 +15,7 @@ export default [
     },
     rules: {
       "vue/multi-word-component-names": "off", // Example Vue rule override
+      "vue/no-multiple-template-root": "off",
       semi: "off",
       quotes: "off",
       "comma-dangle": "off",
