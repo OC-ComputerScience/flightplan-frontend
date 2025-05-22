@@ -283,7 +283,7 @@ const handleLogout = async () => {
             >
               <div class="nav-item-content">
                 <v-icon :size="32" color="backgroundDarken" class="mr-2">
-                  {{ isDark ? "mdi-weather-sunny" : "mdi-weather-night"  }}
+                  {{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}
                 </v-icon>
                 <span class="nav-text text-backgroundDarken">{{
                   isDark ? "Light Mode" : "Dark Mode"
