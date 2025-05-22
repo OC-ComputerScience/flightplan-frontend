@@ -140,6 +140,15 @@ const resolvedStatusLabel = computed(() => {
             {{ statusLabel }}
           </p>
         </v-card-text>
+        <v-row v-if="store.isAdmin" class="ma-2 float-left">
+          <v-btn
+            color="warning"
+            class="mr-2 cardButton elevation-0"
+            @click.stop="editEvent"
+          >
+            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+          </v-btn>
+        </v-row>
       </v-col>
     </v-row>
   </v-card>

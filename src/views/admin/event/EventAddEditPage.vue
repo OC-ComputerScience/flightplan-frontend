@@ -44,7 +44,7 @@ const onAllDayToggle = () => {
   }
 };
 
-const handleCancel = () => router.push({ name: "event" });
+const handleCancel = () => router.back();
 
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
@@ -80,7 +80,7 @@ const handleSubmit = async () => {
     } else {
       await eventServices.updateEvent(route.params.id, formData.value);
     }
-    router.push({ name: "event" });
+    router.back();
   } catch (error) {
     console.error("Error saving event:", error);
   }
