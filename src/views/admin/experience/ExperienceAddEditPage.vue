@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { required } from "../../../utils/formValidators";
+import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
 
 const props = defineProps({ isAdd: Boolean });
@@ -11,6 +12,7 @@ const formData = ref({});
 const categories = ref([]);
 const schedulingTypes = ref([]);
 const submissionTypes = ref([]);
+const semesterTypes = ref(semesters);
 
 const route = useRoute();
 const router = useRouter();
@@ -122,13 +124,16 @@ onMounted(async () => {
           ></v-select>
         </v-col>
         <v-col :cols="6">
-          <v-text-field
+          <v-select
             v-model="formData.semestersFromGrad"
             variant="solo"
             rounded="lg"
-            label="Semesters From Graduation"
+            label="Semester"
+            :items="semesterTypes"
+            item-value="value"
+            item-title="name"
             :rules="[required]"
-          ></v-text-field>
+          ></v-select>
         </v-col>
       </v-row>
 
