@@ -26,6 +26,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  adminView: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const eventDate = computed(() => {
@@ -140,7 +144,7 @@ const resolvedStatusLabel = computed(() => {
             {{ statusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="store.isAdmin" class="ma-2 float-left">
+        <v-row v-if="props.adminView" class="ma-2 float-left">
           <v-btn
             color="warning"
             class="mr-2 cardButton elevation-0"

@@ -413,6 +413,7 @@ function selectThisMonth() {
                     color="background"
                     :status="getEventCardColor(event.id)"
                     :is-event-viewing="false"
+                    :admin-view="props.isAdmin"
                     @click="openDialog(event)"
                     @edit="handleEdit"
                   />
