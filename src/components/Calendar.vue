@@ -42,6 +42,9 @@ const openDialog = (event) => {
   dialogVisible.value = true;
 };
 
+const handleEdit = (eventId) =>
+  router.push({ name: "editEvent", params: { id: eventId } });
+
 const handleRecordAttendance = (event) => {
   router.push({
     name: "attendanceEvent",
@@ -410,7 +413,9 @@ function selectThisMonth() {
                     color="background"
                     :status="getEventCardColor(event.id)"
                     :is-event-viewing="false"
+                    :admin-view="props.isAdmin"
                     @click="openDialog(event)"
+                    @edit="handleEdit"
                   />
                 </div>
               </div>
