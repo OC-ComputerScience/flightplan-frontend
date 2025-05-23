@@ -45,6 +45,14 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
+const handleAdd = () => {
+  router.push({
+    name: "addEvent",
+    params: {
+      date: selectedDates.value[0].toISOString()},
+  });
+};
+
 const handleRecordAttendance = (event) => {
   router.push({
     name: "attendanceEvent",
@@ -389,6 +397,7 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <v-btn v-if="props.isAdmin" @click="handleAdd">Add Event</v-btn>
         </div>
 
         <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
