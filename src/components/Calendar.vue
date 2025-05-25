@@ -49,7 +49,7 @@ const handleAdd = () => {
   router.push({
     name: "addEvent",
     params: {
-      date: selectedDates.value[0].toISOString()
+      date: selectedDates.value[0].toISOString(),
     },
   });
 };
@@ -340,27 +340,57 @@ function selectThisMonth() {
       <v-card class="calendar-card pa-4 bg-backgroundDarken" flat>
         <div class="d-flex justify-space-between align-center mb-3 px-4">
           <div>
-            <v-btn color="secondary" size="small" prepend-icon="mdi-calendar-today" @click="goToToday">
+            <v-btn
+              color="secondary"
+              size="small"
+              prepend-icon="mdi-calendar-today"
+              @click="goToToday"
+            >
               Today
             </v-btn>
-            <v-btn size="small" color="secondary" prepend-icon="mdi-calendar-week" class="ml-2" @click="selectThisWeek">
+            <v-btn
+              size="small"
+              color="secondary"
+              prepend-icon="mdi-calendar-week"
+              class="ml-2"
+              @click="selectThisWeek"
+            >
               This Week
             </v-btn>
-            <v-btn size="small" color="secondary" prepend-icon="mdi-calendar-month" class="ml-2"
-              @click="selectThisMonth">
+            <v-btn
+              size="small"
+              color="secondary"
+              prepend-icon="mdi-calendar-month"
+              class="ml-2"
+              @click="selectThisMonth"
+            >
               This Month
             </v-btn>
           </div>
 
           <div v-if="selectedDates.length > 1">
-            <v-btn size="small" color="danger" prepend-icon="mdi-close-circle-outline" @click="clearSelection">
+            <v-btn
+              size="small"
+              color="danger"
+              prepend-icon="mdi-close-circle-outline"
+              @click="clearSelection"
+            >
               Clear
             </v-btn>
           </div>
         </div>
 
-        <VCalendar :rows="calendarRows" :attributes="attributes" is-dark="system" view="monthly" borderless
-          title-position="left" expanded class="fill-height bg-backgroundDarken" @dayclick="handleDayClick" />
+        <VCalendar
+          :rows="calendarRows"
+          :attributes="attributes"
+          is-dark="system"
+          view="monthly"
+          borderless
+          title-position="left"
+          expanded
+          class="fill-height bg-backgroundDarken"
+          @dayclick="handleDayClick"
+        />
       </v-card>
 
       <!-- Right card: Timeline -->
@@ -368,18 +398,41 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
-          <v-btn v-if="props.isAdmin" @click="handleAdd" rounded="xl" color="primary">Add Event</v-btn>
+          <v-btn
+            v-if="props.isAdmin"
+            rounded="xl"
+            color="primary"
+            @click="handleAdd"
+            >Add Event</v-btn
+          >
         </div>
 
         <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
-          <div v-for="(dayEvents, dateLabel) in filteredEventsGroupedByDate" :key="dateLabel" class="timeline-day">
+          <div
+            v-for="(dayEvents, dateLabel) in filteredEventsGroupedByDate"
+            :key="dateLabel"
+            class="timeline-day"
+          >
             <div v-if="dayEvents.length > 0" class="timeline">
-              <div v-for="(group, time) in groupByStartTime(dayEvents)" :key="time" class="timeline-item">
+              <div
+                v-for="(group, time) in groupByStartTime(dayEvents)"
+                :key="time"
+                class="timeline-item"
+              >
                 <div class="timeline-time">{{ dateLabel }}</div>
                 <div class="timeline-group">
-                  <EventCard v-for="(event, idx) in group" :key="idx" :event="event" :view-only="true"
-                    color="background" :status="getEventCardColor(event.id)" :is-event-viewing="false"
-                    :admin-view="props.isAdmin" @click="openDialog(event)" @edit="handleEdit" />
+                  <EventCard
+                    v-for="(event, idx) in group"
+                    :key="idx"
+                    :event="event"
+                    :view-only="true"
+                    color="background"
+                    :status="getEventCardColor(event.id)"
+                    :is-event-viewing="false"
+                    :admin-view="props.isAdmin"
+                    @click="openDialog(event)"
+                    @edit="handleEdit"
+                  />
                 </div>
               </div>
             </div>
@@ -389,9 +442,15 @@ function selectThisMonth() {
             </div>
           </div>
 
-          <EventDialog v-model="dialogVisible" :event="selectedEvent" :is-admin="props.isAdmin"
-            @record-attendance="handleRecordAttendance" @generate-qr="handleGenerateQRCode" @register="handleRegister"
-            @unregister="handleUnregister" />
+          <EventDialog
+            v-model="dialogVisible"
+            :event="selectedEvent"
+            :is-admin="props.isAdmin"
+            @record-attendance="handleRecordAttendance"
+            @generate-qr="handleGenerateQRCode"
+            @register="handleRegister"
+            @unregister="handleUnregister"
+          />
         </div>
 
         <div v-else>
