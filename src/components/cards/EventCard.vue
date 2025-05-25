@@ -6,7 +6,7 @@ import { userStore } from "../../stores/userStore";
 
 dayjs.extend(advancedFormat);
 
-const emit = defineEmits(["edit", "delete", "show-info"]);
+const emit = defineEmits(["edit", "cancel", "delete", "show-info"]);
 const store = userStore();
 
 const props = defineProps({
@@ -48,6 +48,10 @@ const viewCard = () => {};
 
 const editEvent = () => {
   emit("edit", props.event.id);
+};
+
+const cancelEvent = () => {
+  emit("cancel", props.event.id);
 };
 
 const showEventInfo = () => {
@@ -151,6 +155,13 @@ const resolvedStatusLabel = computed(() => {
             @click.stop="editEvent"
           >
             <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+          </v-btn>
+          <v-btn
+            color="error"
+            class="mr-2 cardButton elevation-0"
+            @click.stop="cancelEvent"
+          >
+            <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
       </v-col>
