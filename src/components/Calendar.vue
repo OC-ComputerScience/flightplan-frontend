@@ -45,6 +45,10 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
+const handleCancel = (eventId) => {
+  console.log("Canceling event:", eventId);
+}
+
 const handleRecordAttendance = (event) => {
   router.push({
     name: "attendanceEvent",
@@ -416,6 +420,7 @@ function selectThisMonth() {
                     :admin-view="props.isAdmin"
                     @click="openDialog(event)"
                     @edit="handleEdit"
+                    @cancel="handleCancel"
                   />
                 </div>
               </div>
