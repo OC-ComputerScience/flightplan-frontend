@@ -45,6 +45,15 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
+const handleAdd = () => {
+  router.push({
+    name: "addEvent",
+    params: {
+      date: selectedDates.value[0].toISOString(),
+    },
+  });
+};
+
 const handleRecordAttendance = (event) => {
   router.push({
     name: "attendanceEvent",
@@ -389,6 +398,13 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <v-btn
+            v-if="props.isAdmin"
+            rounded="xl"
+            color="primary"
+            @click="handleAdd"
+            >Add Event</v-btn
+          >
         </div>
 
         <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
@@ -496,6 +512,7 @@ function selectThisMonth() {
 .calendarDetails-card::-webkit-scrollbar {
   width: 8px;
 }
+
 .calendarDetails-card::-webkit-scrollbar-thumb {
   background-color: rgba(100, 100, 100, 0.3);
   border-radius: 4px;
