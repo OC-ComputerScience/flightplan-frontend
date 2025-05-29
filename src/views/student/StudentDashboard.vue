@@ -122,10 +122,16 @@ const fetchFlightPlanProgress = async () => {
 };
 
 const getEvents = async () => {
+  const today = new Date();
+  const nextSaturday = new Date(today);
+  nextSaturday.setDate(today.getDate() + ((6 - today.getDay + 7) % 7 || 7));
+
   await eventServices
-    .getAllEvents()
+    .getAllEvents(1, 1000, "", { startDate: today, endDate: nextSaturday })
     .then((res) => {
-      events.value = res.data.events.slice(0, 3);
+      events.value = res.data.events.sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
