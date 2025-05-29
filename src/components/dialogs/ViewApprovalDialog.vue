@@ -131,24 +131,16 @@ watch(selectedSubmissionIndex, () => {
 <template>
   <v-dialog v-model="visible" transition="dialog-bottom-transition">
     <v-card v-if="!showReject" color="backgroundDarken rounded-lg">
-      <v-card-title class="d-flex flex-column align-center position-relative">
-        <div class="text-center">
-          Student:
+      <v-card-title class="d-flex justify-space-between align-center">
+        <span class="flex-grow-1 text-center"
+          >Approve: {{ flightPlanItem.name }} for
           {{
             student?.user ? student.user.fName + " " + student.user.lName : ""
-          }}
-        </div>
-        <div class="text-center mb-2">
-          Submission: {{ flightPlanItem.name }}
-        </div>
-
-        <v-icon
-          class="cursor-pointer position-absolute"
-          style="top: 8px; right: 8px"
-          @click="visible = false"
+          }}</span
         >
-          mdi-close
-        </v-icon>
+        <v-icon class="cursor-pointer" @click="visible = false"
+          >mdi-close</v-icon
+        >
       </v-card-title>
       <v-card-text height="100%">
         <v-fade-transition mode="out-in">
