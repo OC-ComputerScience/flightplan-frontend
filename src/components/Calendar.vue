@@ -85,6 +85,16 @@ const confirmCancel = async () => {
   }
 };
 
+const handleAdd = () => {
+  router.push({
+    name: "addEvent",
+    params: {
+      date: selectedDates.value[0].toISOString(),
+    },
+  });
+
+};
+
 
 const handleRecordAttendance = (event) => {
   router.push({
