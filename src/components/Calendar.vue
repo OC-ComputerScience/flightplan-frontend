@@ -67,16 +67,18 @@ const handleCancel = (eventId) => {
 
 const confirmCancel = async () => {
   try {
-    await eventServices.updateEvent(eventToCancel.value, { status: "Cancelled" });
+    await eventServices.updateEvent(eventToCancel.value, {
+      status: "Cancelled",
+    });
     cancelledEventIds.value.add(eventToCancel.value);
-    
+
     await getEvents();
-    
+
     if (selectedEvent.value && selectedEvent.value.id === eventToCancel.value) {
       const updatedEvent = await eventServices.getEvent(eventToCancel.value);
       selectedEvent.value = updatedEvent.data;
     }
-    
+
     await fetchStudentStatus();
   } catch (err) {
     console.error("Error cancelling event:", err);
@@ -498,7 +500,7 @@ function selectThisMonth() {
             @register="handleRegister"
             @unregister="handleUnregister"
           />
-          
+
           <ConfirmDialog
             v-model="confirmCancelDialog"
             title="Cancel Event?"
