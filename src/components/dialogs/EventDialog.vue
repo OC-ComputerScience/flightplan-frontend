@@ -228,7 +228,11 @@ onMounted(() => {
                 Download QR Code PDF
               </v-btn>
               <v-btn
-                v-if="!generatedToken?.token && isEventInFuture && event.status !== 'Cancelled'"
+                v-if="
+                  !generatedToken?.token &&
+                  isEventInFuture &&
+                  event.status !== 'Cancelled'
+                "
                 color="primary"
                 rounded="xl"
                 class="button-full"
@@ -282,7 +286,7 @@ onMounted(() => {
               >
                 Event Cancelled
               </v-btn>
-              </template>
+            </template>
 
             <v-menu v-if="props.isAdmin || registered">
               <template #activator="{ props: menuProps }">
