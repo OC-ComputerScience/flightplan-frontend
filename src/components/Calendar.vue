@@ -7,6 +7,7 @@ import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
+import { getEventCardColor } from "../utils/eventStatus";
 
 const store = userStore();
 const studentId = ref(null);
@@ -28,6 +29,8 @@ const selectedEvent = ref(null);
 const registeredEventIds = ref(new Set());
 const checkedInEventIds = ref(new Set());
 const cancelledEventIds = ref(new Set());
+const registeredEvents = ref([]);
+const checkedInEvents = ref([]);
 const allEvents = ref([]); // Local ref for all events
 const confirmCancelDialog = ref(false);
 const eventToCancel = ref(null);
@@ -136,6 +139,7 @@ const fetchStudentStatus = async () => {
       eventServices.getRegisteredEventsForStudent(studentId.value),
       eventServices.getAttendingEventsForStudent(studentId.value),
     ]);
+
     registeredEventIds.value = new Set(
       registeredRes.data.map((event) => event.id),
     );
@@ -147,6 +151,10 @@ const fetchStudentStatus = async () => {
         .filter((event) => event.status === "Cancelled")
         .map((event) => event.id),
     );
+
+    registeredEvents.value = registeredRes.data;
+    checkedInEvents.value = checkedInRes.data;
+
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -229,7 +237,11 @@ const generateEventDots = (eventList) => {
     return;
   }
   eventDots.value = eventList.map((event, index) => {
-    const color = getEventCardColor(event.id);
+    const color = getEventCardColor(
+      event,
+      checkedInEvents.value,
+      registeredEvents.value,
+    );
     return {
       key: `event-${index}`,
       dot: { color },
@@ -333,6 +345,7 @@ const getEventCardColor = (eventId) => {
   if (registeredEventIds.value.has(eventId)) return "warning";
   return "primary";
 };
+
 
 function clearSelection() {
   selectedDates.value = [];
@@ -464,7 +477,13 @@ function selectThisMonth() {
                     :event="event"
                     :view-only="true"
                     color="background"
-                    :status="getEventCardColor(event.id)"
+                    :status="
+                      getEventCardColor(
+                        event,
+                        checkedInEvents,
+                        registeredEvents,
+                      )
+                    "
                     :is-event-viewing="false"
                     :admin-view="props.isAdmin"
                     @click="openDialog(event)"
