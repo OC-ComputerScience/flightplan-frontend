@@ -98,6 +98,9 @@ onMounted(async () => {
     attendanceTypes.value = attendanceTypesRes.data;
     registrationTypes.value = registrationTypesRes.data;
     experienceOptions.value = experienceRes.data.experiences;
+    if (props.isAdd && route.params.date) {
+      selectedDate.value = new Date(route.params.date);
+    }
     if (!props.isAdd) {
       formData.value = (await eventServices.getEvent(route.params.id)).data;
       formData.value.startTime = formatTime(new Date(formData.value.startTime));

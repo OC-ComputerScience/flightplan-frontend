@@ -72,6 +72,14 @@ const confirmCancel = async () => {
   } catch (err) {
     console.error("Error cancelling event:", err);
   }
+  
+const handleAdd = () => {
+  router.push({
+    name: "addEvent",
+    params: {
+      date: selectedDates.value[0].toISOString(),
+    },
+  });
 };
 
 const handleRecordAttendance = (event) => {
@@ -426,6 +434,13 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <v-btn
+            v-if="props.isAdmin"
+            rounded="xl"
+            color="primary"
+            @click="handleAdd"
+            >Add Event</v-btn
+          >
         </div>
 
         <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
