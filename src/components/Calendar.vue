@@ -27,6 +27,8 @@ const dialogVisible = ref(false);
 const selectedEvent = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
+const cancelledEventIds = ref(new Set());
+
 const allEvents = ref([]); // Local ref for all events
 
 const getEvents = async () => {
@@ -57,7 +59,15 @@ const handleAdd = () => {
 
 const handleCancel = (eventId) => {
   console.log("Canceling event:", eventId);
-}
+  eventServices
+    .updateEvent(eventId, { status: "Cancelled" })
+    .then(() => {
+      getEvents();
+    })
+    .catch((err) => {
+      console.log(error);
+    });
+};
 
 
 const handleRecordAttendance = (event) => {
@@ -113,8 +123,16 @@ const fetchStudentStatus = async () => {
       eventServices.getRegisteredEventsForStudent(studentId.value),
       eventServices.getAttendingEventsForStudent(studentId.value),
     ]);
+
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
+
+    cancelledEventIds.value = new Set(
+      allEvents.value
+        .filter((event) => event.status === "Cancelled")
+        .map((event) => event.id),
+    );
+
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -282,8 +300,8 @@ onMounted(async () => {
   updateRows();
   window.addEventListener("resize", updateRows);
   await fetchStudentId();
-  await fetchStudentStatus();
   await getEvents(); // <-- Load events here
+  await fetchStudentStatus();
 });
 
 onBeforeUnmount(() => {
@@ -296,6 +314,15 @@ function goToToday() {
   lastSelectedDate.value = today;
   updateAttributes();
 }
+
+const getEventCardColor = (eventId) => {
+  if (cancelledEventIds.value.has(eventId)) {
+    return "grey";
+  }
+  if (checkedInEventIds.value.has(eventId)) return "success";
+  if (registeredEventIds.value.has(eventId)) return "warning";
+  return "primary";
+};
 
 function clearSelection() {
   selectedDates.value = [];
