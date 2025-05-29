@@ -26,6 +26,7 @@ const dialogVisible = ref(false);
 const selectedEvent = ref(null);
 const registeredEventIds = ref(new Set());
 const checkedInEventIds = ref(new Set());
+const cancelledEventIds = ref(new Set());
 const allEvents = ref([]); // Local ref for all events
 
 const getEvents = async () => {
@@ -47,7 +48,15 @@ const handleEdit = (eventId) =>
 
 const handleCancel = (eventId) => {
   console.log("Canceling event:", eventId);
-}
+  eventServices
+    .updateEvent(eventId, { status: "Cancelled" })
+    .then(() => {
+      getEvents();
+    })
+    .catch((err) => {
+      console.log(error);
+    });
+};
 
 const handleRecordAttendance = (event) => {
   router.push({
@@ -108,6 +117,13 @@ const fetchStudentStatus = async () => {
     checkedInEventIds.value = new Set(
       checkedInRes.data.map((event) => event.id),
     );
+    cancelledEventIds.value = new Set(
+      allEvents.value
+        .filter((event) => event.status === "Cancelled")
+        .map((event) => event.id),
+    );
+    console.log(allEvents.value)
+    console.log(cancelledEventIds.value);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -271,8 +287,8 @@ onMounted(async () => {
   updateRows();
   window.addEventListener("resize", updateRows);
   await fetchStudentId();
-  await fetchStudentStatus();
   await getEvents(); // <-- Load events here
+  await fetchStudentStatus();
 });
 
 onBeforeUnmount(() => {
@@ -287,6 +303,9 @@ function goToToday() {
 }
 
 const getEventCardColor = (eventId) => {
+  if (cancelledEventIds.value.has(eventId)) {
+    return "grey";
+  }
   if (checkedInEventIds.value.has(eventId)) return "success";
   if (registeredEventIds.value.has(eventId)) return "warning";
   return "primary";
@@ -501,6 +520,7 @@ function selectThisMonth() {
 .calendarDetails-card::-webkit-scrollbar {
   width: 8px;
 }
+
 .calendarDetails-card::-webkit-scrollbar-thumb {
   background-color: rgba(100, 100, 100, 0.3);
   border-radius: 4px;

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
@@ -68,6 +68,8 @@ const resolvedStatusLabel = computed(() => {
       return "Checked In";
     case "warning":
       return "Registered";
+    case "grey":
+      return "Cancelled";
     default:
       return "Not Registered";
   }
