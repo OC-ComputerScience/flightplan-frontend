@@ -22,11 +22,6 @@ const formData = ref({});
 const selectedDate = ref();
 const registrationTypes = ref([]);
 const attendanceTypes = ref([]);
-const eventStatuses = ref([
-  { title: "Upcoming", value: "Upcoming" },
-  { title: "Completed", value: "Completed" },
-  { title: "Cancelled", value: "Cancelled" },
-]);
 const timeOptions = ref(generateTimeOptions());
 const experienceOptions = ref([]);
 
