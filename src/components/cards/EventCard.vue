@@ -159,6 +159,7 @@ const resolvedStatusLabel = computed(() => {
             <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
           </v-btn>
           <v-btn
+            v-if="props.status !== 'grey'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop="cancelEvent"
