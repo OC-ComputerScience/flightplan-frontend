@@ -72,7 +72,8 @@ const confirmCancel = async () => {
   } catch (err) {
     console.error("Error cancelling event:", err);
   }
-  
+};
+
 const handleAdd = () => {
   router.push({
     name: "addEvent",
