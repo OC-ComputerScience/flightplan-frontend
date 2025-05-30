@@ -38,4 +38,14 @@ export default {
       },
     });
   },
+  addStrength(experienceId, strengthId) {
+    return apiClient.put(`/experience/${experienceId}/strengths`, {
+      strengthId,
+    });
+  },
+  removeStrength(experienceId, strengthId) {
+    return apiClient.delete(`/experience/${experienceId}/strengths`, {
+      data: { strengthId },
+    });
+  },
 };

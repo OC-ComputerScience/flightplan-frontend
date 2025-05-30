@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required } from "../../../utils/formValidators";
+import { required, atLeast } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
+import strengthServices from "../../../services/strengthServices";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -13,9 +14,14 @@ const categories = ref([]);
 const schedulingTypes = ref([]);
 const submissionTypes = ref([]);
 const semesterTypes = ref(semesters);
+const strengths = ref([]);
+const initialStrengths = ref([]);
+const strengthOptions = ref([]);
 
 const route = useRoute();
 const router = useRouter();
+
+const requiredNumberOfStrengths = 1;
 
 const handleCancel = () => {
   router.push({ name: "experience" });
@@ -34,9 +40,28 @@ const handleSubmit = async () => {
     }
 
     if (props.isAdd) {
-      await experienceServices.createExperience(submitData);
+      const experience = (await experienceServices.createExperience(submitData))
+        .data;
+      console.log(experience);
+      for (const strength of strengths.value) {
+        await experienceServices.addStrength(experience.id, strength);
+      }
     } else {
       await experienceServices.updateExperience(route.params.id, submitData);
+
+      // Adds new experience strengths
+      for (const strength of strengths.value) {
+        if (!initialStrengths.value.some((s) => s.id === strength)) {
+          await experienceServices.addStrength(route.params.id, strength);
+        }
+      }
+
+      // Removes deselected experience strengths
+      for (const strength of initialStrengths.value) {
+        if (!strengths.value.some((s) => s === strength.id)) {
+          await experienceServices.removeStrength(route.params.id, strength.id);
+        }
+      }
     }
 
     router.push({ name: "experience" });
@@ -47,11 +72,12 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
-    const [categoriesRes, schedulingRes, submissionTypesRes] =
+    const [categoriesRes, schedulingRes, submissionTypesRes, strengthsRes] =
       await Promise.all([
         experienceServices.getCategories(),
         experienceServices.getSchedulingTypes(),
         experienceServices.getSubmissionTypes(),
+        strengthServices.getAllStrengths(),
       ]);
 
     categories.value = categoriesRes.data;
@@ -59,6 +85,13 @@ onMounted(async () => {
     submissionTypes.value = submissionTypesRes.data.map((type) =>
       type === "both" ? "text & files" : type,
     );
+
+    // Fetch strengths and map them to options
+    strengthOptions.value = strengthsRes.data.map((strength) => ({
+      title: strength.name,
+      value: strength.id,
+      ...strength,
+    }));
 
     if (!props.isAdd) {
       const experience = (
@@ -71,6 +104,17 @@ onMounted(async () => {
       }
 
       formData.value = experience;
+
+      // Load existing strength associations
+      const experienceStrengths =
+        await strengthServices.getStrengthForExperience(route.params.id);
+      strengths.value = experienceStrengths.data.map((experienceStrength) => ({
+        title: experienceStrength.name,
+        value: experienceStrength.id,
+        ...experienceStrength,
+      }));
+      initialStrengths.value = strengths.value;
+      console.log(initialStrengths.value);
     }
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -135,6 +179,20 @@ onMounted(async () => {
             :rules="[required]"
           ></v-select>
         </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-select
+          v-model="strengths"
+          variant="solo"
+          rounded="lg"
+          label="Strengths"
+          :items="strengthOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+          :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
+        ></v-select>
       </v-row>
 
       <v-text-field
