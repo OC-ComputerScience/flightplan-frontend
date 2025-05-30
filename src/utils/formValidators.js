@@ -18,6 +18,9 @@ export const fileTypeRule = (value) => {
   );
 };
 
+export const atLeast = (value, min) =>
+  value.length >= min ? true : `Must select at least ${min} option(s)`;
+
 const getFileExtension = (fileName) => {
   if (!fileName || typeof fileName !== "string") return null;
   const parts = fileName.split(".");
