@@ -42,7 +42,6 @@ const handleSubmit = async () => {
     if (props.isAdd) {
       const experience = (await experienceServices.createExperience(submitData))
         .data;
-      console.log(experience);
       for (const strength of strengths.value) {
         await experienceServices.addStrength(experience.id, strength);
       }
@@ -114,7 +113,6 @@ onMounted(async () => {
         ...experienceStrength,
       }));
       initialStrengths.value = strengths.value;
-      console.log(initialStrengths.value);
     }
   } catch (error) {
     console.error("Error fetching data:", error);
