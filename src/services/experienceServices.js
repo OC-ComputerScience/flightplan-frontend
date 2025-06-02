@@ -48,4 +48,14 @@ export default {
       data: { strengthId },
     });
   },
+  addMajor(experienceId, majorId) {
+    return apiClient.put(`/experience/${experienceId}/majors`, {
+      majorId,
+    });
+  },
+  removeMajor(experienceId, majorId) {
+    return apiClient.delete(`/experience/${experienceId}/majors`, {
+      data: { majorId },
+    });
+  },
 };

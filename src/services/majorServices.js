@@ -1,6 +1,9 @@
 import apiClient from "./services.js";
 
 export default {
+  getMajorForExperience(experienceId) {
+    return apiClient.get(`/majors/experience/${experienceId}`);
+  },
   getAllMajors(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/majors", {
       params: {
