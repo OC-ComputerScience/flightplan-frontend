@@ -56,29 +56,36 @@ const handleSubmit = async () => {
     } else {
       await experienceServices.updateExperience(route.params.id, submitData);
 
+      const getId = (item) =>
+        typeof item === "object" && item !== null ? item.id : item;
+
       // Adds new experience strengths
       for (const strength of strengths.value) {
-        if (!initialStrengths.value.some((s) => s.id === strength)) {
-          await experienceServices.addStrength(route.params.id, strength);
+        const strengthId = getId(strength);
+        if (!initialStrengths.value.some((s) => getId(s) === strengthId)) {
+          await experienceServices.addStrength(route.params.id, strengthId);
         }
       }
       // Removes deselected experience strengths
       for (const strength of initialStrengths.value) {
-        if (!strengths.value.some((s) => s === strength.id)) {
-          await experienceServices.removeStrength(route.params.id, strength.id);
+        const strengthId = getId(strength);
+        if (!strengths.value.some((s) => getId(s) === strengthId)) {
+          await experienceServices.removeStrength(route.params.id, strengthId);
         }
       }
 
       // Adds new experience majors
       for (const major of majors.value) {
-        if (!initialMajors.value.some((s) => s.id === major)) {
-          await experienceServices.addMajor(route.params.id, major);
+        const majorId = getId(major);
+        if (!initialMajors.value.some((m) => getId(m) === majorId)) {
+          await experienceServices.addMajor(route.params.id, majorId);
         }
       }
       // Removes deselected experience majors
       for (const major of initialMajors.value) {
-        if (!majors.value.some((s) => s === major.id)) {
-          await experienceServices.removeMajor(route.params.id, major.id);
+        const majorId = getId(major);
+        if (!majors.value.some((m) => getId(m) === majorId)) {
+          await experienceServices.removeMajor(route.params.id, majorId);
         }
       }
     }
