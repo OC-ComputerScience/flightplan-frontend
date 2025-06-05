@@ -5,6 +5,7 @@ import { required, atLeast } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
 import strengthServices from "../../../services/strengthServices";
+import majorServices from "../../../services/majorServices";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -17,11 +18,15 @@ const semesterTypes = ref(semesters);
 const strengths = ref([]);
 const initialStrengths = ref([]);
 const strengthOptions = ref([]);
+const majors = ref([]);
+const initialMajors = ref([]);
+const majorOptions = ref([]);
 
 const route = useRoute();
 const router = useRouter();
 
 const requiredNumberOfStrengths = 1;
+const requiredNumberOfMajors = 1;
 
 const handleCancel = () => {
   router.push({ name: "experience" });
@@ -45,20 +50,42 @@ const handleSubmit = async () => {
       for (const strength of strengths.value) {
         await experienceServices.addStrength(experience.id, strength);
       }
+      for (const major of majors.value) {
+        await experienceServices.addMajor(experience.id, major);
+      }
     } else {
       await experienceServices.updateExperience(route.params.id, submitData);
 
+      const getId = (item) =>
+        typeof item === "object" && item !== null ? item.id : item;
+
       // Adds new experience strengths
       for (const strength of strengths.value) {
-        if (!initialStrengths.value.some((s) => s.id === strength)) {
-          await experienceServices.addStrength(route.params.id, strength);
+        const strengthId = getId(strength);
+        if (!initialStrengths.value.some((s) => getId(s) === strengthId)) {
+          await experienceServices.addStrength(route.params.id, strengthId);
+        }
+      }
+      // Removes deselected experience strengths
+      for (const strength of initialStrengths.value) {
+        const strengthId = getId(strength);
+        if (!strengths.value.some((s) => getId(s) === strengthId)) {
+          await experienceServices.removeStrength(route.params.id, strengthId);
         }
       }
 
-      // Removes deselected experience strengths
-      for (const strength of initialStrengths.value) {
-        if (!strengths.value.some((s) => s === strength.id)) {
-          await experienceServices.removeStrength(route.params.id, strength.id);
+      // Adds new experience majors
+      for (const major of majors.value) {
+        const majorId = getId(major);
+        if (!initialMajors.value.some((m) => getId(m) === majorId)) {
+          await experienceServices.addMajor(route.params.id, majorId);
+        }
+      }
+      // Removes deselected experience majors
+      for (const major of initialMajors.value) {
+        const majorId = getId(major);
+        if (!majors.value.some((m) => getId(m) === majorId)) {
+          await experienceServices.removeMajor(route.params.id, majorId);
         }
       }
     }
@@ -71,13 +98,19 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
-    const [categoriesRes, schedulingRes, submissionTypesRes, strengthsRes] =
-      await Promise.all([
-        experienceServices.getCategories(),
-        experienceServices.getSchedulingTypes(),
-        experienceServices.getSubmissionTypes(),
-        strengthServices.getAllStrengths(),
-      ]);
+    const [
+      categoriesRes,
+      schedulingRes,
+      submissionTypesRes,
+      strengthsRes,
+      majorsRes,
+    ] = await Promise.all([
+      experienceServices.getCategories(),
+      experienceServices.getSchedulingTypes(),
+      experienceServices.getSubmissionTypes(),
+      strengthServices.getAllStrengths(),
+      majorServices.getAllMajors(),
+    ]);
 
     categories.value = categoriesRes.data;
     schedulingTypes.value = schedulingRes.data;
@@ -90,6 +123,13 @@ onMounted(async () => {
       title: strength.name,
       value: strength.id,
       ...strength,
+    }));
+
+    // Fetch majors and map them to options
+    majorOptions.value = majorsRes.data.majors.map((major) => ({
+      title: major.name,
+      value: major.id,
+      ...major,
     }));
 
     if (!props.isAdd) {
@@ -113,6 +153,17 @@ onMounted(async () => {
         ...experienceStrength,
       }));
       initialStrengths.value = strengths.value;
+
+      // Load existing majors associations
+      const experienceMajors = await majorServices.getMajorForExperience(
+        route.params.id,
+      );
+      majors.value = experienceMajors.data.map((experienceMajor) => ({
+        title: experienceMajor.name,
+        value: experienceMajor.id,
+        ...experienceMajor,
+      }));
+      initialMajors.value = majors.value;
     }
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -179,7 +230,7 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <v-row no-gutters>
-        <v-select
+        <v-autocomplete
           v-model="strengths"
           variant="solo"
           rounded="lg"
@@ -190,7 +241,21 @@ onMounted(async () => {
           multiple
           chips
           :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
-        ></v-select>
+        ></v-autocomplete>
+      </v-row>
+      <v-row no-gutters>
+        <v-autocomplete
+          v-model="majors"
+          variant="solo"
+          rounded="lg"
+          label="Majors"
+          :items="majorOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+          :rules="[atLeast(majors, requiredNumberOfMajors)]"
+        ></v-autocomplete>
       </v-row>
 
       <v-text-field
