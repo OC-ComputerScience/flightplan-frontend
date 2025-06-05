@@ -230,7 +230,7 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <v-row no-gutters>
-        <v-select
+        <v-autocomplete
           v-model="strengths"
           variant="solo"
           rounded="lg"
@@ -241,10 +241,10 @@ onMounted(async () => {
           multiple
           chips
           :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
-        ></v-select>
+        ></v-autocomplete>
       </v-row>
       <v-row no-gutters>
-        <v-select
+        <v-autocomplete
           v-model="majors"
           variant="solo"
           rounded="lg"
@@ -255,7 +255,7 @@ onMounted(async () => {
           multiple
           chips
           :rules="[atLeast(majors, requiredNumberOfMajors)]"
-        ></v-select>
+        ></v-autocomplete>
       </v-row>
 
       <v-text-field
