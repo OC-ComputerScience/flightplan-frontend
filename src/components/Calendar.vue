@@ -309,7 +309,7 @@ onMounted(async () => {
   updateRows();
   window.addEventListener("resize", updateRows);
   await fetchStudentId();
-  await fetchStudentStatus();
+  // await fetchStudentStatus();
   await getEvents(); // <-- Load events here
   await fetchStudentStatus();
 });
@@ -460,6 +460,7 @@ function selectThisMonth() {
                         event,
                         checkedInEvents,
                         registeredEvents,
+                        cancelledEventIds,
                       )
                     "
                     :is-event-viewing="false"
