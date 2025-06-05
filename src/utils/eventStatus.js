@@ -5,7 +5,7 @@ export const getEventCardColor = (
   cancelledEvents,
 ) => {
   console.log("Cancelled Events:", cancelledEvents);
-  if (cancelledEvents.includes(event.id)) return "grey";
+  if (cancelledEvents.some((e) => e.id === event.id)) return "grey";
   if (checkedInEvents.some((e) => e.id === event.id)) return "success";
   if (registeredEvents.some((e) => e.id === event.id)) return "warning";
   return "primary";

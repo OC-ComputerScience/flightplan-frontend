@@ -28,7 +28,7 @@ const dialogVisible = ref(false);
 const selectedEvent = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
-const cancelledEventIds = ref([]);
+const cancelledEvents = ref([]);
 const allEvents = ref([]); // Local ref for all events
 
 const confirmCancelDialog = ref(false);
@@ -62,7 +62,7 @@ const confirmCancel = async () => {
     await eventServices.updateEvent(eventToCancel.value, {
       status: "Cancelled",
     });
-    cancelledEventIds.value.push(eventToCancel.value);
+    cancelledEvents.value.push(eventToCancel.value);
     await getEvents();
     if (selectedEvent.value && selectedEvent.value.id === eventToCancel.value) {
       const updatedEvent = await eventServices.getEvent(eventToCancel.value);
@@ -138,9 +138,8 @@ const fetchStudentStatus = async () => {
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
 
-    cancelledEventIds.value = allEvents.value
+    cancelledEvents.value = allEvents.value
       .filter((event) => event.status === "Cancelled")
-      .map((event) => event.id);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -227,7 +226,7 @@ const generateEventDots = (eventList) => {
       event,
       checkedInEvents.value,
       registeredEvents.value,
-      cancelledEventIds.value,
+      cancelledEvents.value,
     );
     return {
       key: `event-${index}`,
@@ -460,7 +459,7 @@ function selectThisMonth() {
                         event,
                         checkedInEvents,
                         registeredEvents,
-                        cancelledEventIds,
+                        cancelledEvents,
                       )
                     "
                     :is-event-viewing="false"
