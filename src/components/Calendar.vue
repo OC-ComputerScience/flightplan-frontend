@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import EventCard from "./cards/EventCard.vue";
 import EventDialog from "./dialogs/EventDialog.vue";
+import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
 import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
@@ -27,7 +28,11 @@ const dialogVisible = ref(false);
 const selectedEvent = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
+const cancelledEventIds = ref([]);
 const allEvents = ref([]); // Local ref for all events
+
+const confirmCancelDialog = ref(false);
+const eventToCancel = ref(null);
 
 const getEvents = async () => {
   try {
@@ -46,6 +51,28 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
+// handleCancel
+const handleCancel = (eventId) => {
+  eventToCancel.value = eventId;
+  confirmCancelDialog.value = true;
+};
+
+const confirmCancel = async () => {
+  try {
+    await eventServices.updateEvent(eventToCancel.value, {
+      status: "Cancelled",
+    });
+    cancelledEventIds.value.push(eventToCancel.value);
+    await getEvents();
+    if (selectedEvent.value && selectedEvent.value.id === eventToCancel.value) {
+      const updatedEvent = await eventServices.getEvent(eventToCancel.value);
+      selectedEvent.value = updatedEvent.data;
+    }
+    await fetchStudentStatus();
+  } catch (err) {
+    console.error("Error cancelling event:", err);
+  }
+};
 const handleAdd = () => {
   router.push({
     name: "addEvent",
@@ -110,6 +137,10 @@ const fetchStudentStatus = async () => {
     ]);
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
+
+    cancelledEventIds.value = allEvents.value
+      .filter((event) => event.status === "Cancelled")
+      .map((event) => event.id);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -196,6 +227,7 @@ const generateEventDots = (eventList) => {
       event,
       checkedInEvents.value,
       registeredEvents.value,
+      cancelledEventIds.value,
     );
     return {
       key: `event-${index}`,
@@ -279,6 +311,7 @@ onMounted(async () => {
   await fetchStudentId();
   await fetchStudentStatus();
   await getEvents(); // <-- Load events here
+  await fetchStudentStatus();
 });
 
 onBeforeUnmount(() => {
@@ -433,6 +466,7 @@ function selectThisMonth() {
                     :admin-view="props.isAdmin"
                     @click="openDialog(event)"
                     @edit="handleEdit"
+                    @cancel="handleCancel"
                   />
                 </div>
               </div>
@@ -451,6 +485,15 @@ function selectThisMonth() {
             @generate-qr="handleGenerateQRCode"
             @register="handleRegister"
             @unregister="handleUnregister"
+          />
+
+          <ConfirmDialog
+            v-model="confirmCancelDialog"
+            title="Cancel Event?"
+            confirm-text="Yes, Cancel Event"
+            cancel-text="No, Close"
+            confirm-color="error"
+            @confirm="confirmCancel"
           />
         </div>
 

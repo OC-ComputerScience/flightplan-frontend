@@ -6,7 +6,7 @@ import { userStore } from "../../stores/userStore";
 
 dayjs.extend(advancedFormat);
 
-const emit = defineEmits(["edit", "delete", "show-info"]);
+const emit = defineEmits(["edit", "cancel", "delete", "show-info"]);
 const store = userStore();
 
 const props = defineProps({
@@ -50,6 +50,10 @@ const editEvent = () => {
   emit("edit", props.event.id);
 };
 
+const cancelEvent = () => {
+  emit("cancel", props.event.id);
+};
+
 const showEventInfo = () => {
   emit("show-info", props.event.id);
 };
@@ -64,6 +68,8 @@ const resolvedStatusLabel = computed(() => {
       return "Checked In";
     case "warning":
       return "Registered";
+    case "grey":
+      return "Cancelled";
     default:
       return "Not Registered";
   }
@@ -108,6 +114,7 @@ const resolvedStatusLabel = computed(() => {
           >
             <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
           </v-btn>
+
           <v-btn
             color="danger"
             class="cardButton elevation-0"
@@ -152,6 +159,14 @@ const resolvedStatusLabel = computed(() => {
           >
             <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
           </v-btn>
+          <v-btn
+            v-if="props.status !== 'grey'"
+            color="error"
+            class="mr-2 cardButton elevation-0"
+            @click.stop="cancelEvent"
+          >
+            <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
+          </v-btn>
         </v-row>
       </v-col>
     </v-row>
@@ -163,13 +178,16 @@ const resolvedStatusLabel = computed(() => {
   width: 20px;
   border-radius: 20px 0px 0px 20px;
 }
+
 .cardContainer {
   min-width: 250px;
   border-radius: 25px;
 }
+
 .card-radius {
   border-radius: 25px;
 }
+
 .cardButton {
   border-radius: 13px;
 }
