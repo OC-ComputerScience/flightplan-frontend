@@ -138,8 +138,9 @@ const fetchStudentStatus = async () => {
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
 
-    cancelledEvents.value = allEvents.value
-      .filter((event) => event.status === "Cancelled")
+    cancelledEvents.value = allEvents.value.filter(
+      (event) => event.status === "Cancelled",
+    );
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
