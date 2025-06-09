@@ -1,9 +1,14 @@
 import apiClient from "./services.js";
 
 export default {
+  getMajorsForStudent(studentId) {
+    return apiClient.get(`/majors/student/${studentId}`);
+  },
+
   getMajorForExperience(experienceId) {
     return apiClient.get(`/majors/experience/${experienceId}`);
   },
+
   getAllMajors(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/majors", {
       params: {

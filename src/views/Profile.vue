@@ -95,6 +95,10 @@ const getBadges = async (id, page = 1) => {
   }
 };
 
+// Handlers
+const handleEdit = (userId) =>
+  router.push({ name: "editUser", params: { id: userId } });
+
 const fetchUnviewedBadges = async () => {
   const response = await badgeServices.getUnviewedBadges(route.params.userId);
   if (response.data.length > 0) {
@@ -213,6 +217,17 @@ onMounted(async () => {
             @click="toFlightPlan"
             >mdi-airplane</v-icon
           >
+        </v-col>
+        <v-spacer />
+        <v-col cols="1" class="d-flex justify-end align-right">
+          <v-btn
+            v-if="store.user.userId == route.params.userId"
+            color="primary"
+            class="mr-2 cardButton elevation-0"
+            @click.stop="handleEdit(route.params.userId)"
+          >
+            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+          </v-btn>
         </v-col>
       </v-row>
     </v-card>
