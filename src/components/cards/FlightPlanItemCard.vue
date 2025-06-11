@@ -286,7 +286,7 @@ const handleViewRegisteredEvent = async () => {
                 rounded="xl"
                 @click="emit('incomplete', flightPlanItem)"
               >
-                Start
+                Complete
                 <v-icon right class="pl-1">mdi-upload</v-icon>
               </v-btn>
               <v-btn

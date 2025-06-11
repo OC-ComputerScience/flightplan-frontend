@@ -135,7 +135,7 @@ const resolvedStatusLabel = computed(() => {
             {{ props.event.location }}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
-            {{ eventDate }}
+            {{ props.event.date }}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
