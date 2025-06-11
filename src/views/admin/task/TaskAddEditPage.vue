@@ -169,17 +169,17 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <v-autocomplete
-          v-model="majors"
-          variant="solo"
-          rounded="lg"
-          label="Majors"
-          :items="majorOptions"
-          item-value="value"
-          item-title="title"
-          multiple
-          chips
-          :rules="[atLeast(majors, requiredNumberOfMajors)]"
-        ></v-autocomplete>
+        v-model="majors"
+        variant="solo"
+        rounded="lg"
+        label="Majors"
+        :items="majorOptions"
+        item-value="value"
+        item-title="title"
+        multiple
+        chips
+        :rules="[atLeast(majors, requiredNumberOfMajors)]"
+      ></v-autocomplete>
       <v-textarea
         v-model="formData.description"
         variant="solo"
