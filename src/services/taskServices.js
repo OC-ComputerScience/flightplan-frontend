@@ -38,6 +38,13 @@ export default {
   deleteTask(taskId) {
     return apiClient.delete(`/task/${taskId}`);
   },
+  addMajor(taskId, majorId) {
+    console.log("Adding major:", majorId, "to task:", taskId);
+    return apiClient.post(`/task/${taskId}/majors/${majorId}`);
+  },
+  removeMajor(taskId, majorId) {
+    return apiClient.delete(`/task/${taskId}/majors/${majorId}`);
+  },
   getAllOptionalTasksForStudent(studentId, searchQuery) {
     return apiClient.get(`/task/optional/${studentId}`, {
       params: {

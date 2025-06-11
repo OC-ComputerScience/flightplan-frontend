@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, positiveNumber } from "../../../utils/formValidators";
+import { required, atLeast } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
+import majorServices from "../../../services/majorServices";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -14,8 +15,14 @@ const schedulingTypes = ref([]);
 const submissionTypes = ref([]);
 const semesterTypes = ref(semesters);
 
+const majors = ref([]);
+const initialMajors = ref([]);
+const majorOptions = ref([]);
+
 const route = useRoute();
 const router = useRouter();
+
+const requiredNumberOfMajors = 1;
 
 const handleCancel = () => {
   router.push({ name: "task" });
@@ -26,10 +33,27 @@ const handleSubmit = async () => {
   if (!isValid) return;
 
   try {
+    const submitData = { ...formData.value };
+
     if (props.isAdd) {
-      await taskServices.createTask(formData.value);
+      const task = (await taskServices.createTask(submitData)).data;
+      for (const major of majors.value) {
+        await taskServices.addMajor(task.id, major);
+      }
     } else {
-      await taskServices.updateTask(route.params.id, formData.value);
+      await taskServices.updateTask(route.params.id, submitData);
+
+      for (const major of majors.value) {
+        if (!initialMajors.value.some((m) => m.value === major)) {
+          await taskServices.addMajor(route.params.id, major);
+        }
+      }
+
+      for (const major of initialMajors.value) {
+        if (!majors.value.some((m) => m === major.id)) {
+          await taskServices.removeMajor(route.params.id, major.id);
+        }
+      }
     }
     router.push({ name: "task" });
   } catch (error) {
@@ -39,19 +63,37 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
-    const [categoriesRes, schedulingRes, submissionTypesRes] =
+    const [categoriesRes, schedulingRes, submissionTypesRes, majorsRes] =
       await Promise.all([
         taskServices.getCategories(),
         taskServices.getSchedulingTypes(),
         taskServices.getSubmissionTypes(),
+        majorServices.getAllMajors(),
       ]);
 
     categories.value = categoriesRes.data;
     schedulingTypes.value = schedulingRes.data;
     submissionTypes.value = submissionTypesRes.data;
 
+    // Fetch majors and map them to options
+    majorOptions.value = majorsRes.data.majors.map((major) => ({
+      title: major.name,
+      value: major.id,
+      ...major,
+    }));
+
     if (!props.isAdd) {
-      formData.value = (await taskServices.getTask(route.params.id)).data;
+      // Fetch the task and its associated majors
+      const task = (await taskServices.getTask(route.params.id)).data;
+      formData.value = task;
+
+      const taskMajors = await majorServices.getMajorForTask(route.params.id);
+      majors.value = taskMajors.data.map((taskMajor) => ({
+        value: taskMajor.id,
+        title: taskMajor.name,
+        ...taskMajor,
+      }));
+      initialMajors.value = majors.value; // Store initial majors for comparison
     }
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -126,6 +168,18 @@ onMounted(async () => {
           ></v-select>
         </v-col>
       </v-row>
+      <v-autocomplete
+          v-model="majors"
+          variant="solo"
+          rounded="lg"
+          label="Majors"
+          :items="majorOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+          :rules="[atLeast(majors, requiredNumberOfMajors)]"
+        ></v-autocomplete>
       <v-textarea
         v-model="formData.description"
         variant="solo"
