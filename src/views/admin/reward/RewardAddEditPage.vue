@@ -23,6 +23,9 @@ const form = ref(null);
 const formData = ref({});
 const image = ref(null);
 
+// Form data
+const redemptionTypes = ['In-Person', 'Digital'];
+
 // Functions
 const handleCancel = () => {
   router.push({ name: "reward" });
@@ -117,13 +120,14 @@ onMounted(async () => {
           ></v-text-field>
         </v-col>
         <v-col size="6">
-          <v-text-field
+          <v-select
             v-model="formData.redemptionType"
+            :items="redemptionTypes"
             variant="solo"
             rounded="lg"
             label="Redemption Type"
             :rules="[required]"
-          ></v-text-field>
+          ></v-select>
         </v-col>
       </v-row>
       <v-text-field
