@@ -287,7 +287,6 @@ const validateEndTimeWrapper = (value) => {
           @click="handleSubmit"
           >Submit</v-btn
         >
-        <v-btn rounded="xl" color="primary" @click="handleSubmit">Submit</v-btn>
       </v-row>
     </v-container>
   </v-form>
