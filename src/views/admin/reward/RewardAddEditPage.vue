@@ -24,7 +24,7 @@ const formData = ref({});
 const image = ref(null);
 
 // Form data
-const redemptionTypes = ['In-Person', 'Digital'];
+const redemptionTypes = ["In-Person", "Digital"];
 
 // Functions
 const handleCancel = () => {
