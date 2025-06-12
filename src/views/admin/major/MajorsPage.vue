@@ -40,14 +40,13 @@ const sortOptions = ref({
 const display = useDisplay();
 
 const numCardColumns = computed(() => {
-  if (display.xxl.value) return 3;
-  if (display.xl.value) return showFilters.value ? 2 : 3;
-  if (display.lg.value) return showFilters.value ? 2 : 3;
-  if (display.md.value) return 2;
+  if (display.xxl.value) return 4;
+  if (display.xl.value || display.lg.value) return showFilters.value ? 3 : 4;
+  if (display.md.value) return showFilters.value ? 2 : 3;
   if (display.sm.value) return showFilters.value ? 1 : 2;
   return 1; // Default for xs
 });
-const pageSize = computed(() => numCardColumns.value * 2);
+const pageSize = computed(() => numCardColumns.value * 3);
 
 // Fetch majors
 const getMajors = async (pageNumber = page.value) => {
@@ -120,8 +119,8 @@ onMounted(() => {
     <CardTable
       :items="majors"
       :show-filters="showFilters"
-      :per-row-lg="showFilters ? 2 : 3"
-      :per-row-md="2"
+      :per-row-lg="showFilters ? 3 : 4"
+      :per-row-md="showFilters ? 2 : 3"
       :per-row-sm="showFilters ? 1 : 2"
       @update-filters="handleChangeFilters"
       @clear-filters="handleClearFilters"

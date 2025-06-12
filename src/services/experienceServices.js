@@ -38,4 +38,24 @@ export default {
       },
     });
   },
+  addStrength(experienceId, strengthId) {
+    return apiClient.put(`/experience/${experienceId}/strengths`, {
+      strengthId,
+    });
+  },
+  removeStrength(experienceId, strengthId) {
+    return apiClient.delete(`/experience/${experienceId}/strengths`, {
+      data: { strengthId },
+    });
+  },
+  addMajor(experienceId, majorId) {
+    return apiClient.put(`/experience/${experienceId}/majors`, {
+      majorId,
+    });
+  },
+  removeMajor(experienceId, majorId) {
+    return apiClient.delete(`/experience/${experienceId}/majors`, {
+      data: { majorId },
+    });
+  },
 };

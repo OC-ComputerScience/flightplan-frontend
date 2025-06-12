@@ -11,7 +11,11 @@ import { userStore } from "../../stores/userStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
+import { getEventCardColor } from "../../utils/eventStatus";
 
+const studentId = ref(null);
+const registeredEvents = ref([]);
+const checkedInEvents = ref([]);
 const notifications = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(14);
@@ -54,6 +58,31 @@ const fetchStudent = async () => {
     points.value = pointsResponse.data.points;
   } catch (err) {
     console.error("Error fetching student data:", err);
+  }
+};
+
+const fetchStudentId = async () => {
+  try {
+    const userId = store.user?.userId;
+    if (!userId) return;
+    const res = await studentServices.getStudentForUserId(userId);
+    studentId.value = res.data.id;
+  } catch (err) {
+    console.error("Failed to fetch student ID:", err);
+  }
+};
+
+const fetchStudentStatus = async () => {
+  if (!studentId.value) return;
+  try {
+    const [registeredRes, checkedInRes] = await Promise.all([
+      eventServices.getRegisteredEventsForStudent(studentId.value),
+      eventServices.getAttendingEventsForStudent(studentId.value),
+    ]);
+    registeredEvents.value = registeredRes.data;
+    checkedInEvents.value = checkedInRes.data;
+  } catch (err) {
+    console.error("Error fetching student status:", err);
   }
 };
 
@@ -122,10 +151,16 @@ const fetchFlightPlanProgress = async () => {
 };
 
 const getEvents = async () => {
+  const today = new Date();
+  const nextSaturday = new Date(today);
+  nextSaturday.setDate(today.getDate() + ((6 - today.getDay + 7) % 7 || 7));
+
   await eventServices
-    .getAllEvents()
+    .getAllEvents(1, 1000, "", { startDate: today, endDate: nextSaturday })
     .then((res) => {
-      events.value = res.data.events.slice(0, 3);
+      events.value = res.data.events.sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
@@ -148,6 +183,8 @@ onMounted(async () => {
     fetchFlightPlan(),
     getEvents(),
   ]);
+  await fetchStudentId();
+  await fetchStudentStatus();
 });
 </script>
 
@@ -205,7 +242,7 @@ onMounted(async () => {
               color="background"
               :to="{ name: 'student-flightPlan' }"
               :is-flight-plan-view="false"
-              backgroundColor="background"
+              background-color="background"
               @click="openFlightPlanItem(item)"
             />
           </template>
@@ -256,6 +293,9 @@ onMounted(async () => {
             :key="index"
             color="background"
             :view-only="true"
+            :status="
+              getEventCardColor(event, checkedInEvents, registeredEvents)
+            "
             :event="event"
             class="event"
             :to="{ name: 'student-calendar' }"

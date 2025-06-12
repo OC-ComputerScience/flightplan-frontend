@@ -144,7 +144,7 @@ const adminEventRoutes = [
     props: { isAdd: false },
   },
   {
-    path: "maintenance/event/add",
+    path: "maintenance/event/add/:date?",
     name: "addEvent",
     component: EventAddEditPage,
     props: { isAdd: true },

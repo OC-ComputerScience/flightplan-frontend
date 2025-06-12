@@ -26,6 +26,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  adminView: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const eventDate = computed(() => {
@@ -131,7 +135,7 @@ const resolvedStatusLabel = computed(() => {
             {{ props.event.location }}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
-            {{ eventDate }}
+            {{ props.event.description }}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
@@ -140,6 +144,15 @@ const resolvedStatusLabel = computed(() => {
             {{ statusLabel }}
           </p>
         </v-card-text>
+        <v-row v-if="props.adminView" class="ma-2 float-left">
+          <v-btn
+            color="warning"
+            class="mr-2 cardButton elevation-0"
+            @click.stop="editEvent"
+          >
+            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+          </v-btn>
+        </v-row>
       </v-col>
     </v-row>
   </v-card>

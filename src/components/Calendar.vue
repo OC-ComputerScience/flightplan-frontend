@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
+import { getEventCardColor } from "../utils/eventStatus";
 
 const store = userStore();
 const studentId = ref(null);
@@ -24,8 +25,8 @@ const props = defineProps({
 
 const dialogVisible = ref(false);
 const selectedEvent = ref(null);
-const registeredEventIds = ref(new Set());
-const checkedInEventIds = ref(new Set());
+const registeredEvents = ref([]);
+const checkedInEvents = ref([]);
 const allEvents = ref([]); // Local ref for all events
 
 const getEvents = async () => {
@@ -40,6 +41,18 @@ const getEvents = async () => {
 const openDialog = (event) => {
   selectedEvent.value = event;
   dialogVisible.value = true;
+};
+
+const handleEdit = (eventId) =>
+  router.push({ name: "editEvent", params: { id: eventId } });
+
+const handleAdd = () => {
+  router.push({
+    name: "addEvent",
+    params: {
+      date: selectedDates.value[0].toISOString(),
+    },
+  });
 };
 
 const handleRecordAttendance = (event) => {
@@ -95,12 +108,8 @@ const fetchStudentStatus = async () => {
       eventServices.getRegisteredEventsForStudent(studentId.value),
       eventServices.getAttendingEventsForStudent(studentId.value),
     ]);
-    registeredEventIds.value = new Set(
-      registeredRes.data.map((event) => event.id),
-    );
-    checkedInEventIds.value = new Set(
-      checkedInRes.data.map((event) => event.id),
-    );
+    registeredEvents.value = registeredRes.data;
+    checkedInEvents.value = checkedInRes.data;
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -183,7 +192,11 @@ const generateEventDots = (eventList) => {
     return;
   }
   eventDots.value = eventList.map((event, index) => {
-    const color = getEventCardColor(event.id);
+    const color = getEventCardColor(
+      event,
+      checkedInEvents.value,
+      registeredEvents.value,
+    );
     return {
       key: `event-${index}`,
       dot: { color },
@@ -278,12 +291,6 @@ function goToToday() {
   lastSelectedDate.value = today;
   updateAttributes();
 }
-
-const getEventCardColor = (eventId) => {
-  if (checkedInEventIds.value.has(eventId)) return "success";
-  if (registeredEventIds.value.has(eventId)) return "warning";
-  return "primary";
-};
 
 function clearSelection() {
   selectedDates.value = [];
@@ -386,6 +393,13 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <v-btn
+            v-if="props.isAdmin"
+            rounded="xl"
+            color="primary"
+            @click="handleAdd"
+            >Add Event</v-btn
+          >
         </div>
 
         <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
@@ -408,9 +422,17 @@ function selectThisMonth() {
                     :event="event"
                     :view-only="true"
                     color="background"
-                    :status="getEventCardColor(event.id)"
+                    :status="
+                      getEventCardColor(
+                        event,
+                        checkedInEvents,
+                        registeredEvents,
+                      )
+                    "
                     :is-event-viewing="false"
+                    :admin-view="props.isAdmin"
                     @click="openDialog(event)"
+                    @edit="handleEdit"
                   />
                 </div>
               </div>
@@ -491,6 +513,7 @@ function selectThisMonth() {
 .calendarDetails-card::-webkit-scrollbar {
   width: 8px;
 }
+
 .calendarDetails-card::-webkit-scrollbar-thumb {
   background-color: rgba(100, 100, 100, 0.3);
   border-radius: 4px;
