@@ -7,7 +7,7 @@ var baseurl = "";
 if (import.meta.env.DEV) {
   baseurl = "http://localhost:3031/flight-plan-t1";
 } else {
-  baseurl = "/flight-plan-t1";
+  baseurl = "/flightplan";
 }
 
 const apiClient = axios.create({
