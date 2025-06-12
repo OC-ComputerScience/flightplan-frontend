@@ -109,7 +109,7 @@ watch(
       formData.value.redemptionInfo =
         "You will receive an email within 48 hours with confirmation of your reward";
     }
-  }
+  },
 );
 </script>
 <template>
