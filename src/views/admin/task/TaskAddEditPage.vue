@@ -24,6 +24,9 @@ const router = useRouter();
 
 const requiredNumberOfMajors = 1;
 
+const getId = (item) =>
+  typeof item === "object" && item !== null ? item.id : item;
+
 const handleCancel = () => {
   router.push({ name: "task" });
 };
@@ -44,14 +47,16 @@ const handleSubmit = async () => {
       await taskServices.updateTask(route.params.id, submitData);
 
       for (const major of majors.value) {
-        if (!initialMajors.value.some((m) => m.value === major)) {
-          await taskServices.addMajor(route.params.id, major);
+        const majorId = getId(major);
+        if (!initialMajors.value.some((m) => getId(m) === majorId)) {
+          await taskServices.addMajor(route.params.id, majorId);
         }
       }
 
       for (const major of initialMajors.value) {
-        if (!majors.value.some((m) => m === major.id)) {
-          await taskServices.removeMajor(route.params.id, major.id);
+        const majorId = getId(major);
+        if (!majors.value.some((m) => getId(m) === majorId)) {
+          await taskServices.removeMajor(route.params.id, majorId);
         }
       }
     }
