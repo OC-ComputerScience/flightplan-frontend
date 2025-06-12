@@ -228,7 +228,11 @@ onMounted(() => {
                 Download QR Code PDF
               </v-btn>
               <v-btn
-                v-if="!generatedToken?.token && isEventInFuture"
+                v-if="
+                  !generatedToken?.token &&
+                  isEventInFuture &&
+                  event.status !== 'Cancelled'
+                "
                 color="primary"
                 rounded="xl"
                 class="button-full"
@@ -246,7 +250,7 @@ onMounted(() => {
               />
             </template>
 
-            <template v-else-if="!registered">
+            <template v-else-if="!registered && event.status !== 'Cancelled'">
               <v-btn
                 color="primary mt-5"
                 rounded="xl"
@@ -258,7 +262,7 @@ onMounted(() => {
               </v-btn>
             </template>
 
-            <template v-else>
+            <template v-else-if="event.status !== 'Cancelled'">
               <div class="button-row mt-5">
                 <v-btn
                   color="danger"
@@ -270,6 +274,18 @@ onMounted(() => {
                   Unregister
                 </v-btn>
               </div>
+            </template>
+
+            <template v-else>
+              <v-btn
+                color="grey"
+                rounded="xl"
+                class="button-full"
+                prepend-icon="mdi-cancel"
+                disabled
+              >
+                Event Cancelled
+              </v-btn>
             </template>
 
             <v-menu v-if="props.isAdmin || registered">

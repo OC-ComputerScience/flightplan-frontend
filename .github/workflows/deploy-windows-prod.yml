@@ -1,0 +1,37 @@
+name: Deploy to Windows Main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  windows-deploy:
+    runs-on: windows-latest
+    env:
+      VITE_APP_CLIENT_ID: ${{secrets.VITE_APP_CLIENT_ID}}
+      VITE_APP_API_URL: ${{secrets.VITE_APP_API_URL}}
+      VITE_APP_CLIENT_URL: ${{secrets.VITE_PROD_APP_CLIENT_URL}}
+      VITE_APP_CLIENT_SECRET: ${{secrets.VITE_APP_CLIENT_SECRET}}
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: npm install
+      - run: npm run build
+
+      - name: Copy folder content recursively to remote
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: dist/
+          remote: c:/Apache24/htdocs/flightplan
+          recursive: true
+          host: "flightplan.oc.edu"
+          username: "david.north"
+          privateKey: ${{ secrets.PROD_WIN_SERVER_SSH_KEY  }}

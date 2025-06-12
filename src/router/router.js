@@ -23,6 +23,7 @@ import Notifications from "../views/Notification.vue";
 import AdminDashboard from "../views/admin/AdminDashboard.vue";
 import AdminCalendar from "../views/admin/AdminCalendar.vue";
 import AdminUserPage from "../views/admin/user/AdminUserPage.vue";
+import UserAddEditPage from "../views/admin/user/UserAddEditPage.vue";
 import Approvals from "../views/admin/Approvals.vue";
 
 import StudentDashboard from "../views/student/StudentDashboard.vue";
@@ -219,6 +220,12 @@ const adminMaintenanceRoutes = [
     path: "maintenance/user",
     name: "user",
     component: AdminUserPage,
+  },
+  {
+    path: "maintenanc/user/edit/:id",
+    name: "editUser",
+    component: UserAddEditPage,
+    props: { isAdd: false },
   },
   {
     path: "user/profile/:userId",

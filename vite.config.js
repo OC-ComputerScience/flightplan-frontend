@@ -8,7 +8,7 @@ dns.setDefaultResultOrder("verbatim");
 
 export default () => {
   const baseURL =
-    process.env.APP_ENV === "development" ? "/" : "/2025/flight-plan/t1/";
+    process.env.APP_ENV === "development" ? "/" : "/";
 
   return defineConfig({
     plugins: [
