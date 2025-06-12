@@ -14,6 +14,10 @@ const props = defineProps({
     type: String,
     default: "Confirm",
   },
+  cancelText: {
+    type: String,
+    default: "Cancel",
+  },
   confirmColor: {
     type: String,
     default: "success",
@@ -45,7 +49,7 @@ const confirm = () => {
         </div>
         <div class="mt-5" style="display: flex; justify-content: center">
           <v-btn class="mr-2" variant="outlined" rounded="xl" @click="cancel">
-            Cancel
+            {{ cancelText }}
           </v-btn>
           <v-btn rounded="xl" :color="confirmColor" @click="confirm">
             {{ confirmText }}

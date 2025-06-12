@@ -13,6 +13,7 @@ import {
 } from "../../../utils/dateTimeHelpers";
 import { required } from "../../../utils/formValidators";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
+import ConfirmDialog from "../../../components/dialogs/ConfirmDialog.vue";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -32,6 +33,9 @@ const tempEndTime = ref();
 const route = useRoute();
 const router = useRouter();
 
+const confirmCancelDialog = ref(false);
+const eventToCancel = ref(null);
+
 const onAllDayToggle = () => {
   if (isAllDay.value) {
     tempStartTime.value = formData.value.startTime;
@@ -45,6 +49,20 @@ const onAllDayToggle = () => {
 };
 
 const handleCancel = () => router.back();
+
+const handleCancelEvent = (eventId) => {
+  eventToCancel.value = eventId;
+  confirmCancelDialog.value = true;
+};
+const confirmCancel = async () => {
+  try {
+    formData.value.status = "Cancelled";
+    handleSubmit();
+    confirmCancelDialog.value = false;
+  } catch (err) {
+    console.error("Error cancelling event:", err);
+  }
+};
 
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
@@ -226,6 +244,7 @@ const validateEndTimeWrapper = (value) => {
         rounded="lg"
         label="Description"
       ></v-textarea>
+
       <v-autocomplete
         v-model="formData.experiences"
         :items="experienceOptions"
@@ -238,16 +257,48 @@ const validateEndTimeWrapper = (value) => {
         chips
       ></v-autocomplete>
 
+      <v-text-field
+        v-model="formData.status"
+        disabled
+        variant="solo"
+        rounded="lg"
+        label="Event Status"
+      />
+
       <v-row class="justify-center mb-1">
         <v-btn
           class="mr-2"
           variant="outlined"
           rounded="xl"
           @click="handleCancel"
-          >Cancel</v-btn
+          >Back</v-btn
         >
-        <v-btn rounded="xl" color="primary" @click="handleSubmit">Submit</v-btn>
+        <v-btn
+          v-if="formData.status !== 'Cancelled'"
+          class="mr-2"
+          variant="outlined"
+          rounded="xl"
+          color="warning"
+          @click="handleCancelEvent"
+          >Cancel Event</v-btn
+        >
+        <v-btn
+          v-if="formData.status !== 'Cancelled'"
+          rounded="xl"
+          color="primary"
+          @click="handleSubmit"
+          >Submit</v-btn
+        >
       </v-row>
     </v-container>
   </v-form>
+
+  <ConfirmDialog
+    v-model="confirmCancelDialog"
+    title="Cancel Event?"
+    confirm-text="Yes, Cancel Event"
+    cancel-text="No, Close"
+    confirm-color="error"
+    @confirm="confirmCancel"
+  />
 </template>
