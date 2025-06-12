@@ -181,6 +181,13 @@ const validateEndTimeWrapper = (value) => {
       </v-row>
 
       <v-row v-if="selectedDate" no-gutters>
+        <v-col cols="1" class="ml-4 mr-16">
+          <v-checkbox
+            v-model="isAllDay"
+            label="All Day"
+            @change="onAllDayToggle"
+          />
+        </v-col>
         <v-col cols="5" class="mr-2">
           <v-combobox
             v-model="formData.startTime"
@@ -207,13 +214,6 @@ const validateEndTimeWrapper = (value) => {
             @update:model-value="
               (value) => (formData.endTime = formatTimeOptions(value))
             "
-          />
-        </v-col>
-        <v-col cols="1" class="ml-5">
-          <v-checkbox
-            v-model="isAllDay"
-            label="All day"
-            @change="onAllDayToggle"
           />
         </v-col>
       </v-row>
