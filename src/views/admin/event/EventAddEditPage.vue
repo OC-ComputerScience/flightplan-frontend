@@ -245,12 +245,6 @@ const validateEndTimeWrapper = (value) => {
         label="Description"
       ></v-textarea>
 
-      <v-text-field
-        v-model="formData.status"
-        variant="solo"
-        rounded="lg"
-        label="Event Status"
-      />
       <v-autocomplete
         v-model="formData.experiences"
         :items="experienceOptions"
@@ -262,6 +256,14 @@ const validateEndTimeWrapper = (value) => {
         multiple
         chips
       ></v-autocomplete>
+
+      <v-text-field
+        v-model="formData.status"
+        disabled
+        variant="solo"
+        rounded="lg"
+        label="Event Status"
+      />
 
       <v-row class="justify-center mb-1">
         <v-btn
