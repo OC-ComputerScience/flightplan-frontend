@@ -9,6 +9,10 @@ export default {
     return apiClient.get(`/majors/experience/${experienceId}`);
   },
 
+  getMajorForTask(taskId) {
+    return apiClient.get(`/majors/task/${taskId}`);
+  },
+
   getAllMajors(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/majors", {
       params: {
