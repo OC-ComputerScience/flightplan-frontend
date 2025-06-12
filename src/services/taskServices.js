@@ -39,7 +39,6 @@ export default {
     return apiClient.delete(`/task/${taskId}`);
   },
   addMajor(taskId, majorId) {
-    console.log("Adding major:", majorId, "to task:", taskId);
     return apiClient.post(`/task/${taskId}/majors/${majorId}`);
   },
   removeMajor(taskId, majorId) {
