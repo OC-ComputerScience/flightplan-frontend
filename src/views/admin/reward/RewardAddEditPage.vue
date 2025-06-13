@@ -98,7 +98,7 @@ const initial = ref(true);
 watch(
   () => formData.value.redemptionType,
   (newValue) => {
-    if (initial.value) {
+    if (initial.value && !props.isAdd) {
       initial.value = false;
       return;
     }
