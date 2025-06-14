@@ -1,13 +1,14 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, fileTypeRule } from "../../../utils/formValidators";
+import { required } from "../../../utils/formValidators";
 import badgeServices from "../../../services/badgeServices";
 import fileServices from "../../../services/fileServices";
 import { addTaskToBadgeStore } from "../../../stores/addTaskToBadgeStore";
 import { addExperienceToBadgeStore } from "../../../stores/addExperienceToBadgeStore";
 import AddTaskToBadge from "../../../components/dialogs/AddTaskToBadge.vue";
 import AddExperienceToBadge from "../../../components/dialogs/AddExperienceToBadge.vue";
+import ImageInput from "../../../components/modals/ImageInput.vue";
 // Define statements for vue
 const props = defineProps({
   isAdd: Boolean,
@@ -21,7 +22,7 @@ const addExperienceStore = addExperienceToBadgeStore();
 // Reactive states
 const errorMessage = ref("");
 const form = ref(null);
-const formData = ref({});
+const formData = ref({ imageName: null });
 const image = ref(null);
 const rules = ref([]);
 const selectedRule = ref("Task and Experience Defined");
@@ -301,14 +302,7 @@ onMounted(async () => {
           </v-expansion-panel>
         </v-expansion-panels>
       </div>
-      <v-file-input
-        v-model="image"
-        variant="solo"
-        rounded="lg"
-        label="Image File"
-        chips
-        :rules="[fileTypeRule]"
-      ></v-file-input>
+      <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn
           class="mr-2"
