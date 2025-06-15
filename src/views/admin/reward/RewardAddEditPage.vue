@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
   required,
@@ -92,6 +92,25 @@ onMounted(async () => {
     }
   }
 });
+
+const initial = ref(true);
+
+watch(
+  () => formData.value.redemptionType,
+  (newValue) => {
+    if (initial.value && !props.isAdd) {
+      initial.value = false;
+      return;
+    }
+    if (newValue === "In-Person") {
+      formData.value.redemptionInfo =
+        "Claim at Career Services Office (2nd Floor of the Beam Library)";
+    } else {
+      formData.value.redemptionInfo =
+        "You will receive an email within 48 hours with confirmation of your reward";
+    }
+  },
+);
 </script>
 <template>
   <v-alert v-if="errorMessage" closable type="error">
