@@ -1,13 +1,10 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import {
-  required,
-  positiveNumber,
-  fileTypeRule,
-} from "../../../utils/formValidators";
+import { required, positiveNumber } from "../../../utils/formValidators";
 import rewardServices from "../../../services/rewardServices";
 import fileServices from "../../../services/fileServices";
+import ImageInput from "../../../components/modals/ImageInput.vue";
 // Define statements for vue
 const props = defineProps({
   isAdd: Boolean,
@@ -20,7 +17,7 @@ const router = useRouter();
 // Reactive states
 const errorMessage = ref("");
 const form = ref(null);
-const formData = ref({});
+const formData = ref({ imageName: null });
 const image = ref(null);
 
 // Form data
@@ -163,14 +160,7 @@ watch(
         label="Description"
         :rules="[required]"
       ></v-textarea>
-      <v-file-input
-        v-model="image"
-        variant="solo"
-        rounded="lg"
-        label="Image File"
-        chips
-        :rules="[fileTypeRule]"
-      ></v-file-input>
+      <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn
           class="mr-2"
