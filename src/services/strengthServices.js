@@ -7,6 +7,9 @@ export default {
   getStrengthForExperience(experienceId) {
     return apiClient.get(`/strengths/experience/${experienceId}`);
   },
+  getStrengthForTask(taskId) {
+    return apiClient.get(`/strengths/task/${taskId}`);
+  },
   getAllStrengths() {
     return apiClient.get(`/strengths`);
   },
