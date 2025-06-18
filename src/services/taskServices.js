@@ -38,6 +38,18 @@ export default {
   deleteTask(taskId) {
     return apiClient.delete(`/task/${taskId}`);
   },
+  addMajor(taskId, majorId) {
+    return apiClient.post(`/task/${taskId}/majors/${majorId}`);
+  },
+  removeMajor(taskId, majorId) {
+    return apiClient.delete(`/task/${taskId}/majors/${majorId}`);
+  },
+  addStrength(taskId, strengthId) {
+    return apiClient.post(`/task/${taskId}/strengths/${strengthId}`);
+  },
+  removeStrength(taskId, strengthId) {
+    return apiClient.delete(`/task/${taskId}/strengths/${strengthId}`);
+  },
   getAllOptionalTasksForStudent(studentId, searchQuery) {
     return apiClient.get(`/task/optional/${studentId}`, {
       params: {

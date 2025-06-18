@@ -1,13 +1,10 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import {
-  required,
-  positiveNumber,
-  fileTypeRule,
-} from "../../../utils/formValidators";
+import { required, positiveNumber } from "../../../utils/formValidators";
 import rewardServices from "../../../services/rewardServices";
 import fileServices from "../../../services/fileServices";
+import ImageInput from "../../../components/modals/ImageInput.vue";
 // Define statements for vue
 const props = defineProps({
   isAdd: Boolean,
@@ -20,8 +17,11 @@ const router = useRouter();
 // Reactive states
 const errorMessage = ref("");
 const form = ref(null);
-const formData = ref({});
+const formData = ref({ imageName: null });
 const image = ref(null);
+
+// Form data
+const redemptionTypes = ["In-Person", "Digital"];
 
 // Functions
 const handleCancel = () => {
@@ -89,6 +89,25 @@ onMounted(async () => {
     }
   }
 });
+
+const initial = ref(true);
+
+watch(
+  () => formData.value.redemptionType,
+  (newValue) => {
+    if (initial.value && !props.isAdd) {
+      initial.value = false;
+      return;
+    }
+    if (newValue === "In-Person") {
+      formData.value.redemptionInfo =
+        "Claim at Career Services Office (2nd Floor of the Beam Library)";
+    } else {
+      formData.value.redemptionInfo =
+        "You will receive an email within 48 hours with confirmation of your reward";
+    }
+  },
+);
 </script>
 <template>
   <v-alert v-if="errorMessage" closable type="error">
@@ -117,13 +136,14 @@ onMounted(async () => {
           ></v-text-field>
         </v-col>
         <v-col size="6">
-          <v-text-field
+          <v-select
             v-model="formData.redemptionType"
+            :items="redemptionTypes"
             variant="solo"
             rounded="lg"
             label="Redemption Type"
             :rules="[required]"
-          ></v-text-field>
+          ></v-select>
         </v-col>
       </v-row>
       <v-text-field
@@ -140,14 +160,7 @@ onMounted(async () => {
         label="Description"
         :rules="[required]"
       ></v-textarea>
-      <v-file-input
-        v-model="image"
-        variant="solo"
-        rounded="lg"
-        label="Image File"
-        chips
-        :rules="[fileTypeRule]"
-      ></v-file-input>
+      <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn
           class="mr-2"

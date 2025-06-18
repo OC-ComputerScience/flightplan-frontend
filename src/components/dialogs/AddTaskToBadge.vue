@@ -15,7 +15,7 @@ const selectedTask = ref(null);
 
 const fetchTasks = async () => {
   const response = await taskServices.getAllTasks();
-  tasks.value = response.data.tasks;
+  tasks.value = sortTasks(response.data.tasks);
   selectedTask.value = tasks.value[0];
 };
 
@@ -28,6 +28,10 @@ const handleAdd = () => {
     quantity: quantity.value,
   });
   store.toggleVisibility();
+};
+
+const sortTasks = (tasks) => {
+  return tasks.sort((a, b) => a.name.localeCompare(b.name));
 };
 
 onMounted(async () => {

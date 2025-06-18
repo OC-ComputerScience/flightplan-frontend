@@ -15,7 +15,7 @@ const selectedExperience = ref(null);
 
 const fetchExperiences = async () => {
   const response = await experienceServices.getAllExperiences();
-  experiences.value = response.data.experiences;
+  experiences.value = sortExperiences(response.data.experiences);
   selectedExperience.value = experiences.value[0];
 };
 
@@ -28,6 +28,10 @@ const handleAdd = () => {
     quantity: quantity.value,
   });
   store.toggleVisibility();
+};
+
+const sortExperiences = (experiences) => {
+  return experiences.sort((a, b) => a.name.localeCompare(b.name));
 };
 
 onMounted(async () => {
