@@ -1,8 +1,12 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
+import eventServices from "../../services/eventServices";
+import userServices from "../../services/userServices";
+import studentServices from "../../services/studentServices";
+import Utils from "../../config/utils.js";
 
 dayjs.extend(advancedFormat);
 
@@ -32,6 +36,14 @@ const props = defineProps({
   },
 });
 
+const isRegistered = ref(false);
+
+onMounted(async ()  => {
+  let userId = Utils.getStore("user").userId
+  await studentServices.getStudentForUserId(userId)
+    .then(async (res) => {
+      if (res.data) {
+      await eventServices.getRegisteredEventsForStudent(res.data.id)
 const eventDate = computed(() => {
   const dateString = dayjs(props.event.date).format("dddd, MMMM Do");
   return dateString;
@@ -167,6 +179,7 @@ const resolvedStatusLabel = computed(() => {
           >
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
+        </v-row>
         </v-row>
       </v-col>
     </v-row>
