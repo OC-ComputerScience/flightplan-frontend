@@ -226,7 +226,10 @@ const closeDialogs = () => {
       <p>
         ------------------------------------------------------------------------
       </p>
-      <p class="description" v-html="selectedNotif.description"></p>
+      <p
+        class="description"
+        v-html="sanitizeHtml(selectedNotif.description)"
+      ></p>
     </v-card>
   </div>
 
