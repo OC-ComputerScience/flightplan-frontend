@@ -10,7 +10,7 @@ import Utils from "../../config/utils.js";
 
 dayjs.extend(advancedFormat);
 
-const emit = defineEmits(["edit", "cancel", "delete", "show-info"]);
+const emit = defineEmits(["edit", "cancel", "delete", "show-info", "register", "unregister"]);
 const store = userStore();
 
 const props = defineProps({
@@ -44,6 +44,19 @@ onMounted(async ()  => {
     .then(async (res) => {
       if (res.data) {
       await eventServices.getRegisteredEventsForStudent(res.data.id)
+    .then((response) => {
+      isRegistered.value = response.data.some(event => event.id === props.event.id);
+    })
+    .catch((err) => {
+      console.error("Error: ", err);
+    });
+      }
+    })
+    .catch((err) => {
+      console.error("Error: ", err);
+    });
+});
+
 const eventDate = computed(() => {
   const dateString = dayjs(props.event.date).format("dddd, MMMM Do");
   return dateString;
@@ -86,6 +99,33 @@ const resolvedStatusLabel = computed(() => {
       return "Not Registered";
   }
 });
+
+const handleRegistration = () => {
+  try {
+    if (isRegistered.value) {
+      emit("unregister", props.event)
+      isRegistered.value = false;
+    } else {
+      emit("register", props.event)
+      isRegistered.value = true;
+    }
+  } catch (error) {
+    console.error("Registration failed:", error);
+  }
+};
+
+const showSuccess = async (msg) => {
+  successMessage.value = msg;
+
+  await new Promise((resolve) =>
+    setTimeout(() => {
+      successMessage.value = "";
+      resolve();
+    }, 2000),
+  );
+
+  await checkIfStudentIsRegistered();
+};
 </script>
 
 <template>
@@ -180,6 +220,8 @@ const resolvedStatusLabel = computed(() => {
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
+        <v-row v-else class="ma-2 float-left">
+          <v-btn @click.stop.prevent="handleRegistration">{{ isRegistered ? 'Unregister' : 'Register' }}</v-btn>
         </v-row>
       </v-col>
     </v-row>
