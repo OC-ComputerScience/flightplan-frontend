@@ -75,7 +75,7 @@ const confirmCancel = async () => {
         res.data.forEach((student) => {
           registeredStudents.push(student.id);
           createNotification(
-            `${eventToCancelObject.value.name || "Event"} Event Cancelled`,
+            `${eventToCancelObject.value.name || "Event"} Event on ${new Date(eventToCancelObject.value.date).toLocaleDateString()} Cancelled`,
             `The event ${eventToCancelObject.value.name || 'you registered for'} on ${new Date(eventToCancelObject.value.date).toLocaleDateString()} you have registed for has been cancelled.`,
             false,
             student.user.id,
