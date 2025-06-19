@@ -107,7 +107,7 @@ const handleSubmit = async () => {
           res.data.forEach((student) => {
             registeredStudents.push(student.id);
             createNotification(
-              `${formData.value.name || "Event"} Info Has Changed`,
+              `${formData.value.name || "Event"} Event Info Has Changed`,
               `The event ${formData.value.name || "you have registered for"} has been changed.<br><br>` +
                 `<b>Description:</b> ${formData.value.description}<br>` +
                 `<b>Location:</b> ${formData.value.location}<br>` +

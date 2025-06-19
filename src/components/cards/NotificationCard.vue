@@ -46,10 +46,6 @@ const props = defineProps({
       <div class="mr-3">
         {{ props.notification.header }}
       </div>
-
-      <div class="text-body-2 mr-3">
-        {{ props.notification.description }}
-      </div>
     </v-row>
   </v-card>
 </template>

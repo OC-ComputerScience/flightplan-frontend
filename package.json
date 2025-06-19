@@ -23,6 +23,7 @@
     "dayjs": "^1.11.13",
     "dompurify": "^3.2.6",
     "dotenv": "^16.4.7",
+    "isomorphic-dompurify": "^2.25.0",
     "jspdf": "^3.0.1",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",

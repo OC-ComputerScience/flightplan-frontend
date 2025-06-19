@@ -8,6 +8,7 @@ import { userStore } from "../stores/userStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSelectedNotificationsStore } from "../stores/selectedNotificationsStore";
 import ConfirmDialog from "../components/dialogs/ConfirmDialog.vue";
+import { sanitizeHtml } from "../utils/htmlSanitization";
 
 const notifications = ref([]);
 const selectedNotif = ref({});
