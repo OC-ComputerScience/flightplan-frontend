@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, atLeast } from "../../../utils/formValidators";
+import { required} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
 import strengthServices from "../../../services/strengthServices";
@@ -240,7 +240,6 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
-          :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
         ></v-autocomplete>
       </v-row>
       <v-row no-gutters>
@@ -254,7 +253,6 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
-          :rules="[atLeast(majors, requiredNumberOfMajors)]"
         ></v-autocomplete>
       </v-row>
 
