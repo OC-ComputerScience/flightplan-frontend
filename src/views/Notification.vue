@@ -226,7 +226,7 @@ const closeDialogs = () => {
       <p>
         ------------------------------------------------------------------------
       </p>
-      <p class="description">{{ selectedNotif.description }}</p>
+      <p class="description" v-html="selectedNotif.description"></p>
     </v-card>
   </div>
 
@@ -301,5 +301,9 @@ const closeDialogs = () => {
   background-color: var(--v-background-darken1);
   border-radius: 4px;
   color: var(--v-text-base);
+}
+
+.description {
+  white-space: pre-wrap;
 }
 </style>

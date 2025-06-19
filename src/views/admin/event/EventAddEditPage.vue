@@ -14,6 +14,7 @@ import {
 import { required } from "../../../utils/formValidators";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import ConfirmDialog from "../../../components/dialogs/ConfirmDialog.vue";
+import { createNotification } from "../../../utils/notificationHandler";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -97,6 +98,30 @@ const handleSubmit = async () => {
       await eventServices.createEvent(formData.value);
     } else {
       await eventServices.updateEvent(route.params.id, formData.value);
+
+      if (!props.isAdd) {
+        var registeredStudents = [];
+        const res = await eventServices.getRegisteredStudents(route.params.id);
+
+        if (res.data) {
+          res.data.forEach((student) => {
+            registeredStudents.push(student.id);
+            createNotification(
+              `${formData.value.name || "Event"} Info Has Changed`,
+              `The event ${formData.value.name || "you have registered for"} has been changed.<br><br>` +
+                `<b>Description:</b> ${formData.value.description}<br>` +
+                `<b>Location:</b> ${formData.value.location}<br>` +
+                `<b>Date:</b> ${new Date(formData.value.date).toLocaleDateString()}<br>` +
+                `<b>Start Time:</b> ${formatTime(new Date(formData.value.startTime))}<br>` +
+                `<b>End Time:</b> ${formatTime(new Date(formData.value.endTime))}`,
+              false,
+              student.studentId,
+              1,
+              false,
+            );
+          });
+        }
+      }
     }
     router.back();
   } catch (error) {
