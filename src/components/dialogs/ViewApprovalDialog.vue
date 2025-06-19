@@ -2,11 +2,11 @@
 import { ref, watch } from "vue";
 import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore";
 import { storeToRefs } from "pinia";
-import notificationServices from "../../services/notificationServices";
 import flightPlanItemServices from "../../services/flightPlanItemServices";
 import studentServices from "../../services/studentServices";
 import submissionServices from "../../services/submissionServices";
 import { VueFilesPreview } from "vue-files-preview";
+import { createNotification } from "../../utils/notificationHandler";
 const emit = defineEmits(["reject", "approve"]);
 
 const dialogStore = adminApprovalDialogStore();
@@ -49,7 +49,7 @@ const handleReject = async () => {
     await flightPlanItemServices.rejectFlightPlanItem(flightPlanItem.value.id);
 
     if (student?.user?.id) {
-      await notificationServices.createNotification({
+      await createNotification({
         header: "Flight plan item rejected",
         description: rejectReason.value ?? "No reason provided",
         read: false,
