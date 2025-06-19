@@ -1,16 +1,22 @@
 <script setup>
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
 import eventServices from "../../services/eventServices";
-import userServices from "../../services/userServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
 
 dayjs.extend(advancedFormat);
 
-const emit = defineEmits(["edit", "cancel", "delete", "show-info", "register", "unregister"]);
+const emit = defineEmits([
+  "edit",
+  "cancel",
+  "delete",
+  "show-info",
+  "register",
+  "unregister",
+]);
 const store = userStore();
 
 const props = defineProps({
@@ -38,18 +44,22 @@ const props = defineProps({
 
 const isRegistered = ref(false);
 
-onMounted(async ()  => {
-  let userId = Utils.getStore("user").userId
-  await studentServices.getStudentForUserId(userId)
+onMounted(async () => {
+  let userId = Utils.getStore("user").userId;
+  await studentServices
+    .getStudentForUserId(userId)
     .then(async (res) => {
       if (res.data) {
-      await eventServices.getRegisteredEventsForStudent(res.data.id)
-    .then((response) => {
-      isRegistered.value = response.data.some(event => event.id === props.event.id);
-    })
-    .catch((err) => {
-      console.error("Error: ", err);
-    });
+        await eventServices
+          .getRegisteredEventsForStudent(res.data.id)
+          .then((response) => {
+            isRegistered.value = response.data.some(
+              (event) => event.id === props.event.id,
+            );
+          })
+          .catch((err) => {
+            console.error("Error: ", err);
+          });
       }
     })
     .catch((err) => {
@@ -103,28 +113,15 @@ const resolvedStatusLabel = computed(() => {
 const handleRegistration = () => {
   try {
     if (isRegistered.value) {
-      emit("unregister", props.event)
+      emit("unregister", props.event);
       isRegistered.value = false;
     } else {
-      emit("register", props.event)
+      emit("register", props.event);
       isRegistered.value = true;
     }
   } catch (error) {
     console.error("Registration failed:", error);
   }
-};
-
-const showSuccess = async (msg) => {
-  successMessage.value = msg;
-
-  await new Promise((resolve) =>
-    setTimeout(() => {
-      successMessage.value = "";
-      resolve();
-    }, 2000),
-  );
-
-  await checkIfStudentIsRegistered();
 };
 </script>
 
@@ -221,7 +218,22 @@ const showSuccess = async (msg) => {
           </v-btn>
         </v-row>
         <v-row v-else class="ma-2 float-left">
-          <v-btn @click.stop.prevent="handleRegistration">{{ isRegistered ? 'Unregister' : 'Register' }}</v-btn>
+          <v-btn
+            v-if="isRegistered && props.status !== 'grey'"
+            color="error"
+            class="mr-2 cardButton elevation-0"
+            @click.stop.prevent="handleRegistration"
+          >
+            {{ "Unregister" }}</v-btn
+          >
+          <v-btn
+            v-else-if="!isRegistered && props.status !== 'grey'"
+            color="primary"
+            class="mr-2 cardButton elevation-0"
+            @click.stop.prevent="handleRegistration"
+          >
+            {{ "Register" }}</v-btn
+          >
         </v-row>
       </v-col>
     </v-row>
