@@ -35,9 +35,6 @@ export default {
   updateTask(taskId, taskData) {
     return apiClient.put(`/task/${taskId}`, taskData);
   },
-  deleteTask(taskId) {
-    return apiClient.delete(`/task/${taskId}`);
-  },
   addMajor(taskId, majorId) {
     return apiClient.post(`/task/${taskId}/majors/${majorId}`);
   },
@@ -52,6 +49,13 @@ export default {
   },
   getAllOptionalTasksForStudent(studentId, searchQuery) {
     return apiClient.get(`/task/optional/${studentId}`, {
+      params: {
+        searchQuery: searchQuery,
+      },
+    });
+  },
+  getAllActiveTasks(searchQuery) {
+    return apiClient.get("/task/active", {
       params: {
         searchQuery: searchQuery,
       },
