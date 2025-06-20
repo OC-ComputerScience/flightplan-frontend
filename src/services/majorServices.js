@@ -13,7 +13,7 @@ export default {
     return apiClient.get(`/majors/task/${taskId}`);
   },
 
-  getAllMajors(page, pageSize, searchQuery, filters = {}) {
+  getAllMajors(page = 1, pageSize = 1000, searchQuery, filters = {}) {
     return apiClient.get("/majors", {
       params: {
         page: page,
