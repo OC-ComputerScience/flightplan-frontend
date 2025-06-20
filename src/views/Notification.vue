@@ -8,6 +8,7 @@ import { userStore } from "../stores/userStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSelectedNotificationsStore } from "../stores/selectedNotificationsStore";
 import ConfirmDialog from "../components/dialogs/ConfirmDialog.vue";
+import { sanitizeHtml } from "../utils/htmlSanitization";
 
 const notifications = ref([]);
 const selectedNotif = ref({});
@@ -226,7 +227,10 @@ const closeDialogs = () => {
       <p>
         ------------------------------------------------------------------------
       </p>
-      <p class="description">{{ selectedNotif.description }}</p>
+      <p
+        class="description"
+        v-html="sanitizeHtml(selectedNotif.description)"
+      ></p>
     </v-card>
   </div>
 
@@ -301,5 +305,9 @@ const closeDialogs = () => {
   background-color: var(--v-background-darken1);
   border-radius: 4px;
   color: var(--v-text-base);
+}
+
+.description {
+  white-space: pre-wrap;
 }
 </style>
