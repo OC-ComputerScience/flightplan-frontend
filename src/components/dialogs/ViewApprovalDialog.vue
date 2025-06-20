@@ -180,14 +180,14 @@ watch(selectedSubmissionIndex, () => {
                 ></VueFilesPreview>
               </v-col>
               <v-col
-                v-if="selectedSubmissionType === 'text'"
+                v-if="selectedSubmissionType === 'text' && !selectedSubmissionType === 'manual'"
                 :cols="12"
                 class="pa-4 bg-background rounded-lg"
                 style="white-space: pre-wrap"
               >
                 {{ submissions[selectedSubmissionIndex].value }}
               </v-col>
-              <v-col :cols="12" class="d-flex justify-center align-center">
+              <v-col v-if="!selectedSubmissionType === 'manual'":cols="12" class="d-flex justify-center align-center">
                 <v-btn
                   class="rounded-xl mr-6"
                   color="text"
