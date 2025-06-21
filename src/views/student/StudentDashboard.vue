@@ -16,6 +16,7 @@ import { getEventCardColor } from "../../utils/eventStatus";
 const studentId = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
+const cancelledEvents = ref([]);
 const notifications = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(14);
@@ -81,6 +82,9 @@ const fetchStudentStatus = async () => {
     ]);
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
+    cancelledEvents.value = events.value.filter(
+      (event) => event.status === "Cancelled",
+    );
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -294,7 +298,12 @@ onMounted(async () => {
             color="background"
             :view-only="true"
             :status="
-              getEventCardColor(event, checkedInEvents, registeredEvents)
+              getEventCardColor(
+                event,
+                checkedInEvents,
+                registeredEvents,
+                cancelledEvents,
+              )
             "
             :event="event"
             class="event"
