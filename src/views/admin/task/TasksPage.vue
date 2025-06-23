@@ -38,6 +38,7 @@ const strengths = ref([]);
 const categories = ref([]);
 const schedulingTypes = ref([]);
 const submissionTypes = ref([]);
+const taskStatuses = ref([]);
 const showFilters = ref(false);
 const filters = ref({
   category: null,
@@ -90,15 +91,6 @@ const handleAdd = () => router.push({ name: "addTask" });
 const handleEdit = (taskId) =>
   router.push({ name: "editTask", params: { id: taskId } });
 
-const handleDelete = async (taskId) => {
-  try {
-    await taskServices.deleteTask(taskId);
-    await getTasks(); // Re-fetch tasks after delete
-  } catch (error) {
-    console.error("Error deleting task:", error);
-  }
-};
-
 const handleSearchChange = (input) => {
   searchQuery.value = input;
   page.value = 1; // Reset to first page on search change
@@ -127,15 +119,18 @@ watch(showFilters, () => getTasks());
 onMounted(async () => {
   getTasks();
   getStrengths();
-  const [categoriesRes, schedulingRes, submissionTypesRes] = await Promise.all([
-    taskServices.getCategories(),
-    taskServices.getSchedulingTypes(),
-    taskServices.getSubmissionTypes(),
-  ]);
+  const [categoriesRes, schedulingRes, submissionTypesRes, taskStatusRes] =
+    await Promise.all([
+      taskServices.getCategories(),
+      taskServices.getSchedulingTypes(),
+      taskServices.getSubmissionTypes(),
+      taskServices.getAllActiveTasks(),
+    ]);
 
   categories.value = categoriesRes.data;
   schedulingTypes.value = schedulingRes.data;
   submissionTypes.value = submissionTypesRes.data;
+  taskStatuses.value = taskStatusRes.data;
 });
 </script>
 <template>
