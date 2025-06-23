@@ -55,7 +55,6 @@ export default {
     return apiClient.get("/event/types/registrationTypes");
   },
   registerStudents(eventId, studentIds) {
-    console.log(studentIds);
     return apiClient.post(`/event/${eventId}/register`, { studentIds });
   },
 

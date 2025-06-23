@@ -1,11 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import {
-  required,
-  positiveNumber,
-  atLeast,
-} from "../../../utils/formValidators";
+import { required, positiveNumber } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
 import majorServices from "../../../services/majorServices";

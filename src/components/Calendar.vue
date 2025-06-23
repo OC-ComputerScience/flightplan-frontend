@@ -467,6 +467,8 @@ function selectThisMonth() {
                     @click="openDialog(event)"
                     @edit="handleEdit"
                     @cancel="handleCancel"
+                    @register="handleRegister"
+                    @unregister="handleUnregister"
                   />
                 </div>
               </div>

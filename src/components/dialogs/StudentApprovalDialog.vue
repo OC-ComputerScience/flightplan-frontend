@@ -53,8 +53,9 @@ const handleSubmit = async () => {
   const noFiles = !files.value || files.value.length === 0;
   const noText =
     !reflectionText.value || reflectionText.value.trim().length === 0;
+  const manualSubmission = submissionType.value === "manual";
 
-  if (noFiles && noText) {
+  if (noFiles && noText && submissionType.value !== "manual") {
     errorMessage.value = "Please upload a file or write a reflection";
     return;
   }
@@ -106,6 +107,14 @@ const handleSubmit = async () => {
             flightPlanItemId: flightPlanItem.value.id,
             submissionType: "text",
             value: reflectionText.value,
+          });
+        }
+
+        if (manualSubmission) {
+          submissions.push({
+            flightPlanItemId: flightPlanItem.value.id,
+            submissionType: "manual",
+            value: null,
           });
         }
 
@@ -210,7 +219,7 @@ onMounted(fetchOptionalReviewers);
               rounded="xl"
               color="background"
             ></v-file-upload>
-            <div v-else>
+            <div v-else-if="submissionType === 'both'">
               <v-expansion-panels class="mb-4 rounded-lg" color="background">
                 <v-expansion-panel class="mb-2">
                   <v-expansion-panel-title>Reflection</v-expansion-panel-title>
