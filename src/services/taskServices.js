@@ -29,6 +29,9 @@ export default {
   getSubmissionTypes() {
     return apiClient.get("/task/types/submissionTypes");
   },
+  getStatusTypes() {
+    return apiClient.get("/task/types/statusTypes");
+  },
   createTask(taskData) {
     return apiClient.post("/task", taskData);
   },

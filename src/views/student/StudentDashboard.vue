@@ -111,7 +111,10 @@ const fetchFlightPlan = async () => {
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
       flightPlanItems.value = response.data[0].flightPlanItems
-        .filter((item) => item.status === "Incomplete")
+        .filter(
+          (item) =>
+            item.status === "Incomplete" && item.task.status === "active",
+        )
         .slice(0, 3);
       await fetchFlightPlanProgress();
     }
@@ -139,7 +142,10 @@ const fetchFlightPlanProgress = async () => {
     );
     if (selectedFlightPlanData) {
       flightPlanItems.value = selectedFlightPlanData.flightPlanItems
-        .filter((item) => item.status === "Incomplete")
+        .filter(
+          (item) =>
+            item.status === "Incomplete" && item.task.status === "active",
+        )
         .slice(0, 3);
     }
 

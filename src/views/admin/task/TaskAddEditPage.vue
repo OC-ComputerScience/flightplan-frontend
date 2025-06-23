@@ -103,7 +103,7 @@ onMounted(async () => {
       taskServices.getSubmissionTypes(),
       majorServices.getAllMajors(),
       strengthServices.getAllStrengths(),
-      taskServices.getAllActiveTasks(),
+      taskServices.getStatusTypes(),
     ]);
 
     categories.value = categoriesRes.data;
@@ -243,7 +243,6 @@ onMounted(async () => {
             item-title="title"
             multiple
             chips
-            :rules="[atLeast(majors, requiredNumberOfMajors)]"
           ></v-autocomplete>
         </v-col>
         <v-col :cols="6">
@@ -257,7 +256,6 @@ onMounted(async () => {
             item-title="title"
             multiple
             chips
-            :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
           ></v-autocomplete>
         </v-col>
       </v-row>
