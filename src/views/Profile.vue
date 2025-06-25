@@ -96,12 +96,12 @@ const getBadges = async (id, page = 1) => {
 };
 
 const canEditProfile = () => {
-  return store.user.userId === route.params.userId || isAdmin.value;
+  return store.user.userId == route.params.userId || isAdmin.value;
 };
 
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editUser", params: { id: userId } });
+  router.push({ name: "editProfile", params: { id: userId } });
 
 const fetchUnviewedBadges = async () => {
   const response = await badgeServices.getUnviewedBadges(route.params.userId);
