@@ -117,7 +117,7 @@ const handleSubmit = async () => {
         const student = (
           await studentServices.createStudent(submitData.student)
         ).data;
-        addMajorsAndStrengths(student.id);
+        await addMajorsAndStrengths(student.id);
       }
     } else {
       await userServices.updateUser(submitData);
@@ -125,12 +125,12 @@ const handleSubmit = async () => {
       if (isStudent.value) {
         if (submitData.student.id) {
           await studentServices.updateStudent(submitData.student);
-          updateMajorsAndStrengths(submitData.student.id);
+          await updateMajorsAndStrengths(submitData.student.id);
         } else {
           submitData.student.userId = route.params.id;
           const student = (await userServices.createUser(submitData.student))
             .data;
-          addMajorsAndStrengths(student.id);
+          await addMajorsAndStrengths(student.id);
         }
       }
     }

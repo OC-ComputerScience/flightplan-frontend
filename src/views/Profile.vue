@@ -95,9 +95,13 @@ const getBadges = async (id, page = 1) => {
   }
 };
 
+const canEditProfile = () => {
+  return store.user.userId == route.params.userId || isAdmin.value;
+};
+
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editUser", params: { id: userId } });
+  router.push({ name: "editProfile", params: { id: userId } });
 
 const fetchUnviewedBadges = async () => {
   const response = await badgeServices.getUnviewedBadges(route.params.userId);
@@ -221,7 +225,7 @@ onMounted(async () => {
         <v-spacer />
         <v-col cols="1" class="d-flex justify-end align-right">
           <v-btn
-            v-if="store.user.userId == route.params.userId"
+            v-if="canEditProfile()"
             color="primary"
             class="mr-2 cardButton elevation-0"
             @click.stop="handleEdit(route.params.userId)"
