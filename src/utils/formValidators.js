@@ -18,6 +18,21 @@ export const fileTypeRule = (value) => {
   );
 };
 
+export const fromWebsite = (value, websiteRoot) => {
+  const urlPattern = /^(https?:\/\/)([\w.-]+)\.([a-z]{2,})(:[0-9]{2,5})?(\/[^\s]*)?\s*$/i;
+  if (!websiteRoot) {
+    return `Invalid Website`;
+  } else if (urlPattern.test(value) === false) {
+    return `Link must be a valid URL starting with ${websiteRoot}`;
+  } else if (!value.startsWith(websiteRoot)) {
+    return `Link must start with ${websiteRoot}`;
+  } else if (!(value.length > websiteRoot.length)) {
+    return `Please finish the link with a valid path`;
+  } else {
+    return true;
+  }
+};
+
 export const atLeast = (value, min) =>
   value.length >= min ? true : `Must select at least ${min} option(s)`;
 
