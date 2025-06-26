@@ -56,6 +56,22 @@
   font-size: 1.1rem !important; /* Adjust as needed */
 }
 
+.vc-disabled {
+  background-color: rgb(var(--v-theme-disabled)) !important;
+}
+
+.vc-primary {
+  background-color: rgb(var(--v-theme-primary)) !important;
+}
+
+.vc-danger {
+  background-color: rgb(var(--v-theme-danger)) !important;
+}
+
+.vc-warning {
+  background-color: rgb(var(--v-theme-warning)) !important;
+}
+
 .vc-dot {
   width: 5px;
   height: 5px;
