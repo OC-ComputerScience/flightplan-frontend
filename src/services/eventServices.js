@@ -111,4 +111,24 @@ export default {
   importAttendance(attendanceData) {
     return apiClient.post(`/event/import-attendance`, attendanceData);
   },
+  addStrength(eventId, strengthId) {
+    return apiClient.put(`/event/${eventId}/strengths`, {
+      strengthId,
+    });
+  },
+  removeStrength(eventId, strengthId) {
+    return apiClient.delete(`/event/${eventId}/strengths`, {
+      data: { strengthId },
+    });
+  },
+  addMajor(eventId, majorId) {
+    return apiClient.put(`/event/${eventId}/majors`, {
+      majorId,
+    });
+  },
+  removeMajor(eventId, majorId) {
+    return apiClient.delete(`/event/${eventId}/majors`, {
+      data: { majorId },
+    });
+  },
 };

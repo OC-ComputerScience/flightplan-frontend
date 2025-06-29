@@ -13,6 +13,10 @@ export default {
     return apiClient.get(`/majors/task/${taskId}`);
   },
 
+  getMajorForEvent(eventid) {
+    return apiClient.get(`/majors/event/${eventid}`);
+  },
+
   getAllMajors(page = 1, pageSize = 1000, searchQuery, filters = {}) {
     return apiClient.get("/majors", {
       params: {

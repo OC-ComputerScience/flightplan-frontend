@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import eventServices from "../../../services/eventServices";
 import experienceServices from "../../../services/experienceServices";
+import strengthServices from "../../../services/strengthServices";
+import majorServices from "../../../services/majorServices";
 import {
   validateEndTime,
   validateTime,
@@ -31,11 +33,18 @@ const isAllDay = ref(false);
 const tempStartTime = ref();
 const tempEndTime = ref();
 
+const strengths = ref([]);
+const initialStrengths = ref([]);
+const strengthOptions = ref([]);
+const majors = ref([]);
+const initialMajors = ref([]);
+const majorOptions = ref([]);
+
 const route = useRoute();
 const router = useRouter();
 
 const confirmCancelDialog = ref(false);
-const isCancel = ref(false)
+const isCancel = ref(false);
 const eventToCancel = ref(null);
 
 const onAllDayToggle = () => {
@@ -97,9 +106,48 @@ const handleSubmit = async () => {
 
   try {
     if (props.isAdd) {
-      await eventServices.createEvent(formData.value);
+      const event = (await eventServices.createEvent(formData.value)).data;
+      for (const strength of strengths.value) {
+        await eventServices.addStrength(event.id, strength);
+      }
+      for (const major of majors.value) {
+        await eventServices.addMajor(event.id, major);
+      }
     } else {
       await eventServices.updateEvent(route.params.id, formData.value);
+
+      const getId = (item) =>
+        typeof item === "object" && item !== null ? item.id : item;
+
+      // Adds new event strengths
+      for (const strength of strengths.value) {
+        const strengthId = getId(strength);
+        if (!initialStrengths.value.some((s) => getId(s) === strengthId)) {
+          await eventServices.addStrength(route.params.id, strengthId);
+        }
+      }
+      // Removes deselected event strengths
+      for (const strength of initialStrengths.value) {
+        const strengthId = getId(strength);
+        if (!strengths.value.some((s) => getId(s) === strengthId)) {
+          await eventServices.removeStrength(route.params.id, strengthId);
+        }
+      }
+
+      // Adds new event majors
+      for (const major of majors.value) {
+        const majorId = getId(major);
+        if (!initialMajors.value.some((m) => getId(m) === majorId)) {
+          await eventServices.addMajor(route.params.id, majorId);
+        }
+      }
+      // Removes deselected event majors
+      for (const major of initialMajors.value) {
+        const majorId = getId(major);
+        if (!majors.value.some((m) => getId(m) === majorId)) {
+          await eventServices.removeMajor(route.params.id, majorId);
+        }
+      }
 
       if (!props.isAdd) {
         var registeredStudents = [];
@@ -114,7 +162,7 @@ const handleSubmit = async () => {
             startTime: formatTime(new Date(formData.value.startTime)),
             endTime: formatTime(new Date(formData.value.endTime)),
           };
-          
+
           if (isCancel.value) {
             res.data.forEach((student) => {
               registeredStudents.push(student.id);
@@ -124,7 +172,12 @@ const handleSubmit = async () => {
           } else {
             res.data.forEach((student) => {
               registeredStudents.push(student.id);
-              createEventNotification(eventData, student.studentId, false, true);
+              createEventNotification(
+                eventData,
+                student.studentId,
+                false,
+                true,
+              );
             });
           }
         }
@@ -138,16 +191,38 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
-    const [attendanceTypesRes, registrationTypesRes, experienceRes] =
-      await Promise.all([
-        eventServices.getAttendanceTypes(),
-        eventServices.getRegistrationTypes(),
-        experienceServices.getAllExperiences(),
-      ]);
+    const [
+      attendanceTypesRes,
+      registrationTypesRes,
+      experienceRes,
+      strengthsRes,
+      majorsRes,
+    ] = await Promise.all([
+      eventServices.getAttendanceTypes(),
+      eventServices.getRegistrationTypes(),
+      experienceServices.getAllExperiences(),
+      strengthServices.getAllStrengths(),
+      majorServices.getAllMajors(),
+    ]);
 
     attendanceTypes.value = attendanceTypesRes.data;
     registrationTypes.value = registrationTypesRes.data;
     experienceOptions.value = experienceRes.data.experiences;
+
+    // Fetch strengths and map them to options
+    strengthOptions.value = strengthsRes.data.map((strength) => ({
+      title: strength.name,
+      value: strength.id,
+      ...strength,
+    }));
+
+    // Fetch majors and map them to options
+    majorOptions.value = majorsRes.data.majors.map((major) => ({
+      title: major.name,
+      value: major.id,
+      ...major,
+    }));
+
     if (props.isAdd && route.params.date) {
       selectedDate.value = new Date(route.params.date);
     }
@@ -156,6 +231,26 @@ onMounted(async () => {
       formData.value.startTime = formatTime(new Date(formData.value.startTime));
       formData.value.endTime = formatTime(new Date(formData.value.endTime));
       selectedDate.value = new Date(formData.value.date);
+
+      // Load existing strength associations
+      const eventStrengths = await strengthServices.getStrengthForEvent(
+        route.params.id,
+      );
+      strengths.value = eventStrengths.data.map((eventStrength) => ({
+        title: eventStrength.name,
+        value: eventStrength.id,
+        ...eventStrength,
+      }));
+      initialStrengths.value = strengths.value;
+
+      // Load existing majors associations
+      const eventMajors = await majorServices.getMajorForEvent(route.params.id);
+      majors.value = eventMajors.data.map((eventMajor) => ({
+        title: eventMajor.name,
+        value: eventMajor.id,
+        ...eventMajor,
+      }));
+      initialMajors.value = majors.value;
     }
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -288,6 +383,34 @@ const validateEndTimeWrapper = (value) => {
         multiple
         chips
       ></v-autocomplete>
+
+      <v-row no-gutters>
+        <v-autocomplete
+          v-model="strengths"
+          variant="solo"
+          rounded="lg"
+          label="Strengths"
+          :items="strengthOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+        ></v-autocomplete>
+      </v-row>
+
+      <v-row no-gutters>
+        <v-autocomplete
+          v-model="majors"
+          variant="solo"
+          rounded="lg"
+          label="Majors"
+          :items="majorOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+        ></v-autocomplete>
+      </v-row>
 
       <v-text-field
         v-model="formData.status"

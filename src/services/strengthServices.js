@@ -10,6 +10,9 @@ export default {
   getStrengthForTask(taskId) {
     return apiClient.get(`/strengths/task/${taskId}`);
   },
+  getStrengthForEvent(eventId) {
+    return apiClient.get(`/strengths/event/${eventId}`);
+  },
   getAllStrengths() {
     return apiClient.get(`/strengths`);
   },
