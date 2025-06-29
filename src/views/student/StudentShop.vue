@@ -93,7 +93,7 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
 
         <p class="text-h6">Avaliable Quantity:</p>
         <p class="mb-2 text-subtitle-1">
-          {{ `${ rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable > 0 ? rewardToShow.quantityAvaliable : "None" : "Unlimited Quantity"} Avaliable`}} </p>
+          {{ `${ rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable : "Unlimited Quantity"} Avaliable`}} </p>
         <em><p v-if="rewardToShow.quantityAvaliable <= 0 && rewardToShow.quantityAvaliable !== null "class="mb-2 text-subtitle-1">Please check back soon to see if this item is back in stock</p></em>
 
         <p class="text-h6">Redeem at:</p>
