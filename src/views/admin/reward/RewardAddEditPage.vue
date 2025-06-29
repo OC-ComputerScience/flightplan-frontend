@@ -19,6 +19,7 @@ const errorMessage = ref("");
 const form = ref(null);
 const formData = ref({ imageName: null });
 const image = ref(null);
+const hasQuantity = ref(false);
 
 // Form data
 const redemptionTypes = ["In-Person", "Digital"];
@@ -31,6 +32,11 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
   if (!isValid) return;
+  if (hasQuantity.value) {
+    formData.value.quantityAvaliable = formData.value.quantityAvaliable;
+  } else {
+    formData.value.quantityAvaliable = null;
+  }
   try {
     if (props.isAdd) {
       await uploadImage();
@@ -77,12 +83,16 @@ onMounted(async () => {
   if (!props.isAdd) {
     try {
       let response = await rewardServices.getReward(route.params.id);
+      console.log(response)
       formData.value = response.data;
       if (formData.value.imageName) {
         response = await rewardServices.getRewardImage(
           formData.value.imageName,
         );
         image.value = new File([response.data.image], formData.value.imageName);
+      }
+      if (formData.value.quantityAvaliable !== null) {
+        hasQuantity.value = true;
       }
     } catch (err) {
       console.log("Error", err);
@@ -160,6 +170,19 @@ watch(
         label="Description"
         :rules="[required]"
       ></v-textarea>
+      <v-checkbox
+        v-model="hasQuantity"
+        label="Limited Quantity?"
+        variant="solo"
+        rounded="lg"
+      ></v-checkbox>
+      <v-text-field
+        v-if="hasQuantity"
+        v-model="formData.quantityAvaliable"
+        variant="solo"
+        rounded="lg"
+        label="Quantity Available"
+      ></v-text-field>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn
