@@ -14,7 +14,7 @@ import {
 import { required } from "../../../utils/formValidators";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import ConfirmDialog from "../../../components/dialogs/ConfirmDialog.vue";
-import { createNotification } from "../../../utils/notificationHandler";
+import { createEventNotification } from "../../../utils/notificationHandler";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -35,6 +35,7 @@ const route = useRoute();
 const router = useRouter();
 
 const confirmCancelDialog = ref(false);
+const isCancel = ref(false)
 const eventToCancel = ref(null);
 
 const onAllDayToggle = () => {
@@ -58,6 +59,7 @@ const handleCancelEvent = (eventId) => {
 const confirmCancel = async () => {
   try {
     formData.value.status = "Cancelled";
+    isCancel.value = true;
     handleSubmit();
     confirmCancelDialog.value = false;
   } catch (err) {
@@ -104,22 +106,27 @@ const handleSubmit = async () => {
         const res = await eventServices.getRegisteredStudents(route.params.id);
 
         if (res.data) {
-          res.data.forEach((student) => {
-            registeredStudents.push(student.id);
-            createNotification(
-              `${formData.value.name || "Event"} Event on ${new Date(formData.value.date).toLocaleDateString()} Info Has Changed`,
-              `The event ${formData.value.name || "you have registered for"} has been changed.<br><br>` +
-                `<b>Description:</b> ${formData.value.description}<br>` +
-                `<b>Location:</b> ${formData.value.location}<br>` +
-                `<b>Date:</b> ${new Date(formData.value.date).toLocaleDateString()}<br>` +
-                `<b>Start Time:</b> ${formatTime(new Date(formData.value.startTime))}<br>` +
-                `<b>End Time:</b> ${formatTime(new Date(formData.value.endTime))}`,
-              false,
-              student.studentId,
-              1,
-              false,
-            );
-          });
+          let eventData = {
+            name: formData.value.name,
+            description: formData.value.description,
+            location: formData.value.location,
+            date: new Date(formData.value.date).toLocaleDateString(),
+            startTime: formatTime(new Date(formData.value.startTime)),
+            endTime: formatTime(new Date(formData.value.endTime)),
+          };
+          
+          if (isCancel.value) {
+            res.data.forEach((student) => {
+              registeredStudents.push(student.id);
+              createEventNotification(eventData, student.studentId, true, true);
+            });
+            isCancel.value = false;
+          } else {
+            res.data.forEach((student) => {
+              registeredStudents.push(student.id);
+              createEventNotification(eventData, student.studentId, false, true);
+            });
+          }
         }
       }
     }

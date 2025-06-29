@@ -8,7 +8,8 @@ import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
 import { getEventCardColor } from "../utils/eventStatus";
-import { createNotification } from "../utils/notificationHandler";
+import { createEventNotification } from "../utils/notificationHandler";
+import { formatTime } from "../utils/dateTimeHelpers";
 
 const store = userStore();
 const studentId = ref(null);
@@ -74,14 +75,16 @@ const confirmCancel = async () => {
       .then((res) => {
         res.data.forEach((student) => {
           registeredStudents.push(student.studentId);
-          createNotification(
-            `${eventToCancelObject.value.name || "Event"} Event on ${new Date(eventToCancelObject.value.date).toLocaleDateString()} Cancelled`,
-            `The event ${eventToCancelObject.value.name || 'you registered for'} on ${new Date(eventToCancelObject.value.date).toLocaleDateString()} you have registed for has been cancelled.`,
-            false,
-            student.user.id,
-            1,
-            false,
+
+          eventToCancelObject.value.date = new Date(eventToCancelObject.value.date).toLocaleDateString();
+          eventToCancelObject.value.startTime = formatTime(
+            new Date(eventToCancelObject.value.startTime),
           );
+          eventToCancelObject.value.endTime = formatTime(
+            new Date(eventToCancelObject.value.endTime),
+          );
+
+          createEventNotification(eventToCancelObject.value, student.user.id, true, true);
         });
       })
       .catch((err) => {
