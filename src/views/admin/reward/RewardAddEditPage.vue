@@ -83,7 +83,6 @@ onMounted(async () => {
   if (!props.isAdd) {
     try {
       let response = await rewardServices.getReward(route.params.id);
-      console.log(response)
       formData.value = response.data;
       if (formData.value.imageName) {
         response = await rewardServices.getRewardImage(
