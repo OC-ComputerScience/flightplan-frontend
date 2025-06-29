@@ -8,6 +8,8 @@ import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
 import { getEventCardColor } from "../utils/eventStatus";
+import { createEventNotification } from "../utils/notificationHandler";
+import { formatTime } from "../utils/dateTimeHelpers";
 
 const store = userStore();
 const studentId = ref(null);
@@ -33,6 +35,7 @@ const allEvents = ref([]); // Local ref for all events
 
 const confirmCancelDialog = ref(false);
 const eventToCancel = ref(null);
+const eventToCancelObject = ref(null);
 
 const getEvents = async () => {
   try {
@@ -51,9 +54,11 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
-// handleCancel
 const handleCancel = (eventId) => {
   eventToCancel.value = eventId;
+  eventToCancelObject.value = allEvents.value.find(
+    (event) => event.id === eventId,
+  );
   confirmCancelDialog.value = true;
 };
 
@@ -62,6 +67,35 @@ const confirmCancel = async () => {
     await eventServices.updateEvent(eventToCancel.value, {
       status: "Cancelled",
     });
+
+    var registeredStudents = [];
+
+    await eventServices
+      .getRegisteredStudents(eventToCancel.value)
+      .then((res) => {
+        res.data.forEach((student) => {
+          registeredStudents.push(student.studentId);
+
+          eventToCancelObject.value.date = new Date(eventToCancelObject.value.date).toLocaleDateString();
+          eventToCancelObject.value.startTime = formatTime(
+            new Date(eventToCancelObject.value.startTime),
+          );
+          eventToCancelObject.value.endTime = formatTime(
+            new Date(eventToCancelObject.value.endTime),
+          );
+
+          createEventNotification(eventToCancelObject.value, student.user.id, true, true);
+        });
+      })
+      .catch((err) => {
+        console.error("Error creating notifcation: ", err);
+      });
+
+    await eventServices.unregisterStudents(
+      eventToCancel.value,
+      registeredStudents,
+    );
+
     cancelledEvents.value.push(eventToCancel.value);
     await getEvents();
     if (selectedEvent.value && selectedEvent.value.id === eventToCancel.value) {

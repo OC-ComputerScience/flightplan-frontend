@@ -14,6 +14,7 @@ import {
 import { required } from "../../../utils/formValidators";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import ConfirmDialog from "../../../components/dialogs/ConfirmDialog.vue";
+import { createEventNotification } from "../../../utils/notificationHandler";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -34,6 +35,7 @@ const route = useRoute();
 const router = useRouter();
 
 const confirmCancelDialog = ref(false);
+const isCancel = ref(false)
 const eventToCancel = ref(null);
 
 const onAllDayToggle = () => {
@@ -57,6 +59,7 @@ const handleCancelEvent = (eventId) => {
 const confirmCancel = async () => {
   try {
     formData.value.status = "Cancelled";
+    isCancel.value = true;
     handleSubmit();
     confirmCancelDialog.value = false;
   } catch (err) {
@@ -97,6 +100,35 @@ const handleSubmit = async () => {
       await eventServices.createEvent(formData.value);
     } else {
       await eventServices.updateEvent(route.params.id, formData.value);
+
+      if (!props.isAdd) {
+        var registeredStudents = [];
+        const res = await eventServices.getRegisteredStudents(route.params.id);
+
+        if (res.data) {
+          let eventData = {
+            name: formData.value.name,
+            description: formData.value.description,
+            location: formData.value.location,
+            date: new Date(formData.value.date).toLocaleDateString(),
+            startTime: formatTime(new Date(formData.value.startTime)),
+            endTime: formatTime(new Date(formData.value.endTime)),
+          };
+          
+          if (isCancel.value) {
+            res.data.forEach((student) => {
+              registeredStudents.push(student.id);
+              createEventNotification(eventData, student.studentId, true, true);
+            });
+            isCancel.value = false;
+          } else {
+            res.data.forEach((student) => {
+              registeredStudents.push(student.id);
+              createEventNotification(eventData, student.studentId, false, true);
+            });
+          }
+        }
+      }
     }
     router.back();
   } catch (error) {
