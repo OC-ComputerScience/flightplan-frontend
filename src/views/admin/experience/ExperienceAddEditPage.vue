@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required} from "../../../utils/formValidators";
+import { required } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
 import strengthServices from "../../../services/strengthServices";
@@ -206,7 +206,7 @@ onMounted(async () => {
             :rules="[required]"
           ></v-select>
         </v-col>
-        <v-col :cols="6">
+        <v-col :cols="12">
           <v-select
             v-model="formData.schedulingType"
             variant="solo"
@@ -215,6 +215,15 @@ onMounted(async () => {
             :items="schedulingTypes"
             :rules="[required]"
           ></v-select>
+        </v-col>
+        <v-col size="6">
+          <v-text-field
+            v-model="formData.points"
+            variant="solo"
+            rounded="lg"
+            label="Points"
+            :rules="[required, positiveNumber]"
+          ></v-text-field>
         </v-col>
         <v-col :cols="6">
           <v-select
