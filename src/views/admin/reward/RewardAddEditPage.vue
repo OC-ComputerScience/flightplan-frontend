@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, positiveNumber } from "../../../utils/formValidators";
+import { required, positiveNumber, zeroOrGreater } from "../../../utils/formValidators";
 import rewardServices from "../../../services/rewardServices";
 import fileServices from "../../../services/fileServices";
 import ImageInput from "../../../components/modals/ImageInput.vue";
@@ -181,6 +181,7 @@ watch(
         variant="solo"
         rounded="lg"
         label="Quantity Available"
+        :rules="[zeroOrGreater]"
       ></v-text-field>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
