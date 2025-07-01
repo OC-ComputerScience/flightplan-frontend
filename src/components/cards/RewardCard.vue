@@ -55,6 +55,10 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
+      <p class="text-subtitle-1 text-center my-2">
+        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
+        </p> 
+
       <!-- Points Display -->
       <p
         v-if="props.variant === 'redeem'"

@@ -230,7 +230,6 @@ watch([searchQuery], fetchRewards);
           >
           <div v-else>
             <p>Cost: {{ selectedReward.points }} points</p>
-            <p>Stock Available: {{ selectedReward.quantityAvaliable !== null ? selectedReward.quantityAvaliable : "Unlimited" }}</p>
             <p>Current Points: {{ studentPoints }}</p>
             <p>
               Remaining Points:
