@@ -114,9 +114,9 @@ const fetchFlightPlan = async () => {
 
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
-      flightPlanItems.value = response.data[0].flightPlanItems
-        .filter((item) => item.status === "Incomplete")
-        .slice(0, 3);
+      flightPlanItems.value = response.data[0].flightPlanItems.filter(
+        (item) => item.status === "Incomplete",
+      );
       await fetchFlightPlanProgress();
     }
   } catch (err) {
@@ -142,9 +142,9 @@ const fetchFlightPlanProgress = async () => {
       (plan) => plan.id === selectedFlightPlan.value.value,
     );
     if (selectedFlightPlanData) {
-      flightPlanItems.value = selectedFlightPlanData.flightPlanItems
-        .filter((item) => item.status === "Incomplete")
-        .slice(0, 3);
+      flightPlanItems.value = selectedFlightPlanData.flightPlanItems.filter(
+        (item) => item.status === "Incomplete",
+      );
     }
 
     // Store the selected semester in the flight plan store
