@@ -7,6 +7,13 @@ export const positiveNumber = (input) => {
     : "Must be an integer greater than 0";
 };
 
+export const zeroOrGreater = (input) => {
+  const number = Number(input);
+  return Number.isInteger(number) && number >= 0
+    ? true
+    : "Must be an integer greater than or equal to 0";
+};
+
 export const fileTypeRule = (value) => {
   if (!value || !value.length) return true; // Allow empty input
   const fileExtension = getFileExtension(value[0].name);

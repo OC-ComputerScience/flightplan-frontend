@@ -24,6 +24,9 @@ const fetchImage = async () => {
 
 // Computed Properties
 const canRedeem = computed(() => props.studentPoints >= props.reward.points);
+const inStock = computed(() => {
+  return props.reward.quantityAvaliable === null || props.reward.quantityAvaliable > 0;
+});
 
 // Lifecycle Hooks
 onMounted(() => fetchImage());
@@ -51,6 +54,10 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
       <p class="text-h5 text-center my-2">
         {{ props.reward.name }}
       </p>
+
+      <p class="text-subtitle-1 text-center my-2">
+        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
+        </p> 
 
       <!-- Points Display -->
       <p
@@ -94,13 +101,13 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         <!-- Redeem Variant Buttons -->
         <template v-else-if="props.variant === 'redeem'">
           <v-btn
-            :color="canRedeem ? 'primary' : 'danger'"
+            :color="canRedeem && inStock ? 'primary' : 'danger'"
             class="rounded-lg"
-            :variant="!canRedeem ? 'outlined' : undefined"
-            :readonly="!canRedeem"
-            @click="canRedeem && emit('redeem', props.reward)"
+            :variant="!canRedeem || !inStock ? 'outlined' : undefined"
+            :readonly="!canRedeem || !inStock"
+            @click="canRedeem && inStock && emit('redeem', props.reward)"
           >
-            {{ canRedeem ? "Redeem" : "Not enough points" }}
+            {{ inStock ? canRedeem ? "Redeem" : "Not enough points" : "Out of stock" }}
           </v-btn>
         </template>
       </v-row>
