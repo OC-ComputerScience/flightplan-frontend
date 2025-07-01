@@ -181,7 +181,7 @@ watch(
         variant="solo"
         rounded="lg"
         label="Quantity Available"
-        :rules="[zeroOrGreater]"
+        :rules="[required, zeroOrGreater]"
       ></v-text-field>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
