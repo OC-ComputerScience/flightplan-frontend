@@ -107,9 +107,7 @@ export const sendEmail = async (emailData) => {
   try {
     await emailServices.sendEmail(emailData);
     console.log(emailData);
-    alert("Notification email sent successfully!");
   } catch (error) {
     console.error("Error sending notification email:", error);
-    alert("Failed to send notification email.");
   }
 };
