@@ -297,6 +297,7 @@ onMounted(async () => {
             :key="index"
             color="background"
             :view-only="true"
+            :no-actions="true"
             :status="
               getEventCardColor(
                 event,

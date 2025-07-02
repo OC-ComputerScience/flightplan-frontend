@@ -40,6 +40,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  noActions: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const isRegistered = ref(false);
@@ -200,7 +204,7 @@ const handleRegistration = () => {
             {{ statusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="props.adminView" class="ma-2 float-left">
+        <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
           <v-btn
             color="warning"
             class="mr-2 cardButton elevation-0"
@@ -217,7 +221,7 @@ const handleRegistration = () => {
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
-        <v-row v-else class="ma-2 float-left">
+        <v-row v-else-if="!props.noActions" class="ma-2 float-left">
           <v-btn
             v-if="isRegistered && props.status !== 'grey'"
             color="error"

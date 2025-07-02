@@ -272,6 +272,7 @@ onMounted(() => {
               :key="index"
               :event="item"
               :view-only="true"
+              :no-actions="true"
               color="background"
               :is-event-viewing="false"
               :to="{ name: 'admin-calendar' }"
