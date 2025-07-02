@@ -1,6 +1,5 @@
 import notificationServices from "../services/notificationServices";
 import emailServices from "../services/emailServices";
-import { userStore } from "../stores/userStore";
 
 export const createNotification = async (
   header,
@@ -9,6 +8,7 @@ export const createNotification = async (
   userId,
   sentBy,
   email = false,
+  emailAddress = null,
 ) => {
   await notificationServices
     .createNotification({
@@ -20,9 +20,8 @@ export const createNotification = async (
     })
     .then(() => {
       if (email) {
-        let store = userStore();
         const emailData = {
-          to: store.user.email,
+          to: emailAddress,
           subject: header,
           body: description,
         };
@@ -34,76 +33,89 @@ export const createNotification = async (
     });
 };
 
-export const createEventNotification = async (
+export const createEventCancelNotification = async (
   event,
   userId,
-  isCancel = false,
   email = false,
   sentBy = 1,
+  emailAddress = null,
 ) => {
-  if (isCancel) {
-    await notificationServices
-      .createNotification({
-        header: `${event.name || "Event"} Event on ${event.date} Cancelled`,
-        description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.`,
-        read: false,
-        userId: userId,
-        sentBy: sentBy,
-      })
-      .then(() => {
-        if (email) {
-          let store = userStore();
-          const emailData = {
-            to: store.user.email,
-            subject: `${event.name || "Event"} Event on ${event.date} Cancelled`,
-            body: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.`,
-          };
-          sendEmail(emailData);
-        }
-      })
-      .catch((err) => {
-        console.error("Error creating notification in utils:", err);
-      });
-  } else {
-    await notificationServices
-      .createNotification({
-        header: `${event.name || "Event"} on ${event.date} Event Info Has Changed`,
-        description:
-          `The event ${event.name || "you have registered for"} has been changed.<br><br>` +
-          `<b>Description:</b> ${event.description}<br>` +
-          `<b>Location:</b> ${event.location}<br>` +
-          `<b>Date:</b> ${event.date}<br>` +
-          `<b>Start Time:</b> ${event.startTime}<br>` +
-          `<b>End Time:</b> ${event.endTime}`,
-        read: false,
-        userId: userId,
-        sentBy: sentBy,
-      })
-      .then(() => {
-        if (email) {
-          let store = userStore();
-          const emailData = {
-            to: store.user.email,
-            subject: `${event.name || "Event"} on ${event.date} Event Info Has Changed`,
-            body:
-              `The event ${event.name || "you have registered for"} has been changed.<br><br>` +
-              `<b>Description:</b> ${event.description}<br>` +
-              `<b>Location:</b> ${event.location}<br>` +
-              `<b>Date:</b> ${event.date}<br>` +
-              `<b>Start Time:</b> ${event.startTime}<br>` +
-              `<b>End Time:</b> ${event.endTime}`,
-          };
-          sendEmail(emailData);
-        }
-      })
-      .catch((err) => {
-        console.error("Error creating notification in utils:", err);
-      });
-  }
+  let notificationData = {
+    header: `${event.name || "Event"} Event on ${event.date} Cancelled`,
+    description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.`,
+    read: false,
+    userId: userId,
+    sentBy: sentBy,
+  };
+
+  await notificationServices
+    .createNotification({
+      header: notificationData.header,
+      description: notificationData.description,
+      read: notificationData.read,
+      userId: notificationData.userId,
+      sentBy: notificationData.sentBy,
+    })
+    .then(() => {
+      if (email) {
+        const emailData = {
+          to: emailAddress,
+          subject: notificationData.header,
+          body: notificationData.description,
+        };
+        sendEmail(emailData);
+      }
+    })
+    .catch((err) => {
+      console.error("Error creating notification in utils:", err);
+    });
+};
+
+export const createEventUpdateNotification = async (
+  event,
+  userId,
+  email = false,
+  sentBy = 1,
+  emailAddress = null,
+) => {
+  let notificationData = {
+    header: `${event.name || "Event"} on ${event.date} Event Info Has Changed`,
+    description:
+      `The event ${event.name || "you have registered for"} has been changed.<br><br>` +
+      `<b>Description:</b> ${event.description}<br>` +
+      `<b>Location:</b> ${event.location}<br>` +
+      `<b>Date:</b> ${event.date}<br>` +
+      `<b>Start Time:</b> ${event.startTime}<br>` +
+      `<b>End Time:</b> ${event.endTime}`,
+    read: false,
+    userId: userId,
+    sentBy: sentBy,
+  };
+
+  await notificationServices
+    .createNotification({
+      header: notificationData.header,
+      description: notificationData.description,
+      read: notificationData.read,
+      userId: notificationData.userId,
+      sentBy: notificationData.sentBy,
+    })
+    .then(() => {
+      if (email) {
+        const emailData = {
+          to: emailAddress,
+          subject: notificationData.header,
+          body: notificationData.description,
+        };
+        sendEmail(emailData);
+      }
+    })
+    .catch((err) => {
+      console.error("Error creating notification in utils:", err);
+    });
 };
 
 export const sendEmail = async (emailData) => {
-  console.log("Sending test email...");
   try {
     await emailServices.sendEmail(emailData);
     console.log(emailData);
