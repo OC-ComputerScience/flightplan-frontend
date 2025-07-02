@@ -13,7 +13,6 @@ dayjs.extend(advancedFormat);
 const emit = defineEmits([
   "edit",
   "cancel",
-  "delete",
   "show-info",
   "register",
   "unregister",
