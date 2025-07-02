@@ -139,7 +139,7 @@ const closeDialogs = () => {
   <div class="container">
     <div class="notifContainer">
       <div class="d-flex align-center">
-        <h1>Notifications</h1>
+        <h1 class="mt-1">Notifications</h1>
         <v-card
           v-if="!noNotifications"
           color="primary"
@@ -157,6 +157,13 @@ const closeDialogs = () => {
             @click="handleSelectAll"
           />
         </v-card>
+        <v-row justify="center" class="mr-2">
+          <v-col cols="12">
+            <v-card color="backgroundDarken" style="border-radius: 25px">
+              </v-card
+            >
+          </v-col>
+        </v-row>
         <v-btn
           v-if="selectedNotificationsStore.selectedNotificationIds.length > 0"
           color="danger"
