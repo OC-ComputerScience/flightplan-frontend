@@ -165,16 +165,15 @@ const handleSubmit = async () => {
 
           if (isCancel.value) {
             res.data.forEach((student) => {
-              console.log(student);
               registeredStudents.push(student.id);
-              createEventUpdateNotification(eventData, student.studentId, true, 1, student.user.email);
+              createEventCancelNotification(eventData, student.studentId, true, 1, student.user.email);
             });
             isCancel.value = false;
           } else {
             res.data.forEach((student) => {
               console.log(student);
               registeredStudents.push(student.id);
-              createEventCancelNotification(
+              createEventUpdateNotification(
                 eventData,
                 student.studentId,
                 true,
