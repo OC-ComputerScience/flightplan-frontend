@@ -19,6 +19,9 @@ export default {
   getSubmissionTypes() {
     return apiClient.get("/experience/types/submissionTypes");
   },
+  getStatusTypes() {
+    return apiClient.get("/experience/types/statusTypes");
+  },
   getCategories() {
     return apiClient.get("/experience/types/categories");
   },
@@ -28,9 +31,6 @@ export default {
   updateExperience(experienceId, experienceData) {
     return apiClient.put(`/experience/${experienceId}`, experienceData);
   },
-  deleteExperience(experienceId) {
-    return apiClient.delete(`/experience/${experienceId}`);
-  },
   getAllOptionalExperiencesForStudent(studentId, searchQuery) {
     return apiClient.get(`/experience/optional/${studentId}`, {
       params: {
@@ -38,9 +38,11 @@ export default {
       },
     });
   },
-  addStrength(experienceId, strengthId) {
-    return apiClient.put(`/experience/${experienceId}/strengths`, {
-      strengthId,
+  getAllActiveExperiences(searchQuery) {
+    return apiClient.get("/experience/active", {
+      params: {
+        searchQuery: searchQuery,
+      },
     });
   },
   removeStrength(experienceId, strengthId) {

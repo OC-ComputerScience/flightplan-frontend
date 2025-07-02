@@ -38,15 +38,6 @@ const handleAdd = () => router.push({ name: "addExperience" });
 const handleEdit = (experienceId) =>
   router.push({ name: "editExperience", params: { id: experienceId } });
 
-const handleDelete = async (experienceId) => {
-  try {
-    await experienceServices.deleteExperience(experienceId);
-    await getExperiences(); // Re-fetch experiences after delete
-  } catch (error) {
-    console.error("Error deleting experience:", error);
-  }
-};
-
 const handleSearchChange = (input) => {
   searchQuery.value = input;
   page.value = 1; // Reset to first page on search change

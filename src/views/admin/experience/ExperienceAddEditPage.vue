@@ -15,6 +15,7 @@ const categories = ref([]);
 const schedulingTypes = ref([]);
 const submissionTypes = ref([]);
 const semesterTypes = ref(semesters);
+const statusTypes = ref([]);
 const strengths = ref([]);
 const initialStrengths = ref([]);
 const strengthOptions = ref([]);
@@ -102,12 +103,14 @@ onMounted(async () => {
       categoriesRes,
       schedulingRes,
       submissionTypesRes,
+      statusTypesRes,
       strengthsRes,
       majorsRes,
     ] = await Promise.all([
       experienceServices.getCategories(),
       experienceServices.getSchedulingTypes(),
       experienceServices.getSubmissionTypes(),
+      experienceServices.getStatusTypes(),
       strengthServices.getAllStrengths(),
       majorServices.getAllMajors(),
     ]);
@@ -117,6 +120,7 @@ onMounted(async () => {
     submissionTypes.value = submissionTypesRes.data.map((type) =>
       type === "both" ? "text & files" : type,
     );
+    statusTypes.value = statusTypesRes.data;
 
     // Fetch strengths and map them to options
     strengthOptions.value = strengthsRes.data.map((strength) => ({
@@ -239,32 +243,45 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <v-row no-gutters>
-        <v-autocomplete
-          v-model="strengths"
-          variant="solo"
-          rounded="lg"
-          label="Strengths"
-          :items="strengthOptions"
-          item-value="value"
-          item-title="title"
-          multiple
-          chips
-        ></v-autocomplete>
+          <v-autocomplete
+            v-model="formData.status"
+            variant="solo"
+            rounded="lg"
+            label="Status"
+            :items="statusTypes"
+            item-value="value"
+            item-title="title"
+            :rules="[required]"
+          ></v-autocomplete>
       </v-row>
-      <v-row no-gutters>
-        <v-autocomplete
-          v-model="majors"
-          variant="solo"
-          rounded="lg"
-          label="Majors"
-          :items="majorOptions"
-          item-value="value"
-          item-title="title"
-          multiple
-          chips
-        ></v-autocomplete>
+      <v-row dense>
+        <v-col :cols="6">
+          <v-autocomplete
+            v-model="strengths"
+            variant="solo"
+            rounded="lg"
+            label="Strengths"
+            :items="strengthOptions"
+            item-value="value"
+            item-title="title"
+            multiple
+            chips
+          ></v-autocomplete>
+        </v-col>
+        <v-col :cols="6">
+          <v-autocomplete
+            v-model="majors"
+            variant="solo"
+            rounded="lg"
+            label="Majors"
+            :items="majorOptions"
+            item-value="value"
+            item-title="title"
+            multiple
+            chips
+          ></v-autocomplete>
+        </v-col>
       </v-row>
-
       <v-text-field
         v-model="formData.rationale"
         variant="solo"
