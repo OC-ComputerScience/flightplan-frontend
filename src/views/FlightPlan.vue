@@ -197,11 +197,7 @@ const fetchFlightPlanAndItems = async () => {
       selectedFlightPlan.value.value,
       params,
     );
-  flightPlanItems.value = response.data.flightPlanItems.filter(
-    (item) =>
-      item.flightPlanItemType !== "Task" ||
-      (item.task && item.task.status === "active"),
-  );
+  flightPlanItems.value = response.data.flightPlanItems;
   count.value = response.data.count;
 };
 
