@@ -1,11 +1,12 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
 import eventServices from "../../services/eventServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
+import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
 
 dayjs.extend(advancedFormat);
 
@@ -43,6 +44,9 @@ const props = defineProps({
 });
 
 const isRegistered = ref(false);
+const confirmCancelDialog = ref(false);
+const canCancel = ref(true);
+
 
 onMounted(async () => {
   let userId = Utils.getStore("user").userId;
@@ -84,6 +88,66 @@ const viewCard = () => {};
 const editEvent = () => {
   emit("edit", props.event.id);
 };
+
+const directCancel = () => {
+  confirmCancelDialog.value = true;
+};
+
+const confirmCancel = async () => {
+  try {
+    await eventServices.updateEvent(props.event.id, {
+      status: "Cancelled",
+    });
+
+    var registeredStudents = [];
+
+    await eventServices
+      .getRegisteredStudents(props.event.id)
+      .then((res) => {
+        res.data.forEach((student) => {
+          registeredStudents.push(student.studentId);
+
+          var eventToCancelObject = {
+            id: props.event.id,
+            name: props.event.name,
+            date: props.event.date,
+            startTime: props.event.startTime,
+            endTime: props.event.endTime,
+            location: props.event.location,
+          };
+
+          eventToCancelObject.date = new Date(
+            eventToCancelObject.date,
+          ).toLocaleDateString();
+          eventToCancelObject.startTime = formatTime(
+            new Date(eventToCancelObject.startTime),
+          );
+          eventToCancelObject.endTime = formatTime(
+            new Date(eventToCancelObject.endTime),
+          );
+
+          createEventNotification(
+            eventToCancelObject,
+            student.user.id,
+            true,
+            true,
+          );
+        });
+        canCancel.value = false;
+      })
+      .catch((err) => {
+        console.error("Error creating notifcation: ", err);
+      });
+
+    if (registeredStudents.length > 0) await eventServices.unregisterStudents(props.event.id, registeredStudents);
+  } catch (err) {
+    console.error("Error cancelling event:", err);
+  }
+};
+
+watch(() => props.event.status, (newStatus) => {
+  canCancel.value = newStatus !== 'Cancelled';
+}, { immediate: true });
 
 const cancelEvent = () => {
   emit("cancel", props.event.id);
@@ -165,11 +229,13 @@ const handleRegistration = () => {
           </v-btn>
 
           <v-btn
-            color="danger"
-            class="cardButton elevation-0"
-            @click="emit('delete', props.event.id)"
-            ><v-icon icon="mdi-delete" color="text" size="x-large"></v-icon
-          ></v-btn>
+            v-if="canCancel"
+            color="error"
+            class="mr-2 cardButton elevation-0"
+            @click="directCancel()"
+          >
+            <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
+          </v-btn>
         </v-row>
       </v-col>
     </v-row>
@@ -238,6 +304,14 @@ const handleRegistration = () => {
       </v-col>
     </v-row>
   </v-card>
+  <ConfirmDialog
+    v-model="confirmCancelDialog"
+    title="Cancel Event?"
+    confirm-text="Yes, Cancel Event"
+    cancel-text="No, Close"
+    confirm-color="error"
+    @confirm="confirmCancel"
+  />
 </template>
 
 <style scoped>
