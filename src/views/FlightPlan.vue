@@ -316,64 +316,49 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
 </script>
 <template>
   <v-container fluid>
-    <div v-if="props.isAdmin">
-      <div class="mt-2 d-flex justify-center">
-        <div class="mr-4 mb-5 text-h5">{{ userName }}</div>
-      </div>
-      <v-row v-if="flightPlans.length > 0">
-        <v-col :cols="6" class="d-flex justify-end">
-          <v-select
-            v-model="selectedFlightPlan"
-            :items="flightPlans"
-            :item-title="(item) => item.label"
-            :item-value="(item) => item.value"
-            variant="solo"
-            bg-color="background"
-            return-object
-            flat
-            class="flex-grow-0"
-            density="comfortable"
-          ></v-select
-        ></v-col>
-        <v-col :cols="6" class="d-flex justify-start align-center mb-6">
-          <span class="text-subtitle-1"> Available Points: {{ points }} </span>
-        </v-col>
+    <div>
+      <div class="pa-4">
+        <h1 v-if="props.isAdmin"class="mt-1">{{ userName }}'s Flight Plan</h1>
+        <h1 v-else class="mt-1">Flight Plan</h1>
+      <v-row v-if="flightPlans.length > 0" justify="center" class="mr-2">
+          <v-col cols="12">
+            <v-card color="backgroundDarken" style="border-radius: 25px">
+              <v-card-text>
+                <v-select
+                  v-model="selectedFlightPlan"
+                  :items="flightPlans"
+                  :item-title="(item) => item.label"
+                  :item-value="(item) => item.value"
+                  variant="solo"
+                  bg-color="background"
+                  return-object
+                  class="mb-4"
+                  density="comfortable"
+                  flat
+                  @update:model-value="fetchFlightPlanProgress"
+                ></v-select>
+                <v-progress-linear
+                  v-model="progress"
+                  color="primary"
+                  bg-color="backgroundLighten"
+                  height="20"
+                  style="border-radius: 25px"
+                >
+                  <strong>{{ progress }}%</strong>
+                </v-progress-linear>
+                <div class="text-center mt-2">
+                  <span class="text-subtitle-1"
+                    >Available Points: {{ points }}</span
+                  >
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
       </v-row>
       <p v-else class="text-h6 text-center">No flight plans found</p>
     </div>
-    <div v-else>
-      <div class="mt-2 d-flex justify-center">
-        <v-select
-          v-model="selectedFlightPlan"
-          :items="flightPlans"
-          :item-title="(item) => item.label"
-          :item-value="(item) => item.value"
-          variant="solo"
-          bg-color="background"
-          return-object
-          class="flex-grow-0"
-          density="comfortable"
-          flat
-        ></v-select>
-      </div>
-      <div class="mt-2 d-flex align-center">
-        <span class="flex-grow-1 text-center text-subtitle-1">
-          Available Points: {{ points }}
-        </span>
-      </div>
     </div>
 
-    <v-container>
-      <v-progress-linear
-        v-model="progress"
-        color="primary"
-        bg-color="backgroundLighten"
-        height="20"
-        rounded
-      >
-        <strong>{{ progress }}%</strong></v-progress-linear
-      >
-    </v-container>
     <CardHeader
       :export-calendar-button="hasRegisteredEvents"
       :add-button="selectedFlightPlan == flightPlans[0] ? true : false"
