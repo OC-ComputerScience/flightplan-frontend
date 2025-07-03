@@ -8,7 +8,7 @@ import eventServices from "../services/eventServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
 import { getEventCardColor } from "../utils/eventStatus";
-import { createEventNotification } from "../utils/notificationHandler";
+import { createEventCancelNotification } from "../utils/notificationHandler";
 import { formatTime } from "../utils/dateTimeHelpers";
 
 const store = userStore();
@@ -84,7 +84,7 @@ const confirmCancel = async () => {
             new Date(eventToCancelObject.value.endTime),
           );
 
-          createEventNotification(eventToCancelObject.value, student.user.id, true, true);
+          createEventCancelNotification(eventToCancelObject.value, student.user.id, true, 1, student.user.email);
         });
       })
       .catch((err) => {
