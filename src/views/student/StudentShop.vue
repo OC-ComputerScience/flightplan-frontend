@@ -75,7 +75,11 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
     <h1 class="mt-1">Student Shop</h1>
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
-        <v-card color="backgroundDarken" style="border-radius: 25px"> </v-card>
+        <v-card color="backgroundDarken" style="border-radius: 25px">
+          <p class="section-headers" style="font-size: 16px; margin-left: 10px">
+            View upcoming events, deadlines, and tasks in a calendar format.
+          </p>
+        </v-card>
       </v-col>
     </v-row>
     <v-container fluid>
@@ -150,3 +154,10 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
     </v-container>
   </div>
 </template>
+
+<style scoped>
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+}
+</style>

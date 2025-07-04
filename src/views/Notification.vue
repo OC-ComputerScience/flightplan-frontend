@@ -140,6 +140,7 @@ const closeDialogs = () => {
     <div class="notifContainer">
       <div class="d-flex align-center">
         <h1 class="mt-1">Notifications</h1>
+        
         <v-card
           v-if="!noNotifications"
           color="primary"
@@ -316,5 +317,10 @@ const closeDialogs = () => {
 
 .description {
   white-space: pre-wrap;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
 }
 </style>
