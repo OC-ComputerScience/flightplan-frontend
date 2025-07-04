@@ -56,20 +56,24 @@
   font-size: 1.1rem !important; /* Adjust as needed */
 }
 
-.vc-disabled {
-  background-color: rgb(var(--v-theme-disabled)) !important;
+.vc-upcoming {
+  background-color: rgb(var(--v-theme-upcoming)) !important;
 }
 
-.vc-primary {
-  background-color: rgb(var(--v-theme-primary)) !important;
+.vc-registered {
+  background-color: rgb(var(--v-theme-registered)) !important;
 }
 
-.vc-danger {
-  background-color: rgb(var(--v-theme-danger)) !important;
+.vc-checkedin {
+  background-color: rgb(var(--v-theme-checkedin)) !important;
 }
 
-.vc-warning {
-  background-color: rgb(var(--v-theme-warning)) !important;
+.vc-passed {
+  background-color: rgb(var(--v-theme-passed)) !important;
+}
+
+.vc-canceled {
+  background-color: rgb(var(--v-theme-canceled)) !important;
 }
 
 .vc-dot {
