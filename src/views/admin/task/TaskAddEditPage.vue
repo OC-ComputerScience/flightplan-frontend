@@ -266,6 +266,18 @@ onMounted(async () => {
         label="Description"
         :rules="[required]"
       ></v-textarea>
+      <v-textarea
+        v-model="formData.instructions"
+        variant="solo"
+        rounded="lg"
+        label="Completion Instructions"
+      ></v-textarea>
+      <v-text-field
+        v-model="formData.instructionsLink"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link"
+      ></v-text-field>
       <v-text-field
         v-model="formData.rationale"
         variant="solo"
