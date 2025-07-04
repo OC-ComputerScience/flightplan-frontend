@@ -5,7 +5,6 @@ import CardTable from "../../../components/CardTable.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import BadgeCard from "../../../components/cards/BadgeCard.vue";
 import badgeServices from "../../../services/badgeServices";
-import fileServices from "../../../services/fileServices";
 
 // Constants
 const PAGE_SIZE = 8;
@@ -24,18 +23,6 @@ const handleAdd = () => {
 };
 const handleEdit = (badgeId) =>
   router.push({ name: "editBadge", params: { id: badgeId } });
-
-const handleDelete = async (badgeId, badgeFileName) => {
-  try {
-    if (badgeFileName) {
-      await fileServices.deleteFileForName(badgeFileName);
-    }
-    await badgeServices.deleteBadge(badgeId);
-    await getBadges(); // Re-fetch badges after delete
-  } catch (error) {
-    console.error("Error deleting badge:", error);
-  }
-};
 
 const handleSearchChange = (input) => {
   searchQuery.value = input;

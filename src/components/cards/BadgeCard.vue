@@ -47,6 +47,9 @@ const cardClass = computed(() => {
       <p class="text-subtitle-1 text-center my-2">
         {{ props.badge.name }}
       </p>
+      <p class="text-subtitle-1 text-center my-2">
+        Status: {{ props.badge.status }}
+      </p>
       <v-row v-show="!props.isProfilePage" class="ma-2 justify-center">
         <v-btn
           color="warning"
@@ -54,13 +57,6 @@ const cardClass = computed(() => {
           @click="emit('edit', props.badge.id)"
         >
           <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
-        </v-btn>
-        <v-btn
-          color="danger"
-          class="rounded-lg"
-          @click="emit('delete', props.badge.id, props.badge.imageName)"
-        >
-          <v-icon icon="mdi-delete" color="text" size="x-large"></v-icon>
         </v-btn>
       </v-row>
     </v-card-text>
