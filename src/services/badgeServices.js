@@ -9,9 +9,6 @@ export default {
       },
     });
   },
-  deleteBadge(badgeId) {
-    return apiClient.delete(`/badge/${badgeId}`);
-  },
   getBadge(badgeId) {
     return apiClient.get(`/badge/${badgeId}`);
   },
@@ -33,8 +30,17 @@ export default {
   getRuleTypes() {
     return apiClient.get("/badge/types/rules");
   },
+  getStatusTypes() {
+    return apiClient.get("/badge/types/statusTypes");
+  },
   getUnviewedBadges(studentId) {
     return apiClient.get(`/badge/student/${studentId}/unviewed`);
+  },
+  getAllActiveBadges() {
+    return apiClient.get("/badge/active");
+  },
+  getAllInactiveBadges() {
+    return apiClient.get("/badge/inactive");
   },
   viewBadge(badgeId) {
     return apiClient.put(`/badge/${badgeId}/view`);
