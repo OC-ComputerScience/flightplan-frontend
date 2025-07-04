@@ -51,3 +51,11 @@ const getFileExtension = (fileName) => {
   const parts = fileName.split(".");
   return parts.length > 1 ? "image/" + parts.pop().toLowerCase() : null;
 };
+
+export const characterLimit = (value, min) => {
+  if (value.length < min) {
+    return `Submission must be at least ${min} characters`;
+   } else {
+    return true;
+  }
+}

@@ -5,6 +5,7 @@ import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogSt
 import userServices from "../../services/userServices";
 import submissionServices from "../../services/submissionServices";
 import fileServices from "../../services/fileServices";
+import { required, characterLimit } from "../../utils/formValidators";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -23,6 +24,22 @@ const submissionType = computed(() => {
     return flightPlanItem.value.task.submissionType;
   } else {
     return flightPlanItem.value.experience.submissionType;
+  }
+});
+
+const hasInstructions = computed(() => {
+  if (flightPlanItem.value.task) {
+    return flightPlanItem.value.task.instructions;
+  } else {
+    return flightPlanItem.value.experience.instructions;
+  }
+});
+
+const hasInstructionsLink = computed(() => {
+  if (flightPlanItem.value.task) {
+    return flightPlanItem.value.task.instructionsLink;
+  } else {
+    return flightPlanItem.value.experience.instructionsLink;
   }
 });
 
@@ -185,7 +202,7 @@ onMounted(fetchOptionalReviewers);
     <v-card rounded="xl" color="backgroundDarken">
       <v-card-title class="text-h4 d-flex justify-center align-center">
         <span class="flex-grow-1 text-center">
-          {{ flightPlanItem.name }}
+          Complete {{ flightPlanItem.name }}
         </span>
         <v-icon
           class="cursor-pointer"
@@ -202,6 +219,20 @@ onMounted(fetchOptionalReviewers);
             }}</v-alert>
           </div>
           <div v-else>
+            <div v-if="hasInstructions" class="mb-4">
+              <p class="text-body-1">{{ hasInstructions }}</p>
+              </div>
+              <div v-if="hasInstructionsLink" class="mb-4">
+              <p class="text-body-1">
+                <a
+                  :href="hasInstructionsLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary"
+                  >View More Instructions</a
+                >
+              </p>
+            </div>
             <v-textarea
               v-if="submissionType === 'text'"
               v-model="reflectionText"
@@ -209,6 +240,8 @@ onMounted(fetchOptionalReviewers);
               variant="solo"
               rounded="xl"
               bg-color="background"
+              counter
+              :rules="[required, characterLimit(reflectionText, 400)]"
             ></v-textarea>
             <v-file-upload
               v-else-if="submissionType === 'files'"
