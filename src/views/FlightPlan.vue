@@ -430,3 +430,10 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
     @add-items="handleAddItems"
   />
 </template>
+
+<style scoped>
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+}
+</style>

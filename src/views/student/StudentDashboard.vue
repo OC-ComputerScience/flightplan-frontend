@@ -12,6 +12,7 @@ import { useNotificationStore } from "../../stores/notificationStore";
 import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
 import { getEventCardColor } from "../../utils/eventStatus";
+import FirstTimeInstructions from "../../components/dialogs/FirstTimeInstructions.vue";
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -193,6 +194,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <FirstTimeInstructions/>
   <div class="dashboard-container">
     <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
     <v-row justify="center" class="mr-2">
