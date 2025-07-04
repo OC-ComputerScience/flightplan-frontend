@@ -199,6 +199,25 @@ onMounted(async () => {
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">
           <v-card-text>
+            <div class="d-flex align-center justify-start mb-4">
+              <strong class="section-headers"
+                >{{ selectedFlightPlan?.label }} Flight Plan Progress</strong
+              >
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
+                </template>
+                <span>Overview of your flight plan completion progress for the selected semester</span>
+              </v-tooltip>
+            </div>
+            <div class="d-flex align-center justify-start mb-4">
+              <p class="section-headers" style="font-size: 16px">
+                Probably some placeholder text here? 1-2 sentences max.
+              </p>
+            </div>
+
             <v-select
               v-model="selectedFlightPlan"
               :items="flightPlans"
@@ -233,9 +252,17 @@ onMounted(async () => {
 
     <div class="dashboard-grid">
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Flight Plan</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Flight Plan</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>Your list of incomplete tasks and experiences for the selected semester</span>
+          </v-tooltip>
+        </div>
         <div id="flightPlanList">
           <template v-if="flightPlanItems.length > 0">
             <FlightPlanItemCard
@@ -265,9 +292,17 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px">
-          Notifications
-        </strong>
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Notifications</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>Notifications regarding flight plan task and experience statuses, information about events you've registered for, and more</span>
+          </v-tooltip>
+        </div>
         <div id="notifList">
           <NotificationCard
             v-for="(item, index) in notifications.slice(0, 5)"
@@ -288,9 +323,17 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Calendar</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Calendar</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>Upcoming events for the week</span>
+          </v-tooltip>
+        </div>
         <div id="eventList">
           <EventCard
             v-for="(event, index) in events"
@@ -384,5 +427,10 @@ onMounted(async () => {
   margin-top: auto;
   text-align: center;
   width: 100%;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
 }
 </style>
