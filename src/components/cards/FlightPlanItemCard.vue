@@ -197,7 +197,7 @@ const contextSize = computed(() => {
 });
 
 const handleClick = () => {
-  emit("click");
+  emit("click", props.flightPlanItem);
 };
 
 const handleDelete = () => {
