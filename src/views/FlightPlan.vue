@@ -36,6 +36,13 @@ const props = defineProps({
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const currentFlightPlanLabel = computed(() => {
+  const term =
+    flightPlan.value.semester?.term?.charAt(0).toUpperCase() +
+    flightPlan.value.semester?.term?.slice(1);
+  return `${term} ${flightPlan.value.semester?.year}`;
+});
+
 const downloadFlightPlanICS = async () => {
   const eventRes = await eventServices.getAllEvents(1, 1000);
   const allEvents = eventRes.data.events;
@@ -306,10 +313,13 @@ onMounted(async () => {
   }
 });
 
-watch(selectedFlightPlan, () => {
-  if (selectedFlightPlan.value) {
+watch(selectedFlightPlan, (newFlightPlan) => {
+  if (newFlightPlan) {
     fetchFlightPlanAndItems();
     fetchFlightPlanProgress();
+    currentFlightPlanLabel.value =
+      newFlightPlan.label ||
+      `${newFlightPlan.semester.term} ${newFlightPlan.semester.year}`;
   }
 });
 
@@ -325,11 +335,24 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
   <v-container fluid>
     <div>
       <div class="pa-4">
-        <h1 v-if="props.isAdmin"class="mt-1">{{ userName }}'s Flight Plan</h1>
-        <h1 v-else class="mt-1">Flight Plan</h1>
-      <v-row v-if="flightPlans.length > 0" justify="center" class="mr-2">
+        <h1 v-if="props.isAdmin" class="mt-1">{{ userName }}'s Flight Plan</h1>
+        <v-row v-if="flightPlans.length > 0" justify="center" class="mr-2">
           <v-col cols="12">
             <v-card color="backgroundDarken" style="border-radius: 25px">
+              <div v-if="!props.isAdmin">
+                <div style="padding: 5px">
+                  <h1 class="mt-1" style="margin-left: 10px">Flight Plan</h1>
+                  <p
+                    class="section-headers"
+                    style="font-size: 16px; margin-left: 10px"
+                  >
+                    View your tasks and experiences for your
+                    {{ selectedFlightPlan.label }}
+                    Flight Plan here. Click any of the cards below to view more
+                    details or complete the task / experience.
+                  </p>
+                </div>
+              </div>
               <v-card-text>
                 <v-select
                   v-model="selectedFlightPlan"
@@ -344,6 +367,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
                   flat
                   @update:model-value="fetchFlightPlanProgress"
                 ></v-select>
+                <strong>Current Flight Plan Completion Progress: </strong>
                 <v-progress-linear
                   v-model="progress"
                   color="primary"
@@ -361,9 +385,9 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
               </v-card-text>
             </v-card>
           </v-col>
-      </v-row>
-      <p v-else class="text-h6 text-center">No flight plans found</p>
-    </div>
+        </v-row>
+        <p v-else class="text-h6 text-center">No flight plans found</p>
+      </div>
     </div>
 
     <CardHeader

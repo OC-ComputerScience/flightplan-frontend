@@ -72,13 +72,16 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
 </script>
 <template>
   <div class="pa-4">
-    <h1 class="mt-1">Student Shop</h1>
+
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">
+          <div style="padding: 5px;">
+          <h1 class="mt-1" style="margin-left: 10px;">Avaliable Rewards</h1>
           <p class="section-headers" style="font-size: 16px; margin-left: 10px">
-            View upcoming events, deadlines, and tasks in a calendar format.
+            View avaliable rewards currently avaliable through Career Services. Click on each reward below to view redemption info. 
           </p>
+          </div>
         </v-card>
       </v-col>
     </v-row>

@@ -418,7 +418,7 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
-          :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
+
         />
 
         <v-autocomplete

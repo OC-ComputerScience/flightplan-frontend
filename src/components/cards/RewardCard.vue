@@ -78,11 +78,17 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 
       <!-- Points Display -->
       <p
-        v-if="props.variant === 'redeem'"
+
         class="text-subtitle-1 text-center my-2"
       >
         {{ props.reward.points }} pts
       </p>
+
+      <p class="text-subtitle-1 text-center my-2">
+        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
+        </p> 
+
+
 
       <!-- Action Buttons -->
       <v-row class="ma-2 justify-center">
@@ -95,6 +101,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             @click="emit('show', props.reward)"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
+            How to Redeem
           </v-btn>
 
           <template v-else>
