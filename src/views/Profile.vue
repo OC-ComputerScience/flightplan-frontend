@@ -240,7 +240,15 @@ onMounted(async () => {
       <v-col cols="12" md="6">
         <div class="adminItem">
           <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
+            <div class="d-flex align-center justify-start">
+              <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                </template>
+                <span>Your badges earned so far. Continue progressing through your flight plans to earn more!</span>
+              </v-tooltip>
+            </div>
           </v-card>
           <v-row v-if="!noBadges">
             <v-col
@@ -284,8 +292,16 @@ onMounted(async () => {
       <!-- Strengths Section (Stacked Vertically, Stretching Full Width) -->
       <v-col cols="12" md="6">
         <div class="adminItem" style="margin-right: 2vw">
-          <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
+          <v-card color="backgroundDarken">
+            <div class="d-flex align-center justify-start">
+              <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                </template>
+                <span>Your top 5 clifton strengths</span>
+              </v-tooltip>
+            </div>
           </v-card>
           <!-- Stacked Strengths (Stretching Full Width) -->
           <v-row
@@ -304,8 +320,8 @@ onMounted(async () => {
           </v-row>
           <v-row v-else>
             <div class="adminItem" style="text-align: center">
-              No Clifton Strengths listed<br />
-              Contact Charlotte Hamil to change this! <br /><br />
+              No Clifton Strengths found<br />
+              Find a task to take the Galups Strength Assessment in your Flight Plan or contact Charlotte Hamil for more info! <br /><br />
               <b
                 >"Before I formed you in the womb I knew you, and before you
                 were born I consecrated you; I appointed you a prophet to the
@@ -339,6 +355,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   padding: 15px 0px 5px 0px;
+  margin: 0 2vw 2vh 2vw;
   border-radius: 25px;
   height: 100%;
 }

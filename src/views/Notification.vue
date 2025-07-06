@@ -148,6 +148,7 @@ const closeDialogs = () => {
           @click.stop
         >
           <v-checkbox
+          label = "Select All"
             hide-details
             density="compact"
             class="ma-0 pa-0"

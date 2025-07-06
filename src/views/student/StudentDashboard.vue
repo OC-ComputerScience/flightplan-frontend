@@ -215,8 +215,8 @@ onMounted(async () => {
               </v-tooltip>
             </div>
             <div class="d-flex align-center justify-start mb-4">
-              <p class="section-headers" style="font-size: 16px">
-                Probably some placeholder text here? 1-2 sentences max.
+              <p class="section-headers" style="font-size: 16px; max-width: 50%; ">
+                Select a semester from the list below for an overview of your flight plan progress. View your incomplete tasks / experiences for the selected semester, new notifications, and upcoming events below.
               </p>
             </div>
 
@@ -233,6 +233,7 @@ onMounted(async () => {
               flat
               @update:model-value="fetchFlightPlanProgress"
             ></v-select>
+                            <strong>Current Flight Plan Completion Progress: </strong>
             <v-progress-linear
               v-model="progress"
               color="primary"

@@ -40,7 +40,7 @@ const closeDialogue = () => {
             prepare you for your career during your time at OC
           </li>
           <li>
-            Task: Actions you can take to help prepare you, such as writing a
+            Task: Actions you can take to help prepare you for the future, such as writing a
             resume or meeting with your advisor
           </li>
           <li>
@@ -50,7 +50,7 @@ const closeDialogue = () => {
         </ul>
 
         <p class="text-body-1 mt-2">
-          I'm sorry Dr. Shank, it's been too long since I took technical writing
+          (I'm sorry Dr. Shank, it's been too long since I took technical writing)
         </p>
       </v-card-text>
 

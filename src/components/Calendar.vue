@@ -480,7 +480,7 @@ function selectThisMonth() {
                 :key="time"
                 class="timeline-item"
               >
-                <div class="timeline-time">{{ dateLabel }}</div>
+                <div class="timeline-time"><strong>{{ dateLabel }}</strong></div>
                 <div class="timeline-group">
                   <EventCard
                     v-for="(event, idx) in group"
