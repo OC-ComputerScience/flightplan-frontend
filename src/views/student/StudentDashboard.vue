@@ -205,7 +205,7 @@ onMounted(async () => {
           <v-card-text>
             <div class="d-flex align-center justify-start mb-4">
               <strong class="section-headers"
-                >{{ selectedFlightPlan?.label }} Flight Plan Progress</strong
+                >{{ selectedFlightPlan?.label }} Flight Plan</strong
               >
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
@@ -222,28 +222,11 @@ onMounted(async () => {
             <div class="d-flex align-center justify-start mb-4">
               <p
                 class="section-headers"
-                style="font-size: 16px; max-width: 50%"
+                style="font-size: 16px;"
               >
-                Select a semester from the list below for an overview of your
-                flight plan progress. View your incomplete tasks / experiences
-                for the selected semester, new notifications, and upcoming
-                events below.
+                Work hard to complete the flight plan items below so you will be well prepared to jump start your career!
               </p>
             </div>
-
-            <v-select
-              v-model="selectedFlightPlan"
-              :items="flightPlans"
-              :item-title="(item) => item.label"
-              :item-value="(item) => item.value"
-              variant="solo"
-              bg-color="background"
-              return-object
-              class="mb-4"
-              density="comfortable"
-              flat
-              @update:model-value="fetchFlightPlanProgress"
-            ></v-select>
             <strong
               >Current Flight Plan Completion Progress ({{
                 allFlightPlanItems.length - flightPlanItems.length
