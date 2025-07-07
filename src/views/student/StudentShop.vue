@@ -34,6 +34,7 @@ const fetchRewards = async () => {
     page.value,
     pageSize.value,
     searchQuery.value,
+    { sortAttribute: 'points', sortDirection: 'asc' }
   );
   rewards.value = response.data.rewards;
   totalPages.value = response.data.count;
@@ -41,7 +42,6 @@ const fetchRewards = async () => {
 
 const fetchPoints = async () => {
   const student = await studentServices.getStudentForUserId(userId.value);
-  console.log(student.data);
   points.value = student.data.pointsAwarded - student.data.pointsUsed;
 };
 
@@ -92,7 +92,7 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
         @close-info="showReward = false"
       >
         <template #item="{ item }">
-          <RewardCard :reward="item" @show="handleShowReward" />
+          <RewardCard :reward="item" :studentPoints="points" @show="handleShowReward" />
         </template>
         <template #pagination>
           <v-pagination v-model="page" :length="totalPages" />
