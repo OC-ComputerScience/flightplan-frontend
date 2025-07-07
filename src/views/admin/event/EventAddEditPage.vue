@@ -16,7 +16,7 @@ import {
 import { required } from "../../../utils/formValidators";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import ConfirmDialog from "../../../components/dialogs/ConfirmDialog.vue";
-import { createEventNotification } from "../../../utils/notificationHandler";
+import { createEventUpdateNotification, createEventCancelNotification } from "../../../utils/notificationHandler";
 
 const props = defineProps({ isAdd: Boolean });
 
@@ -166,17 +166,19 @@ const handleSubmit = async () => {
           if (isCancel.value) {
             res.data.forEach((student) => {
               registeredStudents.push(student.id);
-              createEventNotification(eventData, student.studentId, true, true);
+              createEventCancelNotification(eventData, student.studentId, true, 1, student.user.email);
             });
             isCancel.value = false;
           } else {
             res.data.forEach((student) => {
+              console.log(student);
               registeredStudents.push(student.id);
-              createEventNotification(
+              createEventUpdateNotification(
                 eventData,
                 student.studentId,
-                false,
                 true,
+                1,
+                student.user.email,
               );
             });
           }
