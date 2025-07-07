@@ -341,15 +341,29 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
             <v-card color="backgroundDarken" style="border-radius: 25px">
               <div v-if="!props.isAdmin">
                 <div style="padding: 5px">
-                  <h1 class="mt-1" style="margin-left: 10px">Flight Plan</h1>
+                  <h1 class="mt-1" style="margin-left: 10px">
+                    {{ selectedFlightPlan.label }} Flight Plan
+                    <v-tooltip location="right">
+                      <template v-slot:activator="{ props }">
+                        <v-icon v-bind="props" size="20" class="ml-2"
+                          >mdi-information-outline</v-icon
+                        >
+                      </template>
+                      <span
+                        >View your tasks and experiences for your
+                        {{ selectedFlightPlan.label }}
+                        Flight Plan here. Click any of the cards below to view
+                        more details or complete the task / experience.
+                      </span>
+                    </v-tooltip>
+                  </h1>
                   <p
                     class="section-headers"
                     style="font-size: 16px; margin-left: 10px"
                   >
-                    View your tasks and experiences for your
-                    {{ selectedFlightPlan.label }}
-                    Flight Plan here. Click any of the cards below to view more
-                    details or complete the task / experience. These tasks and experiences reset every semester and will carry over to the next semester. Make sure to complete each item before the semester ends to earn extra points!
+                    These tasks and experiences reset every semester and will
+                    carry over to the next semester. Make sure to complete each
+                    item before the semester ends to earn extra points!
                   </p>
                 </div>
               </div>
