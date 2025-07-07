@@ -22,6 +22,7 @@ const notifStore = useNotificationStore();
 const isAdmin = ref(false);
 const selectedNotificationsStore = useSelectedNotificationsStore();
 const confirmDelete = ref(false);
+const selectedAll = ref(false);
 
 const getNotifications = async (page = 1) => {
   try {
@@ -84,6 +85,15 @@ const editItem = async (item) => {
 
     if (response.status === 200) {
       item.read = true; // Update the notification locally after successful API call
+
+      if (!selectedAll.value) {
+        selectedNotificationsStore.clearSelection();
+        selectedNotificationsStore.addNotification(item.id)
+      }
+      else {
+        selectedNotificationsStore.addNotification(item.id)
+      }
+
     } else {
       console.error("Failed to update notification:", response);
     }
@@ -108,10 +118,12 @@ const handleCheckboxToggle = (notification) => {
 const handleSelectAll = () => {
   if (selectedNotificationsStore.selectedNotificationIds.length > 0) {
     selectedNotificationsStore.clearSelection();
+    selectedAll.value = false;
   } else {
     notifications.value.forEach((notification) => {
       selectedNotificationsStore.addNotification(notification.id);
     });
+    selectedAll.value = true;
   }
 };
 
@@ -124,6 +136,7 @@ const handleBatchDelete = async () => {
     );
     selectedNotificationsStore.clearSelection();
     await getNotifications(currentPage.value);
+    selectedAll.value = false;
     closeDialogs();
   } catch (error) {
     console.error("Error deleting notifications:", error);
@@ -148,12 +161,12 @@ const closeDialogs = () => {
           @click.stop
         >
           <v-checkbox
-          label = "Select All"
+            label = "Select All"
             hide-details
             density="compact"
             class="ma-0 pa-0"
             :model-value="
-              selectedNotificationsStore.selectedNotificationIds.length > 0
+              selectedNotificationsStore.selectedNotificationIds.length === notifications.length
             "
             color="white"
             @click="handleSelectAll"
