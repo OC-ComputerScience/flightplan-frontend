@@ -86,7 +86,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 
         class="text-subtitle-1 text-center my-2"
       >
-        {{ props.reward.points }} pts
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
       </p>
 
       <p class="text-subtitle-1 text-center my-2">
