@@ -34,7 +34,12 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card :color="'backgroundDarken'" class="rounded-xl">
+  <v-card 
+    :color="'backgroundDarken'" 
+    class="rounded-xl"
+    @click="emit('show', props.reward)"
+    :disabled="!isView"
+  >
     <v-card-text>
       <!-- Image Section -->
       <v-img
@@ -77,24 +82,23 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             v-if="isView"
             color="primary"
             class="rounded-lg"
-            @click="emit('show', props.reward)"
+            @click.stop="emit('show', props.reward)"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
-            How to Redeem
           </v-btn>
 
           <template v-else>
             <v-btn
               color="warning"
               class="mr-2 rounded-lg"
-              @click="emit('edit', props.reward.id)"
+              @click.stop="emit('edit', props.reward.id)"
             >
               <v-icon icon="mdi-pencil" color="text" size="x-large" />
             </v-btn>
             <v-btn
               color="danger"
               class="rounded-lg"
-              @click="emit('delete', props.reward.id, props.reward.imageName)"
+              @click.stop="emit('delete', props.reward.id, props.reward.imageName)"
             >
               <v-icon icon="mdi-delete" color="text" size="x-large" />
             </v-btn>
@@ -108,7 +112,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             class="rounded-lg"
             :variant="!canRedeem || !inStock ? 'outlined' : undefined"
             :readonly="!canRedeem || !inStock"
-            @click="canRedeem && inStock && emit('redeem', props.reward)"
+            @click.stop="canRedeem && inStock && emit('redeem', props.reward)"
           >
             {{ inStock ? canRedeem ? "Redeem" : "Not enough points" : "Out of stock" }}
           </v-btn>

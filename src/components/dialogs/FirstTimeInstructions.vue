@@ -27,13 +27,13 @@ const closeDialogue = () => {
 
 <template>
   <v-dialog v-model="visible" max-width="50%"class="rounded-xl">
-    <v-card>
+    <v-card class="rounded-xl">
       <v-card-title class="text-h5 text-center pa-4">
         Welcome to OC Career Service's Flight Plan!
       </v-card-title>
 
       <v-card-text class="text-center pa-16">
-        <p class="text-h6">Some definitions or something idk:</p>
+        <p class="text-h6">Good Definitions to Know:</p>
         <ul class="text-left mt-2">
           <li>
             Flight Plan: A semesterly checklist of things you can do to help
@@ -49,33 +49,28 @@ const closeDialogue = () => {
           </li>
         </ul>
 
-        <p class="text-body-1 mt-2">
+        <!-- <p class="text-body-1 mt-2">
           (I'm sorry Dr. Shank, it's been too long since I took technical writing)
-        </p>
+        </p> -->
       </v-card-text>
 
       <v-card-actions class="pa-4">
-        <v-row class="d-flex justify-center align-center mt-4">
-          <v-col>
-            <v-checkbox
-              v-model="noShowInstructions"
-              label="Don't show me this again"
-              density="compact"
-            ></v-checkbox>
-          </v-col>
-        </v-row>
-        <v-row class="d-flex justify-center mt-4">
-          <v-col>
-            <v-btn
-              color="primary"
-              variant="text"
-              class="rounded-lg"
-              @click="closeDialogue"
-            >
-              Close
-            </v-btn>
-          </v-col>
-        </v-row>
+        <v-col class="d-flex flex-column align-center">
+          <v-checkbox
+            v-model="noShowInstructions"
+            label="Don't show me this again"
+            density="compact"
+            class="mb-4"
+          ></v-checkbox>
+          <v-btn
+            color="primary"
+            variant="text"
+            class="rounded-lg"
+            @click="closeDialogue"
+          >
+            Close
+          </v-btn>
+        </v-col>
       </v-card-actions>
     </v-card>
   </v-dialog>
