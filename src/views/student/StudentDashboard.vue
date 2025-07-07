@@ -29,6 +29,7 @@ const progress = ref(0);
 const points = ref(0);
 const selectedFlightPlan = ref(null);
 const flightPlans = ref([]);
+const allFlightPlanItems = ref([]);
 const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
@@ -118,6 +119,7 @@ const fetchFlightPlan = async () => {
       flightPlanItems.value = response.data[0].flightPlanItems.filter(
         (item) => item.status === "Incomplete",
       );
+      allFlightPlanItems.value = response.data[0].flightPlanItems;
       await fetchFlightPlanProgress();
     }
   } catch (err) {
@@ -206,7 +208,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <FirstTimeInstructions/>
+  <FirstTimeInstructions />
   <div class="dashboard-container">
     <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
     <v-row justify="center" class="mr-2">
@@ -223,12 +225,21 @@ onMounted(async () => {
                     >mdi-information-outline</v-icon
                   >
                 </template>
-                <span>Overview of your flight plan completion progress for the selected semester</span>
+                <span
+                  >Overview of your flight plan completion progress for the
+                  selected semester</span
+                >
               </v-tooltip>
             </div>
             <div class="d-flex align-center justify-start mb-4">
-              <p class="section-headers" style="font-size: 16px; max-width: 50%; ">
-                Select a semester from the list below for an overview of your flight plan progress. View your incomplete tasks / experiences for the selected semester, new notifications, and upcoming events below.
+              <p
+                class="section-headers"
+                style="font-size: 16px; max-width: 50%"
+              >
+                Select a semester from the list below for an overview of your
+                flight plan progress. View your incomplete tasks / experiences
+                for the selected semester, new notifications, and upcoming
+                events below.
               </p>
             </div>
 
@@ -245,7 +256,11 @@ onMounted(async () => {
               flat
               @update:model-value="fetchFlightPlanProgress"
             ></v-select>
-                            <strong>Current Flight Plan Completion Progress: </strong>
+            <strong
+              >Current Flight Plan Completion Progress ({{
+                allFlightPlanItems.length - flightPlanItems.length
+              }}/{{ allFlightPlanItems.length }} Items Complete):
+            </strong>
             <v-progress-linear
               v-model="progress"
               color="primary"
@@ -275,7 +290,10 @@ onMounted(async () => {
                 >mdi-information-outline</v-icon
               >
             </template>
-            <span>Your list of incomplete tasks and experiences for the selected semester</span>
+            <span
+              >Your list of incomplete tasks and experiences for the selected
+              semester</span
+            >
           </v-tooltip>
         </div>
         <div id="flightPlanList">
@@ -315,7 +333,10 @@ onMounted(async () => {
                 >mdi-information-outline</v-icon
               >
             </template>
-            <span>Notifications regarding flight plan task and experience statuses, information about events you've registered for, and more</span>
+            <span
+              >Notifications regarding flight plan task and experience statuses,
+              information about events you've registered for, and more</span
+            >
           </v-tooltip>
         </div>
         <div id="notifList">
@@ -447,5 +468,6 @@ onMounted(async () => {
 .section-headers {
   font-size: 24px;
   margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

@@ -6,7 +6,7 @@ import studentServices from "../../../services/studentServices";
 import strengthServices from "../../../services/strengthServices";
 import majorServices from "../../../services/majorServices";
 import linkServices from "../../../services/linkServices";
-import { required, atLeast, fromWebsite } from "../../../utils/formValidators";
+import { required, atLeast, fromWebsite, noGreaterThan } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import { userStore } from "../../../stores/userStore";
@@ -38,6 +38,7 @@ const route = useRoute();
 const router = useRouter();
 
 const requiredNumberOfStrengths = 1;
+const maximumNumberOfStrengths = 5;
 const requiredNumberOfMajors = 1;
 
 const handleCancel = () => router.back();
@@ -418,6 +419,7 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
+          :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
 
         />
 

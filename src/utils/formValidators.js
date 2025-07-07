@@ -43,6 +43,9 @@ export const fromWebsite = (value, websiteRoot) => {
 export const atLeast = (value, min) =>
   value.length >= min ? true : `Must select at least ${min} option(s)`;
 
+export const noGreaterThan = (value, max) =>
+  value.length <= max ? true : `Must select no more than ${max} option(s)`;
+
 const getFileExtension = (fileName) => {
   if (!fileName || typeof fileName !== "string") return null;
   const parts = fileName.split(".");
