@@ -280,7 +280,6 @@ const handleDelete = async (flightPlanItem) => {
 };
 
 const handleShow = (flightPlanItem) => {
-  console.log("SHOW ITEM", flightPlanItem);
   flightPlanItemToShow.value = flightPlanItem;
   showFlightPlanItem.value = true;
 };
@@ -444,7 +443,6 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
       </template>
 
       <template #info>
-        <p class="text-h6 mt-2">Flight Plan Item Type:</p>
         <p class="mb-2 text-subtitle-1">
           {{ flightPlanItemToShow.flightPlanItemType }}
         </p>
