@@ -7,6 +7,9 @@ import rewardServices from "../../services/rewardServices";
 import RewardCard from "../../components/cards/RewardCard.vue";
 import { userStore } from "../../stores/userStore";
 import studentServices from "../../services/studentServices";
+import fileServices from "../../services/fileServices";
+import { loadImage } from "../../components/componentUtilities";
+import defaultImage from "/defaultRewardImage.png";
 const store = userStore();
 const userId = computed(() => store.user.userId);
 
@@ -17,6 +20,14 @@ const page = ref(1);
 const showReward = ref(false);
 const rewardToShow = ref({});
 const points = ref(0);
+
+const imageSrc = ref("");
+
+const fetchImage = async (imageName) => {
+  const response = await fileServices.getFileForName(imageName);
+  if (!response.data.image) imageSrc.value = defaultImage;
+  else imageSrc.value = loadImage(response.data.image.data);
+};
 
 const display = useDisplay();
 const numCardColumns = computed(() => {
@@ -51,6 +62,7 @@ const handleSearch = async (query) => {
 };
 
 const handleShowReward = (reward) => {
+  fetchImage(reward.imageName);
   rewardToShow.value = reward;
   showReward.value = true;
 };
@@ -84,6 +96,18 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
         <v-pagination v-model="page" :length="totalPages" />
       </template>
       <template #info>
+        <v-img
+          v-if="imageSrc"
+          class="image"
+          :src="imageSrc"
+          alt="Uploaded Image"
+        ></v-img>
+        <v-img
+          v-else
+          class="image"
+          :src="defaultImage"
+          alt="Generic Merchandise Image"
+        ></v-img>
         <p class="text-h6 mt-2">Description:</p>
         <p class="mb-2 text-subtitle-1">
           {{ rewardToShow.description }}
@@ -93,8 +117,21 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
 
         <p class="text-h6">Avaliable Quantity:</p>
         <p class="mb-2 text-subtitle-1">
-          {{ `${ rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable : "Unlimited Quantity"} Avaliable`}} </p>
-        <em><p v-if="rewardToShow.quantityAvaliable <= 0 && rewardToShow.quantityAvaliable !== null "class="mb-2 text-subtitle-1">Please check back soon to see if this item is back in stock</p></em>
+          {{
+            `${rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable : "Unlimited Quantity"} Avaliable`
+          }}
+        </p>
+        <em
+          ><p
+            v-if="
+              rewardToShow.quantityAvaliable <= 0 &&
+              rewardToShow.quantityAvaliable !== null
+            "
+            class="mb-2 text-subtitle-1"
+          >
+            Please check back soon to see if this item is back in stock
+          </p></em
+        >
 
         <p class="text-h6">Redeem at:</p>
         <p class="mb-2 text-subtitle-1">
