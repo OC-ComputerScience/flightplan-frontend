@@ -13,6 +13,10 @@ import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
 import { getEventCardColor } from "../../utils/eventStatus";
 import FirstTimeInstructions from "../../components/dialogs/FirstTimeInstructions.vue";
+import StudentApprovalDialog from "../../components/dialogs/StudentApprovalDialog.vue";
+import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
+import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
+import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -34,6 +38,10 @@ const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
 const router = useRouter();
+
+const useStudentApprovalDialogStore = studentApprovalDialogStore();
+const useStudentViewSubmissionDialogStore = studentViewSubmissionDialogStore();
+
 const getNotifications = async (page = 1) => {
   try {
     const res = await notificationServices.getAllNotificationsForUser(
@@ -191,8 +199,9 @@ const openNotification = (x) => {
 
 const openFlightPlanItem = (item) => {
   flightPlanStore.setActiveFlightPlanItem(item);
-  flightPlanStore.setSelectedSemester(selectedFlightPlan.value);
-  router.push({ name: "student-flightPlan" });
+  // console.log(item)
+  useStudentViewSubmissionDialogStore.setFlightPlanItem(item);
+  useStudentViewSubmissionDialogStore.toggleVisibility();
 };
 
 // getting cookie - w3 schools
@@ -400,6 +409,13 @@ onMounted(async () => {
       </v-card>
     </div>
   </div>
+
+    <StudentApprovalDialog
+    @submit="fetchFlightPlanAndItems"
+  ></StudentApprovalDialog>
+  <ViewSubmissionDialog
+    @discard="fetchFlightPlanAndItems"
+  ></ViewSubmissionDialog>
 </template>
 
 <style>
