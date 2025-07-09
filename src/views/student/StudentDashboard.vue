@@ -224,7 +224,7 @@ onMounted(async () => {
                 class="section-headers"
                 style="font-size: 16px;"
               >
-                Work hard to complete the flight plan items below so you will be well prepared to jump start your career!
+                Work hard to complete the flight plan items below so you will be well prepared to help your career soar!
               </p>
             </div>
             <strong
@@ -242,7 +242,7 @@ onMounted(async () => {
               <strong>{{ progress }}%</strong>
             </v-progress-linear>
             <div class="text-center mt-2">
-              <span class="text-subtitle-1"
+              <span class="text-h6"
                 >Available Points: {{ points }}</span
               >
             </div>
@@ -338,7 +338,7 @@ onMounted(async () => {
                 >mdi-information-outline</v-icon
               >
             </template>
-            <span>Upcoming events for the week</span>
+            <span>Register for upcoming events this week</span>
           </v-tooltip>
         </div>
         <div id="eventList">
