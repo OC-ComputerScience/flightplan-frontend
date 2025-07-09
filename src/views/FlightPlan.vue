@@ -343,7 +343,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
                 <div style="padding: 5px">
                   <h1 class="mt-1" style="margin-left: 10px">
                     {{ selectedFlightPlan.label }} Flight Plan
-                    <v-tooltip location="right">
+                    <v-tooltip location="right" style="width: 50%">
                       <template v-slot:activator="{ props }">
                         <v-icon v-bind="props" size="20" class="ml-2"
                           >mdi-information-outline</v-icon
@@ -352,8 +352,8 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
                       <span
                         >View your tasks and experiences for your
                         {{ selectedFlightPlan.label }}
-                        Flight Plan here. Click any of the cards below to view
-                        more details or complete the task / experience.
+                        Flight Plan. Click any of the cards below to view
+                        more details and click "complete" when you are ready to finish the item.
                       </span>
                     </v-tooltip>
                   </h1>
@@ -361,8 +361,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
                     class="section-headers"
                     style="font-size: 16px; margin-left: 10px"
                   >
-                    These tasks and experiences reset every semester and will
-                    carry over to the next semester. Make sure to complete each
+                    This is your custom flight plan for {{ selectedFlightPlan.label }}. Make sure to complete every
                     item before the semester ends to earn extra points!
                   </p>
                 </div>
@@ -392,7 +391,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
                   <strong>{{ progress }}%</strong>
                 </v-progress-linear>
                 <div class="text-center mt-2">
-                  <span class="text-subtitle-1"
+                  <span class="text-h6"
                     >Available Points: {{ points }}</span
                   >
                 </div>

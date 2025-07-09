@@ -56,35 +56,13 @@ onMounted(() => {
               class="section-headers"
               style="font-size: 16px; margin-left: 10px"
             >
-              Click on the first date and shift+click on another date to select
-              a range of dates. Press ctrl+click on several dates to
-              specifically select a group of days.
+            Find and register for events that will help you complete the experiences on your flight plan! 
             </p>
           </div>
         </v-card>
       </v-col>
     </v-row>
     <Calendar :events="events" :is-admin="props.isAdmin" />
-
-    <!-- bottom bar -->
-    <div class="mt-4 pl-6">
-      <v-row justify="center" class="mr-2">
-        <v-col cols="12">
-          <v-card color="backgroundDarken" style="border-radius: 25px">
-            <p style="padding: 5px">
-              What do these colors mean?
-              <v-icon
-                v-bind="props"
-                size="24"
-                class="ml-2"
-                @click="colorInfoPopup()"
-                >mdi-information-outline</v-icon
-              >
-            </p>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
   </div>
 </template>
 

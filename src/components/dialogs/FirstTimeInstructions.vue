@@ -21,31 +21,33 @@ const noShowInstructions = ref(false);
 const closeDialogue = () => {
   visible.value = false;
   if (noShowInstructions.value)  return;
-  //document.cookie = `showFirstTimeInstructions=false; expires=${todayPlusYear} 12:00:00 UTC`;
+  // document.cookie = `showFirstTimeInstructions=false; expires=${todayPlusYear} 12:00:00 UTC`;
 };
 </script>
 
 <template>
   <v-dialog v-model="visible" max-width="50%"class="rounded-xl">
     <v-card class="rounded-xl">
-      <v-card-title class="text-h5 text-center pa-4">
+      <v-card-title class="text-h5 text-center pt-4 pr-4 pl-4">
         Welcome to OC Career Service's Flight Plan!
       </v-card-title>
-
-      <v-card-text class="text-center pa-16">
-        <p class="text-h6">Good Definitions to Know:</p>
+      <v-card-text class="text-center pb-8 pl-16 pr-16 pt-6">
+        <p class="text-left pb-8">
+          The Eagle Flight Plan is a guide to help you be well-prepared to get a job when you graduate! A new flight plan will be set up for you each semester with tasks and experiences customized for you to complete. As you complete tasks and experiences, you will receive points and badges. You will be able to redeem points for rewards that you will enjoy such as professional clothing, OC merchandise, special lunches, and more. Ready to take off?
+        </p>
+        <p class="text-h6">Useful Definitions to Know:</p>
         <ul class="text-left mt-2">
           <li>
-            Flight Plan: A semesterly checklist of things you can do to help
+            <strong>Flight Plan:</strong> A  checklist of tasks and experiences created for you each semester that you can complete to help
             prepare you for your career during your time at OC
           </li>
           <li>
-            Task: Actions you can take to help prepare you for the future, such as writing a
+            <strong>Task:</strong> Actions you can take to help prepare you for the future, such as writing a
             resume or meeting with your advisor
           </li>
           <li>
-            Experience: Events at OC you can attend to help further your growth,
-            like a career fair or conference
+            <strong>Experience:</strong>Events at OC you can attend to help further your growth,
+            such as career fairs or conferences
           </li>
         </ul>
 
@@ -54,13 +56,12 @@ const closeDialogue = () => {
         </p> -->
       </v-card-text>
 
-      <v-card-actions class="pa-4">
+      <v-card-actions class="pb-4 pr-4 pl-4">
         <v-col class="d-flex flex-column align-center">
           <v-checkbox
             v-model="noShowInstructions"
             label="Don't show me this again"
             density="compact"
-            class="mb-4"
           ></v-checkbox>
           <v-btn
             color="primary"
