@@ -42,7 +42,11 @@ export const createEventCancelNotification = async (
 ) => {
   let notificationData = {
     header: `${event.name || "Event"} Event on ${event.date} Cancelled`,
-    description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.`,
+    description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.` +
+    `<br>` +
+    `Keep an eye out on the calendar for more events to register for!` +
+    `<br><br>` +
+    `-OC Career Services`,
     read: false,
     userId: userId,
     sentBy: sentBy,
@@ -86,7 +90,9 @@ export const createEventUpdateNotification = async (
       `<b>Location:</b> ${event.location}<br>` +
       `<b>Date:</b> ${event.date}<br>` +
       `<b>Start Time:</b> ${event.startTime}<br>` +
-      `<b>End Time:</b> ${event.endTime}`,
+      `<b>End Time:</b> ${event.endTime}` +
+      `<br><br>` +
+      `-OC Career Services`,
     read: false,
     userId: userId,
     sentBy: sentBy,
