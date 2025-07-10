@@ -157,14 +157,26 @@ const fetchFlightPlanProgress = async () => {
 const getEvents = async () => {
   const today = new Date();
   const nextSaturday = new Date(today);
-  nextSaturday.setDate(today.getDate() + ((6 - today.getDay + 7) % 7 || 7));
+  nextSaturday.setDate(today.getDate() + 7);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
   await eventServices
-    .getAllEvents(1, 1000, "", { startDate: today, endDate: nextSaturday })
+    .getAllEvents(1, 1000, "", { startDate: yesterday, endDate: nextSaturday })
     .then((res) => {
-      events.value = res.data.events.sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      );
+      events.value = res.data.events
+        .filter((event) => {
+          if (event.status === 'Cancelled' || event.status === 'Completed' || event.status === 'Past') return false;
+
+          const eventDate = new Date(event.date);
+          if (eventDate.toDateString() === today.toDateString()) {
+            const endTime = new Date(event.endTime);
+            return endTime > today;
+          }
+          return true;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
