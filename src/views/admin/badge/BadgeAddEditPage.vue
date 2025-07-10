@@ -246,6 +246,13 @@ onMounted(async () => {
         label="Rule Type"
         :items="rules"
       ></v-select>
+      <v-select
+        v-model="selectedStatus"
+        variant="solo"
+        rounded="lg"
+        label="Status"
+        :items="statuses"
+      ></v-select>
       <div v-if="selectedRule === 'Task and Experience Defined'">
         <v-expansion-panels class="mb-4 rounded-lg">
           <v-expansion-panel class="mb-2">
