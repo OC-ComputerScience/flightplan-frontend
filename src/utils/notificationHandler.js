@@ -43,7 +43,7 @@ export const createEventCancelNotification = async (
   let notificationData = {
     header: `${event.name || "Event"} Event on ${event.date} Cancelled`,
     description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.` +
-    `<br>` +
+    `<br><br>` +
     `Keep an eye out on the calendar for more events to register for!` +
     `<br><br>` +
     `-OC Career Services`,
