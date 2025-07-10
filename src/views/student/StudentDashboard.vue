@@ -195,6 +195,22 @@ const openFlightPlanItem = (item) => {
   router.push({ name: "student-flightPlan" });
 };
 
+// getting cookie - w3 schools
+const getCookie = (cname) => {
+  let name = cname + "=";
+  let ca = document.cookie.split(';');
+  for(let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 onMounted(async () => {
   await Promise.all([
     getNotifications(),
@@ -208,7 +224,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <FirstTimeInstructions />
+  <div v-if="getCookie('showFirstTimeInstructions') === 'true'">  <FirstTimeInstructions /></div>
+
   <div class="dashboard-container">
     <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
     <v-row justify="center" class="mr-2">

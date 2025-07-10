@@ -20,8 +20,8 @@ const noShowInstructions = ref(false);
 
 const closeDialogue = () => {
   visible.value = false;
-  if (noShowInstructions.value)  return;
-  // document.cookie = `showFirstTimeInstructions=false; expires=${todayPlusYear} 12:00:00 UTC`;
+  if (!noShowInstructions.value)  return;
+  document.cookie = `showFirstTimeInstructions=false; expires=${todayPlusYear} 12:00:00 UTC`;
 };
 </script>
 
