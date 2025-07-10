@@ -212,8 +212,8 @@ const handleRegistration = () => {
           <p class="text-subtitle-1 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="!store.isAdmin" class="text-subtitle-2 font-weight-medium">
-            Status: {{ resolvedStatusLabel }}
+          <p v-if="store.isAdmin" class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
         <v-row class="ma-2 float-right">
@@ -266,8 +266,8 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p class="text-subtitle-2 font-weight-medium">
-            {{ statusLabel }}
+          <p v-if="store.isAdmin" class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
         <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
