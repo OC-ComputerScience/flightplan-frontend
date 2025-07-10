@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { loadImage } from "../componentUtilities";
 import defaultImage from "/defaultRewardImage.png";
 import fileServices from "../../services/fileServices";
@@ -11,6 +11,14 @@ const props = defineProps({
   studentPoints: { type: Number, default: 0 },
 });
 
+watch(
+  () => props.reward.imageName,
+  () => {
+    fetchImage();
+  },
+  { deep: true },
+);
+
 const emit = defineEmits(["edit", "delete", "shop", "show", "redeem"]);
 
 // State
@@ -18,14 +26,17 @@ const imageSrc = ref("");
 
 const fetchImage = async () => {
   const response = await fileServices.getFileForName(props.reward.imageName);
-  if (!response.data.image) return;
-  imageSrc.value = loadImage(response.data.image.data);
+  if (!response.data.image) imageSrc.value = defaultImage;
+  else imageSrc.value = loadImage(response.data.image.data);
 };
 
 // Computed Properties
 const canRedeem = computed(() => props.studentPoints >= props.reward.points);
 const inStock = computed(() => {
-  return props.reward.quantityAvaliable === null || props.reward.quantityAvaliable > 0;
+  return (
+    props.reward.quantityAvaliable === null ||
+    props.reward.quantityAvaliable > 0
+  );
 });
 
 // Lifecycle Hooks
@@ -56,8 +67,14 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
       </p>
 
       <p class="text-subtitle-1 text-center my-2">
-        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
-        </p> 
+        {{
+          props.reward.quantityAvaliable !== null
+            ? props.reward.quantityAvaliable > 0
+              ? `${props.reward.quantityAvaliable} Remaining`
+              : "Out of Stock"
+            : "Unlimited"
+        }}
+      </p>
 
       <!-- Points Display -->
       <p
@@ -107,7 +124,13 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             :readonly="!canRedeem || !inStock"
             @click="canRedeem && inStock && emit('redeem', props.reward)"
           >
-            {{ inStock ? canRedeem ? "Redeem" : "Not enough points" : "Out of stock" }}
+            {{
+              inStock
+                ? canRedeem
+                  ? "Redeem"
+                  : "Not enough points"
+                : "Out of stock"
+            }}
           </v-btn>
         </template>
       </v-row>
