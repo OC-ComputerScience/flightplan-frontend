@@ -94,6 +94,8 @@ const selectedFlightPlan = ref(null);
 const flightPlans = ref([]);
 const flightPlanItems = ref([]);
 const page = ref(1);
+const showFlightPlanItem = ref(false);
+const flightPlanItemToShow = ref({});
 const searchQuery = ref("");
 const count = ref(0);
 const progress = ref(0);
@@ -277,6 +279,11 @@ const handleDelete = async (flightPlanItem) => {
   await fetchFlightPlanAndItems();
 };
 
+const handleShow = (flightPlanItem) => {
+  flightPlanItemToShow.value = flightPlanItem;
+  showFlightPlanItem.value = true;
+};
+
 onMounted(async () => {
   if (selectedItem.value) {
     // Scroll to the selected item
@@ -388,9 +395,12 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
       :per-row-md="2"
       :per-row-sm="1"
       :show-filters="showFilters"
+      :show-info="showFlightPlanItem"
+      :info-label="flightPlanItemToShow.name"
       @update-filters="handleChangeFilters"
       @clear-filters="handleClearFilters"
       @close-filter-menu="showFilters = false"
+      @close-info="showFlightPlanItem = false"
     >
       <template #item="{ item }">
         <FlightPlanItemCard
@@ -403,6 +413,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
           @register="handleRegister"
           @view="handlePendingButtonClick"
           @delete="handleDelete"
+          @click="handleShow"
         ></FlightPlanItemCard>
       </template>
       <template #filters>
@@ -429,6 +440,44 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
           @update:model-value="fetchFlightPlanAndItems"
         >
         </v-pagination>
+      </template>
+
+      <template #info>
+        <p class="mb-2 text-subtitle-1">
+          {{ flightPlanItemToShow.flightPlanItemType }}
+        </p>
+        <p class="text-h6">Status:</p>
+        <p class="mb-2 text-subtitle-1">
+          {{ flightPlanItemToShow.status }}
+        </p>
+        <div v-if="flightPlanItemToShow.experience">
+          <p class="text-h6">Description:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.experience.description }}
+          </p>
+          <p class="text-h6">Rationale:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.experience.rationale }}
+          </p>
+          <p class="text-h6">Points:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.experience.points }} pts
+          </p>
+        </div>
+        <div v-if="flightPlanItemToShow.task">
+          <p class="text-h6">Description:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.task.description }}
+          </p>
+          <p class="text-h6">Rationale:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.task.rationale }}
+          </p>
+          <p class="text-h6">Points:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ flightPlanItemToShow.task.points }} pts
+          </p>
+        </div>
       </template>
     </CardTable>
   </v-container>
