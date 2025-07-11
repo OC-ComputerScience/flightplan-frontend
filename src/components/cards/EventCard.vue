@@ -289,7 +289,7 @@ const handleRegistration = () => {
         </v-row>
         <v-row v-else-if="!props.noActions" class="ma-2 float-left">
           <v-btn
-            v-if="isRegistered && props.status !== 'grey'"
+            v-if="isRegistered && props.event.status === 'Upcoming'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop.prevent="handleRegistration"
@@ -297,7 +297,7 @@ const handleRegistration = () => {
             {{ "Unregister" }}</v-btn
           >
           <v-btn
-            v-else-if="!isRegistered && props.status !== 'grey'"
+            v-else-if="!isRegistered && props.event.status === 'Upcoming'"
             color="primary"
             class="mr-2 cardButton elevation-0"
             @click.stop.prevent="handleRegistration"
