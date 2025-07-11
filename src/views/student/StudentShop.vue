@@ -88,7 +88,7 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
     <v-container fluid>
       <v-row class="ml-5">
         <CardHeader
-          :label="`Points: ${points}`"
+          :label="`Available Points: ${points}`"
           :add-button="false"
           :filter-button="false"
           @changed="handleSearch"
