@@ -269,10 +269,16 @@ onMounted(async () => {
                 <div class="ma-2 d-flex">
                   <div class="ma-3">Quantity: {{ ruleTask.quantity }}</div>
                   <v-btn
+                    class="rounded-lg bg-warning mr-3"
+                    @click="addTaskStore.editRuleTask(ruleTask)"
+                  >
+                    <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                  </v-btn>
+                  <v-btn
                     class="rounded-lg bg-danger"
-                    icon="mdi-delete"
                     @click="removeTask(ruleTask)"
                   >
+                    <v-icon icon="mdi-delete" color="text" size="x-large" />
                   </v-btn>
                 </div>
               </v-row>
@@ -280,7 +286,7 @@ onMounted(async () => {
                 <v-btn
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
-                  @click="addTaskStore.toggleVisibility"
+                  @click="addTaskStore.addRuleTask()"
                   >Add Task</v-btn
                 ></v-row
               >
@@ -305,10 +311,18 @@ onMounted(async () => {
                     Quantity: {{ ruleExperience.quantity }}
                   </div>
                   <v-btn
+                    class="rounded-lg bg-warning mr-3"
+                    @click="
+                      addExperienceStore.editRuleExperience(ruleExperience)
+                    "
+                  >
+                    <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                  </v-btn>
+                  <v-btn
                     class="rounded-lg bg-danger"
-                    icon="mdi-delete"
                     @click="removeExperience(ruleExperience)"
                   >
+                    <v-icon icon="mdi-delete" color="text" size="x-large" />
                   </v-btn>
                 </div>
               </v-row>
@@ -316,7 +330,7 @@ onMounted(async () => {
                 <v-btn
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
-                  @click="addExperienceStore.toggleVisibility"
+                  @click="addExperienceStore.addRuleExperience()"
                   >Add Experience</v-btn
                 ></v-row
               >
