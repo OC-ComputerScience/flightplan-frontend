@@ -26,7 +26,7 @@ const handleLoginSuccess = async (userData) => {
     }
 
     // Check if student exists and has completed onboarding
-    const studentResponse = await studentServices.getStudentForUserId(
+    let studentResponse = await studentServices.getStudentForUserId(
       userData.userId,
     );
     if (
@@ -36,17 +36,34 @@ const handleLoginSuccess = async (userData) => {
       console.log(studentResponse.data);
       showOnboarding.value = true;
     } else {
-      // Check if the student is on the correct semester
-      // if (student's latest flightplan's semester is not the same as the current semester)
-      //    Subtract the student's semester from graduation by one.
-      //    Generate flight plan
-
       // Check if student has a flight plan for their current semester from graduation if they have not graduated
       try {
+        // Initial check to see if there is a flight plan for current semester
         await flightPlanServices.getFlightPlanForStudentAndSemester(
           studentResponse.data.id,
           studentResponse.data.semestersFromGrad,
         );
+
+        // Checks if student needs an updated semesters from graduation
+        await studentServices.checkStudentSemesterFromGraduation(
+          studentResponse.data.id,
+        );
+        const checkStudentResponse = await studentServices.getStudentForUserId(
+          userData.userId,
+        );
+
+        // If semester from graduation was updated, check for flightplan
+        if (
+          checkStudentResponse.data.semestersFromGrad &&
+          checkStudentResponse.data.semestersFromGrad !==
+            studentResponse.data.semestersFromGrad
+        ) {
+          studentResponse = checkStudentResponse;
+          await flightPlanServices.getFlightPlanForStudentAndSemester(
+            studentResponse.data.id,
+            studentResponse.data.semestersFromGrad,
+          );
+        }
       } catch {
         if (studentResponse.data?.semestersFromGrad > 0) {
           // If no flight plan exists, generate one
