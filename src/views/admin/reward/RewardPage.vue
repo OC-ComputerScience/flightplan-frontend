@@ -72,18 +72,6 @@ const handleShop = (rewardId) => {
   router.push({ name: "redeemReward", params: { id: rewardId } });
 };
 
-const handleDelete = async (rewardId, rewardFileName) => {
-  try {
-    if (rewardFileName) {
-      await rewardServices.deleteRewardImage(rewardFileName);
-    }
-    await rewardServices.deleteReward(rewardId);
-    await getRewards(); // Re-fetch rewards after delete
-  } catch (error) {
-    console.error("Error deleting reward:", error);
-  }
-};
-
 const handleSearchChange = (input) => {
   searchQuery.value = input;
   page.value = 1; // Reset to first page on search change
@@ -126,7 +114,6 @@ watch([page, searchQuery, showFilters], getRewards, { immediate: true });
           :is-view="false"
           @shop="handleShop"
           @edit="handleEdit"
-          @delete="handleDelete"
         ></RewardCard>
       </template>
       <template #filters>
