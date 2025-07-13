@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import { userStore } from "../stores/userStore";
 import studentServices from "../services/studentServices";
 import { loginRedirect } from "../router/router.js";
+import flightPlanServices from "../services/flightPlanServices.js";
 
 const router = useRouter();
 const store = userStore();
@@ -25,10 +26,34 @@ const handleLoginSuccess = async (userData) => {
     }
 
     // Check if student exists and has completed onboarding
-    const response = await studentServices.getStudentForUserId(userData.userId);
-    if (!response.data?.graduationDate || !response.data?.semestersFromGrad) {
+    const studentResponse = await studentServices.getStudentForUserId(
+      userData.userId,
+    );
+    if (
+      !studentResponse.data?.graduationDate ||
+      !studentResponse.data?.semestersFromGrad
+    ) {
+      console.log(studentResponse.data);
       showOnboarding.value = true;
     } else {
+      // Check if the student is on the correct semester
+      // if (student's latest flightplan's semester is not the same as the current semester)
+      //    Subtract the student's semester from graduation by one.
+      //    Generate flight plan
+
+      // Check if student has a flight plan for their current semester from graduation if they have not graduated
+      try {
+        await flightPlanServices.getFlightPlanForStudentAndSemester(
+          studentResponse.data.id,
+          studentResponse.data.semestersFromGrad,
+        );
+      } catch {
+        if (studentResponse.data?.semestersFromGrad > 0) {
+          // If no flight plan exists, generate one
+          await flightPlanServices.generateFlightPlan(studentResponse.data.id);
+        }
+      }
+
       const redirect = await loginRedirect();
       router.push(redirect);
     }

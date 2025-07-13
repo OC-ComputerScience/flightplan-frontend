@@ -9,4 +9,14 @@ export default {
   generateFlightPlan(studentId) {
     return apiClient.post(`/flightPlan/generate/${studentId}`);
   },
+  getFlightPlanForStudentAndSemester(studentId, semestersFromGraduation) {
+    return apiClient.get(
+      `/flightPlan/student/${studentId}/semestersFromGraduation`,
+      {
+        params: {
+          semestersFromGraduation,
+        },
+      },
+    );
+  },
 };
