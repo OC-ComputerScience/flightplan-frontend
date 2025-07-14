@@ -45,7 +45,11 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card :color="'backgroundDarken'" class="rounded-xl">
+  <v-card 
+    :color="'backgroundDarken'" 
+    class="rounded-xl"
+    @click="emit('show', props.reward)"
+  >
     <v-card-text>
       <!-- Image Section -->
       <v-img
@@ -66,6 +70,14 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
+            <!-- Points Display -->
+      <p
+
+        class="text-subtitle-1 text-center my-2"
+      >
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
+      </p>
+
       <p class="text-subtitle-1 text-center my-2">
         {{
           props.reward.quantityAvaliable !== null
@@ -78,11 +90,17 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 
       <!-- Points Display -->
       <p
-        v-if="props.variant === 'redeem'"
+
         class="text-subtitle-1 text-center my-2"
       >
-        {{ props.reward.points }} pts
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
       </p>
+
+      <p class="text-subtitle-1 text-center my-2">
+        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
+        </p> 
+
+
 
       <!-- Action Buttons -->
       <v-row class="ma-2 justify-center">
@@ -92,7 +110,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             v-if="isView"
             color="primary"
             class="rounded-lg"
-            @click="emit('show', props.reward)"
+            @click.stop="emit('show', props.reward)"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
           </v-btn>
@@ -101,14 +119,14 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             <v-btn
               color="warning"
               class="mr-2 rounded-lg"
-              @click="emit('edit', props.reward.id)"
+              @click.stop="emit('edit', props.reward.id)"
             >
               <v-icon icon="mdi-pencil" color="text" size="x-large" />
             </v-btn>
             <v-btn
               color="danger"
               class="rounded-lg"
-              @click="emit('delete', props.reward.id, props.reward.imageName)"
+              @click.stop="emit('delete', props.reward.id, props.reward.imageName)"
             >
               <v-icon icon="mdi-delete" color="text" size="x-large" />
             </v-btn>
@@ -122,7 +140,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             class="rounded-lg"
             :variant="!canRedeem || !inStock ? 'outlined' : undefined"
             :readonly="!canRedeem || !inStock"
-            @click="canRedeem && inStock && emit('redeem', props.reward)"
+            @click.stop="canRedeem && inStock && emit('redeem', props.reward)"
           >
             {{
               inStock

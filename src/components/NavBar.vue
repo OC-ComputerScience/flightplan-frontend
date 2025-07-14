@@ -48,7 +48,7 @@ const student = [
   { "route-name": "student-flightPlan", "link-text": "Flight Plan" },
   { "route-name": "student-calendar", "link-text": "Calendar" },
   { "route-name": "student-notifications", "link-text": "Notifications" },
-  { "route-name": "student-shop", "link-text": "Shop" },
+  { "route-name": "student-shop", "link-text": "Rewards" },
 ];
 
 const role = ref("");
@@ -99,8 +99,9 @@ const getIcon = (linkText) => {
     Notifications: "mdi-bell",
     Maintenance: "mdi-cog",
     Approvals: "mdi-check",
-    Shop: "mdi-cart",
+    "Rewards" : "mdi-cart",
   };
+
 
   return icons[linkText] || "mdi-circle"; // Default if not found
 };

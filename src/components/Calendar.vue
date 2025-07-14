@@ -76,7 +76,9 @@ const confirmCancel = async () => {
         res.data.forEach((student) => {
           registeredStudents.push(student.studentId);
 
-          eventToCancelObject.value.date = new Date(eventToCancelObject.value.date).toLocaleDateString();
+          eventToCancelObject.value.date = new Date(
+            eventToCancelObject.value.date,
+          ).toLocaleDateString();
           eventToCancelObject.value.startTime = formatTime(
             new Date(eventToCancelObject.value.startTime),
           );
@@ -439,6 +441,17 @@ function selectThisMonth() {
               Clear
             </v-btn>
           </div>
+          <v-tooltip location="right" style="width: 75%">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="24" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>
+              To view more than one day at a time, click on the first date and shift+click on another date to select
+              a range of date, or ctrl+click on several dates to select a specific group of dates.</span
+            >
+          </v-tooltip>
         </div>
 
         <VCalendar
@@ -459,6 +472,23 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <p class="timeline-range" style="padding: 5px">
+            What do these colors mean?
+          <v-tooltip location="right">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="24" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>
+              <div class="pb-1"><v-icon class="text-primary">mdi-circle</v-icon>: <strong>Upcoming</strong></div>
+              <div class="pb-1"><v-icon style="color: teal">mdi-circle</v-icon>: <strong>Registered</strong></div>
+              <div class="pb-1"><v-icon style="color: green">mdi-circle</v-icon>: <strong>Completed</strong></div>
+              <div class="pb-1"><v-icon style="color: black">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
+              <div class="pb-1"><v-icon style="color: grey">mdi-circle</v-icon>: <strong>Past</strong></div>
+              </span>
+          </v-tooltip>
+          </p>
           <v-btn
             v-if="props.isAdmin"
             rounded="xl"
@@ -480,7 +510,9 @@ function selectThisMonth() {
                 :key="time"
                 class="timeline-item"
               >
-                <div class="timeline-time">{{ dateLabel }}</div>
+                <div class="timeline-time">
+                  <strong>{{ dateLabel }}</strong>
+                </div>
                 <div class="timeline-group">
                   <EventCard
                     v-for="(event, idx) in group"
@@ -574,7 +606,7 @@ function selectThisMonth() {
 
 .calendar-card {
   flex-shrink: 0;
-  width: 500px;
+  width: 550px;
   border-radius: 25px;
 }
 

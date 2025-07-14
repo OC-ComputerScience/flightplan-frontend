@@ -45,6 +45,7 @@ const fetchRewards = async () => {
     page.value,
     pageSize.value,
     searchQuery.value,
+    { sortAttribute: 'points', sortDirection: 'asc' }
   );
   rewards.value = response.data.rewards;
   totalPages.value = response.data.count;
@@ -52,7 +53,6 @@ const fetchRewards = async () => {
 
 const fetchPoints = async () => {
   const student = await studentServices.getStudentForUserId(userId.value);
-  console.log(student.data);
   points.value = student.data.pointsAwarded - student.data.pointsUsed;
 };
 
@@ -71,32 +71,46 @@ watch(userId, () => fetchPoints(), { immediate: true });
 watch([page, searchQuery], () => fetchRewards(), { immediate: true });
 </script>
 <template>
-  <v-container fluid>
-    <v-row class="ml-5">
-      <CardHeader
-        :label="`Points: ${points}`"
-        :add-button="false"
-        :filter-button="false"
-        @changed="handleSearch"
-      >
-      </CardHeader>
-    </v-row>
+  <div class="pa-4">
 
-    <CardTable
-      :items="rewards"
-      :total-pages="totalPages"
-      :show-info="showReward"
-      :info-label="rewardToShow.name"
-      @close-info="showReward = false"
-    >
-      <template #item="{ item }">
-        <RewardCard :reward="item" @show="handleShowReward" />
-      </template>
-      <template #pagination>
-        <v-pagination v-model="page" :length="totalPages" />
-      </template>
-      <template #info>
-        <v-img
+    <v-row justify="center" class="mr-2">
+      <v-col cols="12">
+        <v-card color="backgroundDarken" style="border-radius: 25px">
+          <div style="padding: 5px;">
+          <h1 class="mt-1" style="margin-left: 10px;">Avaliable Rewards</h1>
+          <p class="section-headers" style="font-size: 16px; margin-left: 10px">
+            View avaliable rewards currently avaliable through Career Services. Click on each reward below to view redemption info. 
+          </p>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-container fluid>
+      <v-row class="ml-5">
+        <CardHeader
+          :label="`Available Points: ${points}`"
+          :add-button="false"
+          :filter-button="false"
+          @changed="handleSearch"
+        >
+        </CardHeader>
+      </v-row>
+
+      <CardTable
+        :items="rewards"
+        :total-pages="totalPages"
+        :show-info="showReward"
+        :info-label="rewardToShow.name"
+        @close-info="showReward = false"
+      >
+        <template #item="{ item }">
+          <RewardCard :reward="item" :studentPoints="points" @show="handleShowReward" />
+        </template>
+        <template #pagination>
+          <v-pagination v-model="page" :length="totalPages" />
+        </template>
+        <template #info>
+                  <v-img
           v-if="imageSrc"
           class="image"
           :src="imageSrc"
@@ -108,36 +122,46 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
           :src="defaultImage"
           alt="Generic Merchandise Image"
         ></v-img>
-        <p class="text-h6 mt-2">Description:</p>
-        <p class="mb-2 text-subtitle-1">
-          {{ rewardToShow.description }}
-        </p>
-        <p class="text-h6">Points:</p>
-        <p class="mb-2 text-subtitle-1">{{ rewardToShow.points }} pts</p>
 
-        <p class="text-h6">Avaliable Quantity:</p>
-        <p class="mb-2 text-subtitle-1">
-          {{
-            `${rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable : "Unlimited Quantity"} Avaliable`
-          }}
-        </p>
-        <em
-          ><p
-            v-if="
-              rewardToShow.quantityAvaliable <= 0 &&
-              rewardToShow.quantityAvaliable !== null
-            "
-            class="mb-2 text-subtitle-1"
-          >
-            Please check back soon to see if this item is back in stock
-          </p></em
-        >
+          <p class="text-h6 mt-2">Description:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{ rewardToShow.description }}
+          </p>
+          <p class="text-h6">Points:</p>
+          <p class="mb-2 text-subtitle-1">{{ rewardToShow.points }} pts</p>
 
-        <p class="text-h6">Redeem at:</p>
-        <p class="mb-2 text-subtitle-1">
-          This reward can be redeemed by visiting the Career Services office.
-        </p>
-      </template>
-    </CardTable>
-  </v-container>
+          <p class="text-h6">Avaliable Quantity:</p>
+          <p class="mb-2 text-subtitle-1">
+            {{
+              `${rewardToShow.quantityAvaliable !== null ? rewardToShow.quantityAvaliable : "Unlimited Quantity"}
+            Avaliable`
+            }}
+          </p>
+          <em>
+            <p
+              v-if="
+                rewardToShow.quantityAvaliable <= 0 &&
+                rewardToShow.quantityAvaliable !== null
+              "
+              class="mb-2 text-subtitle-1"
+            >
+              Please check back soon to see if this item is back in stock
+            </p>
+          </em>
+
+          <p class="text-h6">Redeem at:</p>
+          <p class="mb-2 text-subtitle-1">
+            This reward can be redeemed by visiting the Career Services office.
+          </p>
+        </template>
+      </CardTable>
+    </v-container>
+  </div>
 </template>
+
+<style scoped>
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+}
+</style>

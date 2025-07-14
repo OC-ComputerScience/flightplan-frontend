@@ -12,6 +12,7 @@ import { useNotificationStore } from "../../stores/notificationStore";
 import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
 import { getEventCardColor } from "../../utils/eventStatus";
+import FirstTimeInstructions from "../../components/dialogs/FirstTimeInstructions.vue";
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -28,6 +29,7 @@ const progress = ref(0);
 const points = ref(0);
 const selectedFlightPlan = ref(null);
 const flightPlans = ref([]);
+const allFlightPlanItems = ref([]);
 const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
@@ -117,6 +119,7 @@ const fetchFlightPlan = async () => {
       flightPlanItems.value = response.data[0].flightPlanItems.filter(
         (item) => item.status === "Incomplete",
       );
+      allFlightPlanItems.value = response.data[0].flightPlanItems;
       await fetchFlightPlanProgress();
     }
   } catch (err) {
@@ -192,6 +195,22 @@ const openFlightPlanItem = (item) => {
   router.push({ name: "student-flightPlan" });
 };
 
+// getting cookie - w3 schools
+const getCookie = (cname) => {
+  let name = cname + "=";
+  let ca = document.cookie.split(';');
+  for(let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 onMounted(async () => {
   await Promise.all([
     getNotifications(),
@@ -205,25 +224,43 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div v-if="getCookie('showFirstTimeInstructions') === 'true'">  <FirstTimeInstructions /></div>
+
   <div class="dashboard-container">
     <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">
           <v-card-text>
-            <v-select
-              v-model="selectedFlightPlan"
-              :items="flightPlans"
-              :item-title="(item) => item.label"
-              :item-value="(item) => item.value"
-              variant="solo"
-              bg-color="background"
-              return-object
-              class="mb-4"
-              density="comfortable"
-              flat
-              @update:model-value="fetchFlightPlanProgress"
-            ></v-select>
+            <div class="d-flex align-center justify-start mb-4">
+              <strong class="section-headers"
+                >{{ selectedFlightPlan?.label }} Flight Plan</strong
+              >
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
+                </template>
+                <span
+                  >Overview of your flight plan completion progress for the
+                  selected semester</span
+                >
+              </v-tooltip>
+            </div>
+            <div class="d-flex align-center justify-start mb-4">
+              <p
+                class="section-headers"
+                style="font-size: 16px;"
+              >
+                Work hard to complete the flight plan items below so you will be well prepared to help your career soar!
+              </p>
+            </div>
+            <strong
+              >Current Flight Plan Completion Progress ({{
+                allFlightPlanItems.length - flightPlanItems.length
+              }}/{{ allFlightPlanItems.length }} Items Complete):
+            </strong>
             <v-progress-linear
               v-model="progress"
               color="primary"
@@ -234,7 +271,7 @@ onMounted(async () => {
               <strong>{{ progress }}%</strong>
             </v-progress-linear>
             <div class="text-center mt-2">
-              <span class="text-subtitle-1"
+              <span class="text-h6"
                 >Available Points: {{ points }}</span
               >
             </div>
@@ -245,9 +282,20 @@ onMounted(async () => {
 
     <div class="dashboard-grid">
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Flight Plan</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Flight Plan</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span
+              >Your list of incomplete tasks and experiences for the selected
+              semester</span
+            >
+          </v-tooltip>
+        </div>
         <div id="flightPlanList">
           <template v-if="flightPlanItems.length > 0">
             <FlightPlanItemCard
@@ -277,9 +325,20 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px">
-          Notifications
-        </strong>
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Notifications</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span
+              >Notifications regarding flight plan task and experience statuses,
+              information about events you've registered for, and more</span
+            >
+          </v-tooltip>
+        </div>
         <div id="notifList">
           <NotificationCard
             v-for="(item, index) in notifications.slice(0, 5)"
@@ -300,9 +359,17 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Calendar</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Calendar</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>Register for upcoming events this week</span>
+          </v-tooltip>
+        </div>
         <div id="eventList">
           <EventCard
             v-for="(event, index) in events"
@@ -396,5 +463,11 @@ onMounted(async () => {
   margin-top: auto;
   text-align: center;
   width: 100%;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

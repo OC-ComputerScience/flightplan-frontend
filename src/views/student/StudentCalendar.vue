@@ -19,6 +19,12 @@ const getEvents = async () => {
   }
 };
 
+const showColorsInfo = ref(false);
+
+const colorInfoPopup = () => {
+  console.log("Color info popup clicked");
+};
+
 onMounted(() => {
   getEvents();
 });
@@ -26,7 +32,44 @@ onMounted(() => {
 
 <template>
   <div class="pa-4">
-    <h1 class="text-h4">Calendar View</h1>
+    <v-row justify="center" class="mr-2">
+      <v-col cols="12">
+        <v-card color="backgroundDarken" style="border-radius: 25px">
+          <div style="padding: 5px">
+            <h1 class="mt-1" style="margin-left: 10px">
+              Calendar View
+              <v-tooltip location="right">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="24" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
+                </template>
+                <span
+                  >View upcoming events and register for them here. You can view
+                  details for the event on the right panel for your selected
+                  date.</span
+                >
+              </v-tooltip>
+            </h1>
+
+            <p
+              class="section-headers"
+              style="font-size: 16px; margin-left: 10px"
+            >
+            Find and register for events that will help you complete the experiences on your flight plan! 
+            </p>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
     <Calendar :events="events" :is-admin="props.isAdmin" />
   </div>
 </template>
+
+<style scoped>
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+</style>

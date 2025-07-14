@@ -199,7 +199,7 @@ const handleRegistration = () => {
       <v-col>
         <v-card-text>
           <p class="text-h5 text-no-wrap text-truncate">
-            {{ props.event.name }}
+            {{ props.event.name }} <strong>{{ props.event.status === "Cancelled" ? "(Cancelled)" : "" }}</strong>
           </p>
           <p
             class="text-subtitle-1 font-weight-regular text-no-wrap text-truncate"
@@ -255,7 +255,10 @@ const handleRegistration = () => {
       <v-col>
         <v-card-text>
           <p class="text-h6 text-truncate w-100">
-            {{ props.event.name }}
+            {{ props.event.name }} <strong>{{ props.event.status === "Cancelled" ? "(Cancelled)" : "" }}</strong>
+          </p>
+          <p v-if="props.noActions"class="text-subtitle-2 font-weight-regular">
+            {{ eventDate}}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
             {{ props.event.location }}
@@ -263,6 +266,7 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ props.event.description }}
           </p>
+
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
           </p>

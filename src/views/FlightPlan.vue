@@ -36,6 +36,13 @@ const props = defineProps({
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const currentFlightPlanLabel = computed(() => {
+  const term =
+    flightPlan.value.semester?.term?.charAt(0).toUpperCase() +
+    flightPlan.value.semester?.term?.slice(1);
+  return `${term} ${flightPlan.value.semester?.year}`;
+});
+
 const downloadFlightPlanICS = async () => {
   const eventRes = await eventServices.getAllEvents(1, 1000);
   const allEvents = eventRes.data.events;
@@ -306,10 +313,13 @@ onMounted(async () => {
   }
 });
 
-watch(selectedFlightPlan, () => {
-  if (selectedFlightPlan.value) {
+watch(selectedFlightPlan, (newFlightPlan) => {
+  if (newFlightPlan) {
     fetchFlightPlanAndItems();
     fetchFlightPlanProgress();
+    currentFlightPlanLabel.value =
+      newFlightPlan.label ||
+      `${newFlightPlan.semester.term} ${newFlightPlan.semester.year}`;
   }
 });
 
@@ -323,64 +333,76 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
 </script>
 <template>
   <v-container fluid>
-    <div v-if="props.isAdmin">
-      <div class="mt-2 d-flex justify-center">
-        <div class="mr-4 mb-5 text-h5">{{ userName }}</div>
-      </div>
-      <v-row v-if="flightPlans.length > 0">
-        <v-col :cols="6" class="d-flex justify-end">
-          <v-select
-            v-model="selectedFlightPlan"
-            :items="flightPlans"
-            :item-title="(item) => item.label"
-            :item-value="(item) => item.value"
-            variant="solo"
-            bg-color="background"
-            return-object
-            flat
-            class="flex-grow-0"
-            density="comfortable"
-          ></v-select
-        ></v-col>
-        <v-col :cols="6" class="d-flex justify-start align-center mb-6">
-          <span class="text-subtitle-1"> Available Points: {{ points }} </span>
-        </v-col>
-      </v-row>
-      <p v-else class="text-h6 text-center">No flight plans found</p>
-    </div>
-    <div v-else>
-      <div class="mt-2 d-flex justify-center">
-        <v-select
-          v-model="selectedFlightPlan"
-          :items="flightPlans"
-          :item-title="(item) => item.label"
-          :item-value="(item) => item.value"
-          variant="solo"
-          bg-color="background"
-          return-object
-          class="flex-grow-0"
-          density="comfortable"
-          flat
-        ></v-select>
-      </div>
-      <div class="mt-2 d-flex align-center">
-        <span class="flex-grow-1 text-center text-subtitle-1">
-          Available Points: {{ points }}
-        </span>
+    <div>
+      <div class="pa-4">
+        <h1 v-if="props.isAdmin" class="mt-1">{{ userName }}'s Flight Plan</h1>
+        <v-row v-if="flightPlans.length > 0" justify="center" class="mr-2">
+          <v-col cols="12">
+            <v-card color="backgroundDarken" style="border-radius: 25px">
+              <div v-if="!props.isAdmin">
+                <div style="padding: 5px">
+                  <h1 class="mt-1" style="margin-left: 10px">
+                    {{ selectedFlightPlan.label }} Flight Plan
+                    <v-tooltip location="right" style="width: 50%">
+                      <template v-slot:activator="{ props }">
+                        <v-icon v-bind="props" size="20" class="ml-2"
+                          >mdi-information-outline</v-icon
+                        >
+                      </template>
+                      <span
+                        >View your tasks and experiences for your
+                        {{ selectedFlightPlan.label }}
+                        Flight Plan. Click any of the cards below to view
+                        more details and click "complete" when you are ready to finish the item.
+                      </span>
+                    </v-tooltip>
+                  </h1>
+                  <p
+                    class="section-headers"
+                    style="font-size: 16px; margin-left: 10px"
+                  >
+                    This is your custom flight plan for {{ selectedFlightPlan.label }}. Make sure to complete every
+                    item before the semester ends to earn extra points!
+                  </p>
+                </div>
+              </div>
+              <v-card-text>
+                <v-select
+                  v-model="selectedFlightPlan"
+                  :items="flightPlans"
+                  :item-title="(item) => item.label"
+                  :item-value="(item) => item.value"
+                  variant="solo"
+                  bg-color="background"
+                  return-object
+                  class="mb-4"
+                  density="comfortable"
+                  flat
+                  @update:model-value="fetchFlightPlanProgress"
+                ></v-select>
+                <strong>Current Flight Plan Completion Progress: </strong>
+                <v-progress-linear
+                  v-model="progress"
+                  color="primary"
+                  bg-color="backgroundLighten"
+                  height="20"
+                  style="border-radius: 25px"
+                >
+                  <strong>{{ progress }}%</strong>
+                </v-progress-linear>
+                <div class="text-center mt-2">
+                  <span class="text-h6"
+                    >Available Points: {{ points }}</span
+                  >
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <p v-else class="text-h6 text-center">No flight plans found</p>
       </div>
     </div>
 
-    <v-container>
-      <v-progress-linear
-        v-model="progress"
-        color="primary"
-        bg-color="backgroundLighten"
-        height="20"
-        rounded
-      >
-        <strong>{{ progress }}%</strong></v-progress-linear
-      >
-    </v-container>
     <CardHeader
       :export-calendar-button="hasRegisteredEvents"
       :add-button="selectedFlightPlan == flightPlans[0] ? true : false"
@@ -494,3 +516,11 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
     @add-items="handleAddItems"
   />
 </template>
+
+<style scoped>
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+</style>
