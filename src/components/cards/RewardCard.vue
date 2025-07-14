@@ -70,6 +70,14 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
+            <!-- Points Display -->
+      <p
+
+        class="text-subtitle-1 text-center my-2"
+      >
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
+      </p>
+
       <p class="text-subtitle-1 text-center my-2">
         {{
           props.reward.quantityAvaliable !== null

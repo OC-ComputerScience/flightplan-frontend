@@ -122,6 +122,7 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
           :src="defaultImage"
           alt="Generic Merchandise Image"
         ></v-img>
+
           <p class="text-h6 mt-2">Description:</p>
           <p class="mb-2 text-subtitle-1">
             {{ rewardToShow.description }}
