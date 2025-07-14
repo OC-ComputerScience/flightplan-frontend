@@ -177,6 +177,7 @@ const fetchStudentStatus = async () => {
     cancelledEvents.value = allEvents.value.filter(
       (event) => event.status === "Cancelled",
     );
+    generateEventDots(allEvents.value);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -187,7 +188,7 @@ const selectedDates = ref([today]);
 const lastSelectedDate = ref(null);
 
 const interactiveAttribute = ref({
-  highlight: "primary",
+  highlight: true,
   dates: selectedDates.value,
 });
 
@@ -276,16 +277,6 @@ const generateEventDots = (eventList) => {
 };
 
 watch(selectedDates, updateAttributes, { deep: true });
-
-watch(
-  allEvents,
-  (updatedList) => {
-    if (Array.isArray(updatedList) && updatedList.length > 0) {
-      generateEventDots(updatedList);
-    }
-  },
-  { immediate: true },
-);
 
 function handleDayClick(day, event) {
   const isCtrl = event.ctrlKey || event.metaKey;
