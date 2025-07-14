@@ -67,7 +67,13 @@ const handleLoginSuccess = async (userData) => {
       } catch {
         if (studentResponse.data?.semestersFromGrad > 0) {
           // If no flight plan exists, generate one
-          await flightPlanServices.generateFlightPlan(studentResponse.data.id);
+          try {
+            await flightPlanServices.generateFlightPlan(
+              studentResponse.data.id,
+            );
+          } catch (error) {
+            console.error("Error generating flight plan: ", error);
+          }
         }
       }
 
