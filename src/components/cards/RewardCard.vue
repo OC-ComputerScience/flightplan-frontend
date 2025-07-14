@@ -49,7 +49,6 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
     :color="'backgroundDarken'" 
     class="rounded-xl"
     @click="emit('show', props.reward)"
-    :disabled="!isView"
   >
     <v-card-text>
       <!-- Image Section -->
