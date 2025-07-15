@@ -194,7 +194,7 @@ const resolvedStatusLabel = computed(() => {
       case "registered":
         return "Registered"
       case "upcoming":
-        return "Upcoming";
+        return "Upcoming (Not Registered)";
       default:
         return "Upcoming";
     }
