@@ -166,15 +166,38 @@ const resolvedStatusLabel = computed(() => {
     return props.statusLabel;
   }
 
-  switch (props.status) {
-    case "success":
-      return "Checked In";
-    case "warning":
-      return "Registered";
-    case "grey":
-      return "Cancelled";
-    default:
-      return "Not Registered";
+  console.log(props.event.name + " status: " + props.status);
+
+  if (props.adminView) {
+    switch (props.status) {
+      case "checkedin":
+        return "Upcoming";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "Passed";
+      case "registered":
+        return "Upcoming"
+      case "upcoming":
+        return "Upcoming";
+      default:
+        return "Upcoming";
+    }
+  } else {
+    switch (props.status) {
+      case "checkedin":
+        return "Checked In";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "registered";
+      case "registered":
+        return "Registered"
+      case "upcoming":
+        return "Upcoming";
+      default:
+        return "Upcoming";
+    }
   }
 });
 
@@ -212,7 +235,10 @@ const handleRegistration = () => {
           <p class="text-subtitle-1 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="store.isAdmin" class="text-subtitle-2 font-weight-medium">
+          <p v-if="props.adminView" class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
+          </p>
+          <p v-else class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
@@ -270,7 +296,10 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="store.isAdmin" class="text-subtitle-2 font-weight-medium">
+          <p v-if="props.adminView" class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
+          </p>
+          <p v-else class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>

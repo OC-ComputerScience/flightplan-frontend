@@ -17,6 +17,7 @@ import {
   Title,
 } from "chart.js";
 import { Pie, Bar } from "vue-chartjs";
+import { getEventCardColor } from "../../utils/eventStatus";
 
 ChartJS.register(
   ArcElement,
@@ -285,6 +286,7 @@ onMounted(() => {
               :event="item"
               :view-only="true"
               :no-actions="true"
+              :status-label="getEventCardColor(item, [], [], [])"
               color="background"
               :is-event-viewing="false"
               :to="{ name: 'admin-calendar' }"
