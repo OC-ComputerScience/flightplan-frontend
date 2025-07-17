@@ -91,20 +91,6 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         Status: {{ props.reward.status }}
       </p>
 
-      <!-- Points Display -->
-      <p
-
-        class="text-subtitle-1 text-center my-2"
-      >
-      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
-      </p>
-
-      <p class="text-subtitle-1 text-center my-2">
-        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
-        </p> 
-
-
-
       <!-- Action Buttons -->
       <v-row class="ma-2 justify-center">
         <!-- Default Variant Buttons -->
