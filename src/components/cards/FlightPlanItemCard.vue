@@ -292,7 +292,7 @@ const handleViewRegisteredEvent = async () => {
                     color="recommended"
                   />
                 </template>
-                <span> Recommended</span>
+                <span>Recommended based on your Strengths</span>
               </v-tooltip>
             </v-row>
             <p>{{ flightPlanItem.flightPlanItemType }}</p>

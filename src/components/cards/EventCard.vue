@@ -295,7 +295,7 @@ const handleRegistration = () => {
                   color="recommended"
                 />
               </template>
-              <span> Recommended</span>
+              <span>Recommended based on your Strengths</span>
             </v-tooltip>
           </v-row>
           <p v-if="props.noActions"class="text-subtitle-2 font-weight-regular">
