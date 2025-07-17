@@ -4,6 +4,7 @@ import router from "./router/router.js";
 import vuetify from "./plugins/vuetify.js";
 import { createPinia } from "pinia";
 import { userStore } from "./stores/userStore.js";
+import { studentStore } from "./stores/studentStore.js";
 import VCalendar from "v-calendar";
 import VueFilesPreview from "vue-files-preview";
 import "vue-files-preview/lib/style.css";
@@ -20,5 +21,7 @@ app.use(VCalendar, {});
 app.use(VueFilesPreview);
 const store = userStore();
 store.initalSetup();
+const localStudentStore = studentStore();
+localStudentStore.initalSetup();
 
 app.mount("#app");

@@ -68,6 +68,10 @@
   background-color: rgb(var(--v-theme-checkedin)) !important;
 }
 
+.vc-recommended {
+  background-color: rgb(var(--v-theme-recommended)) !important;
+}
+
 .vc-passed {
   background-color: rgb(var(--v-theme-passed)) !important;
 }

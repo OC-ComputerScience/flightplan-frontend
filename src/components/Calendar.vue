@@ -5,13 +5,16 @@ import EventDialog from "./dialogs/EventDialog.vue";
 import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
 import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
+import strengthServices from "../services/strengthServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
+import { studentStore } from "../stores/studentStore";
 import { getEventCardColor } from "../utils/eventStatus";
 import { createEventCancelNotification } from "../utils/notificationHandler";
 import { formatTime } from "../utils/dateTimeHelpers";
 
 const store = userStore();
+const localStudentStore = studentStore();
 const studentId = ref(null);
 
 const router = useRouter();
@@ -177,7 +180,7 @@ const fetchStudentStatus = async () => {
     cancelledEvents.value = allEvents.value.filter(
       (event) => event.status === "Cancelled",
     );
-    generateEventDots(allEvents.value);
+    await generateEventDots(allEvents.value);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -253,26 +256,39 @@ const updateAttributes = () => {
   }
 };
 
-const generateEventDots = (eventList) => {
+const generateEventDots = async (eventList) => {
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
   if (!Array.isArray(eventList) || eventList.length === 0) {
     eventDots.value = [];
     updateAttributes();
     return;
   }
-  eventDots.value = eventList.map((event, index) => {
-    const color = getEventCardColor(
-      event,
-      checkedInEvents.value,
-      registeredEvents.value,
-      cancelledEvents.value,
-    );
-    return {
-      key: `event-${index}`,
-      dot: { color },
-      dates: new Date(event.date),
-      popover: { label: event.name },
-    };
-  });
+  eventDots.value = await Promise.all(
+    eventList.map(async (event, index) => {
+      let eventStrengths = [];
+      if (localStudentStore.strengths?.length > 0 && event.status !== "Past") {
+        eventStrengths = (await strengthServices.getStrengthForEvent(event.id))
+          .data;
+      }
+      const color = getEventCardColor(
+        event,
+        checkedInEvents.value,
+        registeredEvents.value,
+        cancelledEvents.value,
+        localStudentStore.strengths || [],
+        eventStrengths || [],
+      );
+      return {
+        key: `event-${index}`,
+        dot: { color },
+        dates: new Date(event.date),
+        popover: { label: event.name },
+      };
+    }),
+  );
   updateAttributes();
 };
 
@@ -472,11 +488,12 @@ function selectThisMonth() {
               >
             </template>
             <span>
-              <div class="pb-1"><v-icon class="text-primary">mdi-circle</v-icon>: <strong>Upcoming</strong></div>
-              <div class="pb-1"><v-icon style="color: teal">mdi-circle</v-icon>: <strong>Registered</strong></div>
-              <div class="pb-1"><v-icon style="color: green">mdi-circle</v-icon>: <strong>Completed</strong></div>
-              <div class="pb-1"><v-icon style="color: black">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
-              <div class="pb-1"><v-icon style="color: grey">mdi-circle</v-icon>: <strong>Past</strong></div>
+              <div class="pb-1"><v-icon color="upcoming">mdi-circle</v-icon>: <strong>Upcoming</strong></div>
+              <div class="pb-1"><v-icon color="registered">mdi-circle</v-icon>: <strong>Registered</strong></div>
+              <div class="pb-1"><v-icon color="checkedin">mdi-circle</v-icon>: <strong>Completed</strong></div>
+              <div class="pb-1"><v-icon color="recommended">mdi-circle</v-icon>: <strong>Recommended</strong></div>
+              <div class="pb-1"><v-icon color="cancelled">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
+              <div class="pb-1"><v-icon color="passed">mdi-circle</v-icon>: <strong>Passed</strong></div>
               </span>
           </v-tooltip>
           </p>

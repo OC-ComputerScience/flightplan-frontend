@@ -3,9 +3,12 @@ import { computed, ref, onMounted } from "vue";
 import EventListDialog from "../dialogs/EventListDialog.vue";
 import EventDialog from "../dialogs/EventDialog.vue";
 import eventServices from "../../services/eventServices";
+import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import flightPlanItemServices from "../../services/flightPlanItemServices";
+import { isRecommended } from "../../utils/recommended";
 import { userStore } from "../../stores/userStore";
+import { studentStore } from "../../stores/studentStore";
 import { useDisplay } from "vuetify";
 
 const props = defineProps({
@@ -35,6 +38,7 @@ const emit = defineEmits([
 ]);
 
 const store = userStore();
+const localStudentStore = studentStore();
 const studentId = ref(null);
 const registeredEventIds = ref(new Set());
 const checkedInEventIds = ref(new Set());
@@ -45,6 +49,8 @@ const eventOptions = ref([]);
 const selectedEvent = ref(null);
 
 const { lgAndUp } = useDisplay();
+
+const isRecommendedFlightPlanItem = ref(false);
 
 const isSubmissionExperience = computed(
   () =>
@@ -59,6 +65,29 @@ const isOptional = computed(() => {
     return props.flightPlanItem.task?.schedulingType === "optional";
   }
 });
+
+const calculateRecommended = async () => {
+  let itemStrengths;
+  if (props.flightPlanItem.flightPlanItemType === "Experience") {
+    itemStrengths = (
+      await strengthServices.getStrengthForExperience(
+        props.flightPlanItem.experience?.id,
+      )
+    ).data;
+  } else {
+    itemStrengths = (
+      await strengthServices.getStrengthForTask(props.flightPlanItem.task?.id)
+    ).data;
+  }
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
+  isRecommendedFlightPlanItem.value = isRecommended(
+    localStudentStore.strengths,
+    itemStrengths,
+  );
+};
 
 const fetchStudentId = async () => {
   try {
@@ -98,6 +127,7 @@ const loadExperienceEvents = async () => {
 };
 
 onMounted(async () => {
+  calculateRecommended();
   await fetchStudentId();
   await fetchStudentStatus();
   if (props.flightPlanItem.flightPlanItemType === "Experience") {
@@ -238,14 +268,33 @@ const handleViewRegisteredEvent = async () => {
 
         <v-col :cols="contextSize">
           <v-card-text class="text-no-wrap">
-            <v-tooltip bottom>
-              <template #activator="{ props: tooltipProps }">
-                <p v-bind="tooltipProps" class="text-h6 mb-2 truncate-text">
-                  {{ flightPlanItem.name }}
-                </p>
-              </template>
-              <span>{{ flightPlanItem.name }}</span>
-            </v-tooltip>
+            <v-row>
+              <v-tooltip bottom>
+                <template #activator="{ props: tooltipProps }">
+                  <p v-bind="tooltipProps" class="text-h6 mb-2 truncate-text">
+                    {{ flightPlanItem.name }}
+                  </p>
+                </template>
+                <span>{{ flightPlanItem.name }}</span>
+              </v-tooltip>
+              <v-spacer />
+              <v-tooltip
+                v-if="isRecommendedFlightPlanItem"
+                location="right"
+                style="width: 75%"
+                bottom
+              >
+                <template #activator="{ props: recomendedToolTipProps }">
+                  <v-icon
+                    icon="mdi-star"
+                    v-bind="recomendedToolTipProps"
+                    size="x-large"
+                    color="recommended"
+                  />
+                </template>
+                <span> Recommended</span>
+              </v-tooltip>
+            </v-row>
             <p>{{ flightPlanItem.flightPlanItemType }}</p>
             <p>
               {{
