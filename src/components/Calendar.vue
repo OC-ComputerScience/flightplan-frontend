@@ -493,7 +493,7 @@ function selectThisMonth() {
               <div class="pb-1"><v-icon color="checkedin">mdi-circle</v-icon>: <strong>Completed</strong></div>
               <div class="pb-1"><v-icon color="recommended">mdi-circle</v-icon>: <strong>Recommended</strong></div>
               <div class="pb-1"><v-icon color="cancelled">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
-              <div class="pb-1"><v-icon color="passed">mdi-circle</v-icon>: <strong>Passed</strong></div>
+              <div class="pb-1"><v-icon color="past">mdi-circle</v-icon>: <strong>Past</strong></div>
               </span>
           </v-tooltip>
           </p>

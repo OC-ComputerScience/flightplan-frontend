@@ -72,8 +72,8 @@
   background-color: rgb(var(--v-theme-recommended)) !important;
 }
 
-.vc-passed {
-  background-color: rgb(var(--v-theme-passed)) !important;
+.vc-past {
+  background-color: rgb(var(--v-theme-past)) !important;
 }
 
 .vc-canceled {
