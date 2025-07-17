@@ -3,7 +3,10 @@ import { computed, ref, onMounted, watch } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
+import { isRecommended } from "../../utils/recommended";
+import { studentStore } from "../../stores/studentStore";
 import eventServices from "../../services/eventServices";
+import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
 import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
@@ -19,6 +22,7 @@ const emit = defineEmits([
   "unregister",
 ]);
 const store = userStore();
+const localStudentStore = studentStore();
 
 const props = defineProps({
   event: {
@@ -50,9 +54,24 @@ const props = defineProps({
 const isRegistered = ref(false);
 const confirmCancelDialog = ref(false);
 const canCancel = ref(true);
+const isRecommendedEvent = ref(false);
 
+const calculateRecommended = async () => {
+  const eventStrengths = (
+    await strengthServices.getStrengthForEvent(props.event.id)
+  ).data;
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
+  isRecommendedEvent.value = isRecommended(
+    localStudentStore.strengths,
+    eventStrengths,
+  );
+};
 
 onMounted(async () => {
+  calculateRecommended();
   let userId = Utils.getStore("user").userId;
   await studentServices
     .getStudentForUserId(userId)
@@ -280,9 +299,31 @@ const handleRegistration = () => {
       <div class="h-fill left-accent my-2 ml-2" :class="`bg-${status}`"></div>
       <v-col>
         <v-card-text>
-          <p class="text-h6 text-truncate w-100">
-            {{ props.event.name }} <strong>{{ props.event.status === "Cancelled" ? "(Cancelled)" : "" }}</strong>
-          </p>
+          <v-row no-gutters align="center">
+            <p class="text-h6 text-truncate">
+              {{ props.event.name }}
+              <strong>{{
+                props.event.status === "Cancelled" ? "(Cancelled)" : ""
+              }}</strong>
+            </p>
+            <v-spacer></v-spacer>
+            <v-tooltip
+              v-if="isRecommendedEvent"
+              location="right"
+              style="width: 75%"
+              bottom
+            >
+              <template #activator="{ props: recomendedToolTipProps }">
+                <v-icon
+                  icon="mdi-star"
+                  v-bind="recomendedToolTipProps"
+                  size="x-large"
+                  color="recommended"
+                />
+              </template>
+              <span>Recommended based on your Strengths</span>
+            </v-tooltip>
+          </v-row>
           <p v-if="props.noActions"class="text-subtitle-2 font-weight-regular">
             {{ eventDate}}
           </p>
