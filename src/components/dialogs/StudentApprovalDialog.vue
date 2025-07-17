@@ -4,8 +4,10 @@ import { storeToRefs } from "pinia";
 import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
 import userServices from "../../services/userServices";
 import submissionServices from "../../services/submissionServices";
+import flightPlanItemServices from "../../services/flightPlanItemServices";
 import fileServices from "../../services/fileServices";
 import { required, characterLimit } from "../../utils/formValidators";
+import { automaticSubmissionHandler } from "../../utils/flightPlanItemSubmissionHelper";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -19,7 +21,6 @@ const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
 const submissionType = computed(() => {
-  
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.submissionType;
   } else {
@@ -70,8 +71,8 @@ const handleSubmit = async () => {
   const noText =
     !reflectionText.value || reflectionText.value.trim().length === 0;
   const manualSubmission = submissionType.value === "manual";
-
-  if (noFiles && noText && submissionType.value !== "manual") {
+  const automaticSubmission = submissionType.value.includes("Auto");
+  if (noFiles && noText && !manualSubmission && !automaticSubmission) {
     errorMessage.value = "Please upload a file or write a reflection";
     return;
   }
@@ -134,7 +135,23 @@ const handleSubmit = async () => {
           });
         }
 
-        await submissionServices.createSubmissions(submissions);
+        if (automaticSubmission) {
+          let responseMessage = await automaticSubmissionHandler(
+            submissionType.value
+          );
+
+          if (responseMessage) {
+            errorMessage.value = responseMessage;
+          } else {
+            successMessage.value = "Submission successful!";
+            handleAutoApproval();
+            debounceSubmit();
+            break;
+          }
+        }
+
+        if (!automaticSubmission)
+          await submissionServices.createSubmissions(submissions);
         break;
     }
 
@@ -184,6 +201,19 @@ const submitReflection = async () => {
   });
 };
 
+const handleAutoApproval = async () => {
+  flightPlanItemServices.approveFlightPlanItem(
+    flightPlanItem.value.id,
+  )
+    .then(() => {
+      console.log("Flight plan item approved successfully.");
+    })
+    .catch((error) => {
+      errorMessage.value =
+        error.response?.data?.message || "Failed to approve flight plan item.";
+    });
+}
+
 watch(visible, () => {
   if (!visible.value) {
     files.value = null;
@@ -220,6 +250,7 @@ onMounted(fetchOptionalReviewers);
           </div>
           <div v-else>
             <div v-if="hasInstructions" class="mb-4">
+              <strong >Instructions: </strong>
               <p class="text-body-1">{{ hasInstructions }}</p>
               </div>
               <div v-if="hasInstructionsLink" class="mb-4">
