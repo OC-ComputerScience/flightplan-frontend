@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import { userStore } from "../stores/userStore";
 import studentServices from "../services/studentServices";
 import { loginRedirect } from "../router/router.js";
+import flightPlanServices from "../services/flightPlanServices.js";
 
 const router = useRouter();
 const store = userStore();
@@ -25,10 +26,57 @@ const handleLoginSuccess = async (userData) => {
     }
 
     // Check if student exists and has completed onboarding
-    const response = await studentServices.getStudentForUserId(userData.userId);
-    if (!response.data?.graduationDate || !response.data?.semestersFromGrad) {
+    let studentResponse = await studentServices.getStudentForUserId(
+      userData.userId,
+    );
+    if (
+      !studentResponse.data?.graduationDate ||
+      !studentResponse.data?.semestersFromGrad
+    ) {
+      console.log(studentResponse.data);
       showOnboarding.value = true;
     } else {
+      // Check if student has a flight plan for their current semester from graduation if they have not graduated
+      try {
+        // Initial check to see if there is a flight plan for current semester
+        await flightPlanServices.getFlightPlanForStudentAndSemester(
+          studentResponse.data.id,
+          studentResponse.data.semestersFromGrad,
+        );
+
+        // Checks if student needs an updated semesters from graduation
+        await studentServices.checkStudentSemesterFromGraduation(
+          studentResponse.data.id,
+        );
+        const checkStudentResponse = await studentServices.getStudentForUserId(
+          userData.userId,
+        );
+
+        // If semester from graduation was updated, check for flightplan
+        if (
+          checkStudentResponse.data.semestersFromGrad &&
+          checkStudentResponse.data.semestersFromGrad !==
+            studentResponse.data.semestersFromGrad
+        ) {
+          studentResponse = checkStudentResponse;
+          await flightPlanServices.getFlightPlanForStudentAndSemester(
+            studentResponse.data.id,
+            studentResponse.data.semestersFromGrad,
+          );
+        }
+      } catch {
+        if (studentResponse.data?.semestersFromGrad > 0) {
+          // If no flight plan exists, generate one
+          try {
+            await flightPlanServices.generateFlightPlan(
+              studentResponse.data.id,
+            );
+          } catch (error) {
+            console.error("Error generating flight plan: ", error);
+          }
+        }
+      }
+
       const redirect = await loginRedirect();
       router.push(redirect);
     }
