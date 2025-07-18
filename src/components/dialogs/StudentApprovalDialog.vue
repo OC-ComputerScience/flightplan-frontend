@@ -70,30 +70,74 @@ const handleSubmit = async () => {
   const noFiles = !files.value || files.value.length === 0;
   const noText =
     !reflectionText.value || reflectionText.value.trim().length === 0;
-  const manualSubmission = submissionType.value === "manual";
-  const automaticSubmission = submissionType.value.includes("Auto");
+
+  const manualSubmission = submissionType.value === "Manual Review";
+  const automaticSubmission =
+    submissionType.value.includes("Auto") ||
+    submissionType.value.includes("Self-Approved");
+
   if (noFiles && noText && !manualSubmission && !automaticSubmission) {
     errorMessage.value = "Please upload a file or write a reflection";
     return;
   }
 
   try {
+    console.log(submissionType.value);
     switch (submissionType.value) {
-      case "text":
+      case "Reflection - Review":
+      case "Reflection - Auto Approve":
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
         }
-        await submitReflection();
+        if (automaticSubmission) {
+          successMessage.value = "Submission successful!";
+          handleAutoApproval();
+          debounceSubmit();
+        } else {
+          await submitFiles();
+        }
         break;
 
-      case "file":
+      case "Upload Document - Review":
+      case "Upload Document - Auto Approve":
         if (noFiles) {
           errorMessage.value = "Please upload a file";
           return;
         }
-        await submitFiles();
+
+        if (automaticSubmission) {
+          successMessage.value = "Submission successful!";
+          handleAutoApproval();
+          debounceSubmit();
+        } else {
+          await submitFiles();
+        }
         break;
+
+      case "Upload Document & Reflection - Review":
+      case "Upload Document & Reflection - Auto Approve": {
+        console.log("Handling mixed submission type");
+
+        if (noText) {
+          errorMessage.value = "Please write a reflection";
+          return;
+        }
+
+        if (noFiles) {
+          errorMessage.value = "Please upload a file";
+          return;
+        }
+
+        if (automaticSubmission) {
+          successMessage.value = "Submission successful!";
+          handleAutoApproval();
+          debounceSubmit();
+        } else {
+          await submitFiles();
+        }
+        break;
+      }
 
       default:
         // Mixed or other types
@@ -137,7 +181,7 @@ const handleSubmit = async () => {
 
         if (automaticSubmission) {
           let responseMessage = await automaticSubmissionHandler(
-            submissionType.value
+            submissionType.value,
           );
 
           if (responseMessage) {
@@ -155,10 +199,8 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           debounceSubmit();
         }
-      break;
+        break;
     }
-
-
   } catch (error) {
     errorMessage.value =
       error.response?.data?.message || "An unexpected error occurred.";
@@ -204,9 +246,8 @@ const submitReflection = async () => {
 };
 
 const handleAutoApproval = async () => {
-  flightPlanItemServices.approveFlightPlanItem(
-    flightPlanItem.value.id,
-  )
+  flightPlanItemServices
+    .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
       successMessage.value = "Flight plan item submission approved";
     })
@@ -214,7 +255,7 @@ const handleAutoApproval = async () => {
       errorMessage.value =
         error.response?.data?.message || "Failed to approve flight plan item.";
     });
-}
+};
 
 watch(visible, () => {
   if (!visible.value) {
@@ -252,10 +293,10 @@ onMounted(fetchOptionalReviewers);
           </div>
           <div v-else>
             <div v-if="hasInstructions" class="mb-4">
-              <strong >Instructions: </strong>
+              <strong>Instructions: </strong>
               <p class="text-body-1">{{ hasInstructions }}</p>
-              </div>
-              <div v-if="hasInstructionsLink" class="mb-4">
+            </div>
+            <div v-if="hasInstructionsLink" class="mb-4">
               <p class="text-body-1">
                 <a
                   :href="hasInstructionsLink"
@@ -267,7 +308,10 @@ onMounted(fetchOptionalReviewers);
               </p>
             </div>
             <v-textarea
-              v-if="submissionType === 'text'"
+              v-if="
+                submissionType === 'Reflection - Review' ||
+                submissionType === 'Reflection - Auto Approve'
+              "
               v-model="reflectionText"
               label="Reflection"
               variant="solo"
@@ -277,14 +321,22 @@ onMounted(fetchOptionalReviewers);
               :rules="[required, characterLimit(reflectionText, 400)]"
             ></v-textarea>
             <v-file-upload
-              v-else-if="submissionType === 'files'"
+              v-else-if="
+                submissionType === 'Upload Document - Review' ||
+                submissionType === 'Upload Document - Auto Approve'
+              "
               v-model="files"
               label="Upload Files"
               multiple
               rounded="xl"
               color="background"
             ></v-file-upload>
-            <div v-else-if="submissionType === 'both'">
+            <div
+              v-else-if="
+                submissionType === 'Upload Document & Reflection - Review' ||
+                submissionType === 'Upload Document & Reflection - Auto Approve'
+              "
+            >
               <v-expansion-panels class="mb-4 rounded-lg" color="background">
                 <v-expansion-panel class="mb-2">
                   <v-expansion-panel-title>Reflection</v-expansion-panel-title>
@@ -295,6 +347,8 @@ onMounted(fetchOptionalReviewers);
                       variant="solo"
                       rounded="xl"
                       bg-color="background"
+                      counter
+                      :rules="[required, characterLimit(reflectionText, 400)]"
                     ></v-textarea>
                   </v-expansion-panel-text>
                 </v-expansion-panel>
@@ -315,7 +369,10 @@ onMounted(fetchOptionalReviewers);
               </v-expansion-panels>
             </div>
 
-            <div v-if="!submissionType.includes('Auto')" class="d-flex justify-center mt-4">
+            <div
+              v-if="!submissionType.includes('Auto')"
+              class="d-flex justify-center mt-4"
+            >
               <p class="mr-2 mt-1">(Optional) Request Reviewer</p>
               <div class="w-25">
                 <v-select
