@@ -150,13 +150,15 @@ const handleSubmit = async () => {
           }
         }
 
-        if (!automaticSubmission)
+        if (!automaticSubmission) {
           await submissionServices.createSubmissions(submissions);
-        break;
+          successMessage.value = "Submission successful!";
+          debounceSubmit();
+        }
+      break;
     }
 
-    successMessage.value = "Submission successful!";
-    debounceSubmit();
+
   } catch (error) {
     errorMessage.value =
       error.response?.data?.message || "An unexpected error occurred.";
@@ -313,7 +315,7 @@ onMounted(fetchOptionalReviewers);
               </v-expansion-panels>
             </div>
 
-            <div class="d-flex justify-center mt-4">
+            <div v-if="!submissionType.includes('Auto')" class="d-flex justify-center mt-4">
               <p class="mr-2 mt-1">(Optional) Request Reviewer</p>
               <div class="w-25">
                 <v-select

@@ -20,8 +20,8 @@ export const automaticSubmissionHandler = async (autoType) => {
             response = await majorServices.getMajorsForStudent(studentId);
             const studentMajors = response.data;
 
-            if (!studentMajors || studentMajors.length === 0) {
-                return "No majors found for student"
+            if (!studentMajors || studentMajors.filter(major => major.name === "Undeclared").length > 0) {
+                return "You have not declared a major"
             }
 
             return;
@@ -44,16 +44,15 @@ export const automaticSubmissionHandler = async (autoType) => {
             return;
         case "Auto Complete - Handshake":
             return "Task completion not implemented"
-            break;
         case "Auto-Complete - Strengths":
             response = await strengthServices.getStrengthsForStudent(studentId);
             const studentStrengths = response.data;
             
             if (!studentStrengths)  {
-                return "No strengths found for student";
+                return "Please add your Clifton Strengths to your profile";
             }
             else if (studentStrengths.length < 5) {
-                return "Not enough strengths found for student";
+                return "You must have 5 Clifton Strengths on your profile";
             }
 
             return;
