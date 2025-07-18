@@ -23,6 +23,7 @@ const hasQuantity = ref(false);
 
 // Form data
 const redemptionTypes = ["In-Person", "Digital"];
+const statusTypes = ref([]);
 
 // Functions
 const handleCancel = () => {
@@ -80,6 +81,13 @@ const handleImageUpdate = async () => {
 
 // Vue functions
 onMounted(async () => {
+  try {
+    const statusRes = await rewardServices.getStatusTypes();
+    statusTypes.value = statusRes.data;
+  } catch (err) {
+    console.error("Error fetching status types:", err);
+  }
+
   if (!props.isAdd) {
     try {
       let response = await rewardServices.getReward(route.params.id);
@@ -162,6 +170,14 @@ watch(
         label="Redemption Info"
         :rules="[required]"
       ></v-text-field>
+      <v-select
+        v-model="formData.status"
+        :items="statusTypes"
+        variant="solo"
+        rounded="lg"
+        label="Status"
+        :rules="[required]"
+      ></v-select>
       <v-textarea
         v-model="formData.description"
         variant="solo"
