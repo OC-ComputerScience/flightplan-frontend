@@ -4,11 +4,11 @@ import axios from "axios";
 
 export default {
   uploadFile(fileData, folder) {
-    console.log(fileData);
+   
     const authHeader = getAuthHeader();
     const formData = jsonToFormData(fileData);
     const baseURL = getBaseURL();
-    console.log(formData);
+   
     return axios.post(
       `${baseURL}/file/upload${folder ? "?folder=submissions" : ""}`,
       formData,

@@ -7,7 +7,7 @@ const props = defineProps({
   badge: { type: Object, required: true },
   isProfilePage: { type: Boolean, default: false },
 });
-const emit = defineEmits(["edit", "delete"]);
+const emit = defineEmits(["edit", "delete", "view"]);
 
 const imageSrc = ref("");
 
@@ -30,7 +30,16 @@ const cardClass = computed(() => {
 </script>
 
 <template>
-  <v-card :class="['rounded-xl', cardClass, 'bg-backgroundDarken']">
+  <v-card
+    :class="['rounded-xl', cardClass, 'bg-backgroundDarken']"
+    v-bind="
+      props.isProfilePage
+        ? {
+            onClick: () => emit('view', props.badge),
+          }
+        : {}
+    "
+  >
     <v-card-text>
       <v-img
         v-if="imageSrc"

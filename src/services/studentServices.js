@@ -9,8 +9,11 @@ export default {
   getStudent(studentId) {
     return apiClient.get(`/students/${studentId}`);
   },
+  checkStudentSemesterFromGraduation(studentId) {
+    return apiClient.put(`/students/${studentId}/checkSemesterFromGraduation`);
+  },
   updatePoints(studentId, points) {
-    console.log("points", points);
+    
     return apiClient.put(`/students/${studentId}/points`, { points });
   },
   getPoints(studentId) {

@@ -19,7 +19,7 @@ watch(
   { deep: true },
 );
 
-const emit = defineEmits(["edit", "delete", "shop", "show", "redeem"]);
+const emit = defineEmits(["edit", "shop", "show", "redeem"]);
 
 // State
 const imageSrc = ref("");
@@ -87,6 +87,9 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             : "Unlimited"
         }}
       </p>
+      <p class="text-subtitle-1 text-center my-2">
+        Status: {{ props.reward.status }}
+      </p>
 
       <!-- Points Display -->
       <p
@@ -122,13 +125,6 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
               @click.stop="emit('edit', props.reward.id)"
             >
               <v-icon icon="mdi-pencil" color="text" size="x-large" />
-            </v-btn>
-            <v-btn
-              color="danger"
-              class="rounded-lg"
-              @click.stop="emit('delete', props.reward.id, props.reward.imageName)"
-            >
-              <v-icon icon="mdi-delete" color="text" size="x-large" />
             </v-btn>
           </template>
         </template>

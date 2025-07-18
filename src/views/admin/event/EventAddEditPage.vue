@@ -171,8 +171,7 @@ const handleSubmit = async () => {
             isCancel.value = false;
           } else {
             res.data.forEach((student) => {
-              console.log(student);
-              registeredStudents.push(student.id);
+             registeredStudents.push(student.id);
               createEventUpdateNotification(
                 eventData,
                 student.studentId,

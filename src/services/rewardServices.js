@@ -14,8 +14,8 @@ export default {
       },
     });
   },
-  deleteReward(rewardId) {
-    return apiClient.delete(`/reward/${rewardId}`);
+  getAllActiveRewardsForStudent(studentId) {
+    return apiClient.get(`/reward/student/${studentId}/active`);
   },
   getReward(rewardId) {
     return apiClient.get(`/reward/${rewardId}`);
@@ -36,6 +36,15 @@ export default {
   },
   getRewardImage(fileName) {
     return apiClient.get(`/reward/image/${fileName}`);
+  },
+  getStatusTypes() {
+    return apiClient.get("/reward/types/statusTypes");
+  },
+  getAllActiveRewards() {
+    return apiClient.get("/reward/active");
+  },
+  getAllInactiveRewards() {
+    return apiClient.get("/reward/inactive");
   },
   updateReward(rewardId, rewardData) {
     return apiClient.put(`/reward/${rewardId}`, rewardData);

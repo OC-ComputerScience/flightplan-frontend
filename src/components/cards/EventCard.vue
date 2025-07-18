@@ -3,7 +3,10 @@ import { computed, ref, onMounted, watch } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
+import { isRecommended } from "../../utils/recommended";
+import { studentStore } from "../../stores/studentStore";
 import eventServices from "../../services/eventServices";
+import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
 import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
@@ -19,13 +22,14 @@ const emit = defineEmits([
   "unregister",
 ]);
 const store = userStore();
+const localStudentStore = studentStore();
 
 const props = defineProps({
   event: {
     type: Object,
     required: true,
   },
-  viewOnly: {
+  viewOnly: { // true - students, false - admin
     type: Boolean,
     default: false,
   },
@@ -44,15 +48,34 @@ const props = defineProps({
   noActions: {
     type: Boolean,
     default: false,
+  },
+  registerOnly: {
+    type: Boolean,
+    default: false,
   }
 });
 
 const isRegistered = ref(false);
 const confirmCancelDialog = ref(false);
 const canCancel = ref(true);
+const isRecommendedEvent = ref(false);
 
+const calculateRecommended = async () => {
+  const eventStrengths = (
+    await strengthServices.getStrengthForEvent(props.event.id)
+  ).data;
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
+  isRecommendedEvent.value = isRecommended(
+    localStudentStore.strengths,
+    eventStrengths,
+  );
+};
 
 onMounted(async () => {
+  calculateRecommended();
   let userId = Utils.getStore("user").userId;
   await studentServices
     .getStudentForUserId(userId)
@@ -166,15 +189,37 @@ const resolvedStatusLabel = computed(() => {
     return props.statusLabel;
   }
 
-  switch (props.status) {
-    case "success":
-      return "Checked In";
-    case "warning":
-      return "Registered";
-    case "grey":
-      return "Cancelled";
-    default:
-      return "Not Registered";
+
+  if (props.adminView) {
+    switch (props.status) {
+      case "checkedin":
+        return "Upcoming";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "Passed";
+      case "registered":
+        return "Upcoming"
+      case "upcoming":
+        return "Upcoming";
+      default:
+        return "Upcoming";
+    }
+  } else {
+    switch (props.status) {
+      case "checkedin":
+        return "Checked In";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "registered";
+      case "registered":
+        return "Registered"
+      case "upcoming":
+        return "Upcoming (Not Registered)";
+      default:
+        return "Upcoming";
+    }
   }
 });
 
@@ -212,8 +257,8 @@ const handleRegistration = () => {
           <p class="text-subtitle-1 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="!store.isAdmin" class="text-subtitle-2 font-weight-medium">
-            Status: {{ resolvedStatusLabel }}
+          <p class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
         <v-row class="ma-2 float-right">
@@ -254,10 +299,32 @@ const handleRegistration = () => {
       <div class="h-fill left-accent my-2 ml-2" :class="`bg-${status}`"></div>
       <v-col>
         <v-card-text>
-          <p class="text-h6 text-truncate w-100">
-            {{ props.event.name }} <strong>{{ props.event.status === "Cancelled" ? "(Cancelled)" : "" }}</strong>
-          </p>
-          <p v-if="props.noActions"class="text-subtitle-2 font-weight-regular">
+          <v-row no-gutters align="center">
+            <p class="text-h6 text-truncate">
+              {{ props.event.name }}
+              <strong>{{
+                props.event.status === "Cancelled" ? "(Cancelled)" : ""
+              }}</strong>
+            </p>
+            <v-spacer></v-spacer>
+            <v-tooltip
+              v-if="isRecommendedEvent"
+              location="right"
+              style="width: 75%"
+              bottom
+            >
+              <template #activator="{ props: recomendedToolTipProps }">
+                <v-icon
+                  icon="mdi-star"
+                  v-bind="recomendedToolTipProps"
+                  size="x-large"
+                  color="recommended"
+                />
+              </template>
+              <span>Recommended based on your Strengths</span>
+            </v-tooltip>
+          </v-row>
+          <p v-if="props.noActions && !props.adminView"class="text-subtitle-2 font-weight-regular">
             {{ eventDate}}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
@@ -271,7 +338,7 @@ const handleRegistration = () => {
             {{ eventTime }}
           </p>
           <p class="text-subtitle-2 font-weight-medium">
-            {{ statusLabel }}
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
         <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
@@ -291,7 +358,7 @@ const handleRegistration = () => {
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
-        <v-row v-else-if="!props.noActions" class="ma-2 float-left">
+        <v-row v-else-if="!props.noActions || props.registerOnly" class="ma-2 float-left">
           <v-btn
             v-if="isRegistered && props.event.status === 'Upcoming'"
             color="error"

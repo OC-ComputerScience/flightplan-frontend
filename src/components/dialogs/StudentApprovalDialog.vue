@@ -18,8 +18,7 @@ const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
 const submissionType = computed(() => {
-  console.log(flightPlanItem.value);
-
+  
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.submissionType;
   } else {

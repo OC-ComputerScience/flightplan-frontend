@@ -12,12 +12,15 @@ import { userStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
 import { viewBadgeAwardsStore } from "../stores/viewBadgeAwardsStore";
 import ViewBadgeAwards from "../components/dialogs/ViewBadgeAwards.vue";
+import { viewAwardedBadgeStore } from "../stores/viewAwardedBadgeStore";
+import ViewAwardedBadge from "../components/dialogs/ViewAwardedBadge.vue";
 
 const store = userStore();
 const route = useRoute();
 const router = useRouter();
 
 const badgeAwardsStore = viewBadgeAwardsStore();
+const viewBadgeStore = viewAwardedBadgeStore();
 const noBadges = ref(false);
 const noStrengths = ref(false);
 
@@ -25,6 +28,7 @@ const links = ref([]);
 const strengths = ref([]);
 const badges = ref([]);
 const unviewedBadges = ref([]);
+const selectedBadge = ref({});
 const selectedUser = ref([]);
 const selectedStudent = ref([]);
 const selectedMajor = ref([]);
@@ -102,6 +106,11 @@ const canEditProfile = () => {
 // Handlers
 const handleEdit = (userId) =>
   router.push({ name: "editProfile", params: { id: userId } });
+
+const handleViewBadge = (badge) => {
+  selectedBadge.value = badge;
+  viewBadgeStore.toggleVisibility();
+};
 
 const fetchUnviewedBadges = async () => {
   const response = await badgeServices.getUnviewedBadges(route.params.userId);
@@ -257,7 +266,11 @@ onMounted(async () => {
               cols="12"
               md="4"
             >
-              <BadgeCard :badge="item" :is-profile-page="true" />
+              <BadgeCard
+                :badge="item"
+                :is-profile-page="true"
+                @view="handleViewBadge"
+              />
             </v-col>
           </v-row>
           <v-row v-else>
@@ -335,6 +348,7 @@ onMounted(async () => {
     </v-row>
   </v-row>
   <ViewBadgeAwards :badges="unviewedBadges" />
+  <ViewAwardedBadge :badge="selectedBadge" />
 </template>
 
 <style scoped>
