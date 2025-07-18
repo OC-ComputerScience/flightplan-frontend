@@ -13,6 +13,10 @@ import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
 import { getEventCardColor } from "../../utils/eventStatus";
 import FirstTimeInstructions from "../../components/dialogs/FirstTimeInstructions.vue";
+import StudentApprovalDialog from "../../components/dialogs/StudentApprovalDialog.vue";
+import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
+import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
+import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -34,6 +38,10 @@ const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
 const router = useRouter();
+
+const useStudentApprovalDialogStore = studentApprovalDialogStore();
+const useStudentViewSubmissionDialogStore = studentViewSubmissionDialogStore();
+
 const getNotifications = async (page = 1) => {
   try {
     const res = await notificationServices.getAllNotificationsForUser(
@@ -117,7 +125,7 @@ const fetchFlightPlan = async () => {
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
       flightPlanItems.value = response.data[0].flightPlanItems.filter(
-        (item) => item.status === "Incomplete",
+        (item) => item.status !== "Complete",
       );
       allFlightPlanItems.value = response.data[0].flightPlanItems;
       await fetchFlightPlanProgress();
@@ -146,7 +154,7 @@ const fetchFlightPlanProgress = async () => {
     );
     if (selectedFlightPlanData) {
       flightPlanItems.value = selectedFlightPlanData.flightPlanItems.filter(
-        (item) => item.status === "Incomplete",
+        (item) => item.status !== "Complete",
       );
     }
 
@@ -191,8 +199,9 @@ const openNotification = (x) => {
 
 const openFlightPlanItem = (item) => {
   flightPlanStore.setActiveFlightPlanItem(item);
-  flightPlanStore.setSelectedSemester(selectedFlightPlan.value);
-  router.push({ name: "student-flightPlan" });
+  // console.log(item)
+  useStudentViewSubmissionDialogStore.setFlightPlanItem(item);
+  useStudentViewSubmissionDialogStore.toggleVisibility();
 };
 
 // getting cookie - w3 schools
@@ -210,6 +219,33 @@ const getCookie = (cname) => {
   }
   return "";
 }
+
+const handleIncompleteButtonClick = (flightPlanItem) => {
+  useStudentApprovalDialogStore.toggleVisibility();
+  useStudentApprovalDialogStore.setFlightPlanItem(flightPlanItem);
+};
+
+const handlePendingButtonClick = (flightPlanItem) => {
+  useStudentViewSubmissionDialogStore.setFlightPlanItem(flightPlanItem);
+  useStudentViewSubmissionDialogStore.toggleVisibility();
+};
+
+const handleAddItems = () => {
+  fetchFlightPlanAndItems();
+};
+
+const handleDelete = async (flightPlanItem) => {
+  await flightPlanItemServices.deleteFlightPlanItem(flightPlanItem.id);
+  await fetchFlightPlanAndItems();
+};
+
+const showFlightPlanItem = ref(false);
+const flightPlanItemToShow = ref({});
+
+const handleShow = (flightPlanItem) => {
+  flightPlanItemToShow.value = flightPlanItem;
+  showFlightPlanItem.value = true;
+};
 
 const handleRegister = async (event) => {
   if (!studentId.value) return;
@@ -322,17 +358,19 @@ onMounted(async () => {
         </div>
         <div id="flightPlanList">
           <template v-if="flightPlanItems.length > 0">
-            <FlightPlanItemCard
-              v-for="(item, index) in flightPlanItems"
-              :key="index"
-              :flight-plan-item="item"
-              class="flightPlanItem"
-              color="background"
-              :to="{ name: 'student-flightPlan' }"
-              :is-flight-plan-view="false"
-              background-color="background"
-              @click="openFlightPlanItem(item)"
-            />
+          <FlightPlanItemCard
+          v-for="(item, index) in flightPlanItems"
+          :key="index"
+          :flight-plan-item="item"
+          :is-admin="false"
+          :is-flight-plan-view="false"
+          :flight-plan-items="flightPlanItems"
+          @incomplete="handleIncompleteButtonClick"
+          @register="handleRegister"
+          @view="handlePendingButtonClick"
+          @delete="handleDelete"
+          @click="handleShow"
+        ></FlightPlanItemCard>
           </template>
           <div v-else class="text-center pa-4">
             <span class="text-subtitle-1"
@@ -426,6 +464,13 @@ onMounted(async () => {
       </v-card>
     </div>
   </div>
+
+  <StudentApprovalDialog
+    @submit="fetchFlightPlanAndItems"
+  ></StudentApprovalDialog>
+  <ViewSubmissionDialog
+    @discard="fetchFlightPlanAndItems"
+  ></ViewSubmissionDialog>
 </template>
 
 <style>
