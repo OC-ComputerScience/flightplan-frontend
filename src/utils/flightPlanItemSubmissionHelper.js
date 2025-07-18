@@ -38,7 +38,7 @@ export const automaticSubmissionHandler = async (autoType) => {
                 }
             })
             if (!found) {
-                return "No valid LinkedIn link found"
+                return "No valid LinkedIn link found on your profile";
             }
 
             return;

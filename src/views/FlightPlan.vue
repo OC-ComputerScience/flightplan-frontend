@@ -208,6 +208,10 @@ const fetchFlightPlanAndItems = async () => {
     );
   flightPlanItems.value = response.data.flightPlanItems;
   count.value = response.data.count;
+  
+  const pointsResponse = await studentServices.getPoints(student.id);
+  points.value = pointsResponse.data.points;
+  await fetchFlightPlanProgress()
 };
 
 const fetchFlightPlanProgress = async () => {

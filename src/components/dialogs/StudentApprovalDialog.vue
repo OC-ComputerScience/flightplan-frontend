@@ -208,7 +208,7 @@ const handleAutoApproval = async () => {
     flightPlanItem.value.id,
   )
     .then(() => {
-      console.log("Flight plan item approved successfully.");
+      successMessage.value = "Flight plan item submission approved";
     })
     .catch((error) => {
       errorMessage.value =
