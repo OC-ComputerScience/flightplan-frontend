@@ -189,7 +189,6 @@ const resolvedStatusLabel = computed(() => {
     return props.statusLabel;
   }
 
-  console.log(props.event.name + " status: " + props.status);
 
   if (props.adminView) {
     switch (props.status) {

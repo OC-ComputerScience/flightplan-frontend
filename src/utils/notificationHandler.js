@@ -124,7 +124,7 @@ export const createEventUpdateNotification = async (
 export const sendEmail = async (emailData) => {
   try {
     await emailServices.sendEmail(emailData);
-    console.log(emailData);
+    
   } catch (error) {
     console.error("Error sending notification email:", error);
   }

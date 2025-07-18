@@ -40,8 +40,6 @@ const confirmationDialog = (isDelete) => {
 const handleCardCrud = () => {
   const newAttendedStatus = !props.student.attendedStatus;
 
-  console.log(props.student.eventId);
-
   eventServices
     .markAttendance(props.student.eventId, [props.student.studentId])
     .then(() => {

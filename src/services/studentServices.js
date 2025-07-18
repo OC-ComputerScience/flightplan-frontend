@@ -13,7 +13,7 @@ export default {
     return apiClient.put(`/students/${studentId}/checkSemesterFromGraduation`);
   },
   updatePoints(studentId, points) {
-    console.log("points", points);
+    
     return apiClient.put(`/students/${studentId}/points`, { points });
   },
   getPoints(studentId) {
