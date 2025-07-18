@@ -33,7 +33,7 @@ const handleLoginSuccess = async (userData) => {
       !studentResponse.data?.graduationDate ||
       !studentResponse.data?.semestersFromGrad
     ) {
-      console.log(studentResponse.data);
+      
       showOnboarding.value = true;
     } else {
       // Check if student has a flight plan for their current semester from graduation if they have not graduated

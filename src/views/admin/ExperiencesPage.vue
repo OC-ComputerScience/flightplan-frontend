@@ -25,7 +25,7 @@ const getExperiences = async (pageNumber = page.value) => {
       PAGE_SIZE,
       searchQuery.value,
     );
-    console.log(result);
+   
     experiences.value = result.data.experiences;
     count.value = result.data.count;
   } catch (error) {
