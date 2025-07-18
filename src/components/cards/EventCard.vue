@@ -29,7 +29,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  viewOnly: {
+  viewOnly: { // true - students, false - admin
     type: Boolean,
     default: false,
   },
@@ -46,6 +46,10 @@ const props = defineProps({
     default: false,
   },
   noActions: {
+    type: Boolean,
+    default: false,
+  },
+  registerOnly: {
     type: Boolean,
     default: false,
   }
@@ -254,10 +258,7 @@ const handleRegistration = () => {
           <p class="text-subtitle-1 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="props.adminView" class="text-subtitle-2 font-weight-medium">
-            Event Status: {{ resolvedStatusLabel }}
-          </p>
-          <p v-else class="text-subtitle-2 font-weight-medium">
+          <p class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
@@ -324,7 +325,7 @@ const handleRegistration = () => {
               <span>Recommended based on your Strengths</span>
             </v-tooltip>
           </v-row>
-          <p v-if="props.noActions"class="text-subtitle-2 font-weight-regular">
+          <p v-if="props.noActions && !props.adminView"class="text-subtitle-2 font-weight-regular">
             {{ eventDate}}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
@@ -337,10 +338,7 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="props.adminView" class="text-subtitle-2 font-weight-medium">
-            Event Status: {{ resolvedStatusLabel }}
-          </p>
-          <p v-else class="text-subtitle-2 font-weight-medium">
+          <p class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
@@ -361,7 +359,7 @@ const handleRegistration = () => {
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
-        <v-row v-else-if="!props.noActions" class="ma-2 float-left">
+        <v-row v-else-if="!props.noActions || props.registerOnly" class="ma-2 float-left">
           <v-btn
             v-if="isRegistered && props.event.status === 'Upcoming'"
             color="error"

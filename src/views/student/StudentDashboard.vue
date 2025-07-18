@@ -211,6 +211,30 @@ const getCookie = (cname) => {
   return "";
 }
 
+const handleRegister = async (event) => {
+  if (!studentId.value) return;
+  try {
+    await eventServices.registerStudents(event.id, [studentId.value]);
+    await fetchStudentStatus();
+    const updatedEvent = await eventServices.getEvent(event.id);
+    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+  } catch (err) {
+    console.error("Registration error:", err);
+  }
+};
+
+const handleUnregister = async (event) => {
+  if (!studentId.value) return;
+  try {
+    await eventServices.unregisterStudents(event.id, [studentId.value]);
+    await fetchStudentStatus();
+    const updatedEvent = await eventServices.getEvent(event.id);
+    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+  } catch (err) {
+    console.error("Unregistration error:", err);
+  }
+};
+
 onMounted(async () => {
   await Promise.all([
     getNotifications(),
@@ -377,6 +401,7 @@ onMounted(async () => {
             color="background"
             :view-only="true"
             :no-actions="true"
+            :register-only="true"
             :status="
               getEventCardColor(
                 event,
@@ -387,7 +412,8 @@ onMounted(async () => {
             "
             :event="event"
             class="event"
-            :to="{ name: 'student-calendar' }"
+            @register="handleRegister(event)"
+            @unregister="handleUnregister(event)"
           />
         </div>
         <v-btn
