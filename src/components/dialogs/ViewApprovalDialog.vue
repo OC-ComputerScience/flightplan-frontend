@@ -91,11 +91,14 @@ const handleApprove = async () => {
 
 const getSubmission = () => {
   const selectedSubmission = submissions.value[selectedSubmissionIndex.value];
+  console.log("Selected submission:", selectedSubmission);
   if (selectedSubmission.submissionType === "text") {
     selectedSubmissionType.value = "text";
   } else if (selectedSubmission.submissionType === "file") {
     selectedSubmissionType.value = "file";
     getFile();
+  } else if (selectedSubmission.submissionType === "manual") {
+    selectedSubmissionType.value = "manual";
   }
 };
 
@@ -180,14 +183,26 @@ watch(selectedSubmissionIndex, () => {
                 ></VueFilesPreview>
               </v-col>
               <v-col
-                v-if="selectedSubmissionType === 'text' && !selectedSubmissionType === 'manual'"
+                v-if="selectedSubmissionType === 'text' && selectedSubmissionType !== 'manual'"
                 :cols="12"
                 class="pa-4 bg-background rounded-lg"
                 style="white-space: pre-wrap"
               >
                 {{ submissions[selectedSubmissionIndex].value }}
               </v-col>
-              <v-col v-if="!selectedSubmissionType === 'manual'":cols="12" class="d-flex justify-center align-center">
+
+              <v-col
+                v-if="selectedSubmissionType === 'manual'"
+                :cols="12"
+                class="pa-4 bg-background rounded-lg"
+                style="white-space: pre-wrap"
+              >
+                {{ student?.user ? student.user.fName + " " + student.user.lName : "A student" }} has indicated that they have completed {{ flightPlanItem.name }}.
+              </v-col>
+
+              <v-col v-if="selectedSubmissionType != 'manual'"
+                :cols="12" 
+                class="d-flex justify-center align-center">
                 <v-btn
                   class="rounded-xl mr-6"
                   color="text"
