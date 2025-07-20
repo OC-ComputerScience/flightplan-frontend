@@ -92,11 +92,9 @@ const handleSubmit = async () => {
         }
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
-          handleAutoApproval();
-          debounceSubmit();
-        } else {
-          await submitFiles();
+          await handleAutoApproval();
         }
+          await submitReflection(automaticSubmission);
         break;
 
       case "Upload Document - Review":
@@ -105,14 +103,13 @@ const handleSubmit = async () => {
           errorMessage.value = "Please upload a file";
           return;
         }
-
+        console.log("Auto submission: ", automaticSubmission);
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
-          handleAutoApproval();
-          debounceSubmit();
-        } else {
-          await submitFiles();
+          await handleAutoApproval();
         }
+          await submitFiles(automaticSubmission);
+
         break;
 
       case "Upload Document & Reflection - Review":
@@ -131,12 +128,13 @@ const handleSubmit = async () => {
 
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
-          handleAutoApproval();
-          debounceSubmit();
-        } else {
-          await submitFiles();
+          awaithandleAutoApproval();
         }
+        
+        await submitFiles(automaticSubmission);
+        await submitReflection(automaticSubmission);
         break;
+
       }
 
       default:
@@ -188,6 +186,15 @@ const handleSubmit = async () => {
             errorMessage.value = responseMessage;
           } else {
             successMessage.value = "Submission successful!";
+            
+            const submissionData = {
+            flightPlanItemId: flightPlanItem.value.id,
+            submissionType: "automatic",
+            value: `This was an automatic approval submission for ${flightPlanItem.value.name} flight plan item`,
+            isAutomatic: true,
+          };
+
+          await submissionServices.createSubmission(submissionData);
             handleAutoApproval();
             debounceSubmit();
             break;
@@ -201,6 +208,8 @@ const handleSubmit = async () => {
         }
         break;
     }
+    successMessage.value = "Submission successful!";
+    debounceSubmit();
   } catch (error) {
     errorMessage.value =
       error.response?.data?.message || "An unexpected error occurred.";
@@ -217,7 +226,7 @@ const debounceSubmit = () => {
   }, 2000);
 };
 
-const submitFiles = async () => {
+const submitFiles = async (autoSubmission = false) => {
   const submissionData = {
     flightPlanItemId: flightPlanItem.value.id,
     submissionType: "file",
@@ -228,12 +237,13 @@ const submitFiles = async () => {
       return submissionServices.createSubmission({
         ...submissionData,
         value: data.fileName,
+        isAutomatic: autoSubmission,
       });
     }),
   );
 };
 
-const submitReflection = async () => {
+const submitReflection = async (autoSubmission = false) => {
   const submissionData = {
     flightPlanItemId: flightPlanItem.value.id,
     submissionType: "text",
@@ -242,6 +252,7 @@ const submitReflection = async () => {
   await submissionServices.createSubmission({
     ...submissionData,
     value: reflectionText.value,
+    isAutomatic: autoSubmission,
   });
 };
 
@@ -249,6 +260,7 @@ const handleAutoApproval = async () => {
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
+      console.log("Flight plan item approved successfully");
       successMessage.value = "Flight plan item submission approved";
     })
     .catch((error) => {
