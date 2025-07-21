@@ -175,12 +175,10 @@ const handleRegister = async (event) => {
       ),
     );
 
-    if (eventExperiences.length == 1) {
-      if (flightPlanItems.value[0].status !== "Incomplete") {
-        handleRegisterEventExperience(event);
-      } else {
-        handleRegisterEventExperience(event, flightPlanItems.value[0]);
-      }
+    if (flightPlanItems.value.every((item) => item.status !== "Incomplete")) {
+      handleRegisterEventExperience(event);
+    } else if (eventExperiences.length == 1) {
+      handleRegisterEventExperience(event, flightPlanItems.value[0]);
     } else {
       selectedEvent.value = event;
       viewSelectExperienceStore.toggleVisibility();
