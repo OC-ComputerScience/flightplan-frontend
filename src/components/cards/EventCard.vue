@@ -21,6 +21,7 @@ const emit = defineEmits([
   "show-info",
   "register",
   "unregister",
+  "click",
 ]);
 const store = userStore();
 const localStudentStore = studentStore();
@@ -111,7 +112,9 @@ const eventTime = computed(() => {
   return `${startTime} - ${endTime}`;
 });
 
-const viewCard = () => {};
+const viewCard = () => {
+  emit("click", props.event);
+};
 
 const editEvent = () => {
   emit("edit", props.event.id);

@@ -45,6 +45,9 @@ export default {
       },
     });
   },
+  getAllExperiencesForEvent(eventId) {
+    return apiClient.get(`/experience/event/${eventId}`);
+  },
   addStrength(experienceId, strengthId) {
     return apiClient.put(`/experience/${experienceId}/strengths`, {
       strengthId,
