@@ -5,11 +5,16 @@ import EventDialog from "./dialogs/EventDialog.vue";
 import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
 import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
+import strengthServices from "../services/strengthServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
+import { studentStore } from "../stores/studentStore";
 import { getEventCardColor } from "../utils/eventStatus";
+import { createEventCancelNotification } from "../utils/notificationHandler";
+import { formatTime } from "../utils/dateTimeHelpers";
 
 const store = userStore();
+const localStudentStore = studentStore();
 const studentId = ref(null);
 
 const router = useRouter();
@@ -33,6 +38,7 @@ const allEvents = ref([]); // Local ref for all events
 
 const confirmCancelDialog = ref(false);
 const eventToCancel = ref(null);
+const eventToCancelObject = ref(null);
 
 const getEvents = async () => {
   try {
@@ -51,9 +57,11 @@ const openDialog = (event) => {
 const handleEdit = (eventId) =>
   router.push({ name: "editEvent", params: { id: eventId } });
 
-// handleCancel
 const handleCancel = (eventId) => {
   eventToCancel.value = eventId;
+  eventToCancelObject.value = allEvents.value.find(
+    (event) => event.id === eventId,
+  );
   confirmCancelDialog.value = true;
 };
 
@@ -62,6 +70,37 @@ const confirmCancel = async () => {
     await eventServices.updateEvent(eventToCancel.value, {
       status: "Cancelled",
     });
+
+    var registeredStudents = [];
+
+    await eventServices
+      .getRegisteredStudents(eventToCancel.value)
+      .then((res) => {
+        res.data.forEach((student) => {
+          registeredStudents.push(student.studentId);
+
+          eventToCancelObject.value.date = new Date(
+            eventToCancelObject.value.date,
+          ).toLocaleDateString();
+          eventToCancelObject.value.startTime = formatTime(
+            new Date(eventToCancelObject.value.startTime),
+          );
+          eventToCancelObject.value.endTime = formatTime(
+            new Date(eventToCancelObject.value.endTime),
+          );
+
+          createEventCancelNotification(eventToCancelObject.value, student.user.id, true, 1, student.user.email);
+        });
+      })
+      .catch((err) => {
+        console.error("Error creating notifcation: ", err);
+      });
+
+    await eventServices.unregisterStudents(
+      eventToCancel.value,
+      registeredStudents,
+    );
+
     cancelledEvents.value.push(eventToCancel.value);
     await getEvents();
     if (selectedEvent.value && selectedEvent.value.id === eventToCancel.value) {
@@ -141,6 +180,7 @@ const fetchStudentStatus = async () => {
     cancelledEvents.value = allEvents.value.filter(
       (event) => event.status === "Cancelled",
     );
+    await generateEventDots(allEvents.value);
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -151,7 +191,7 @@ const selectedDates = ref([today]);
 const lastSelectedDate = ref(null);
 
 const interactiveAttribute = ref({
-  highlight: "primary",
+  highlight: true,
   dates: selectedDates.value,
 });
 
@@ -216,40 +256,43 @@ const updateAttributes = () => {
   }
 };
 
-const generateEventDots = (eventList) => {
+const generateEventDots = async (eventList) => {
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
   if (!Array.isArray(eventList) || eventList.length === 0) {
     eventDots.value = [];
     updateAttributes();
     return;
   }
-  eventDots.value = eventList.map((event, index) => {
-    const color = getEventCardColor(
-      event,
-      checkedInEvents.value,
-      registeredEvents.value,
-      cancelledEvents.value,
-    );
-    return {
-      key: `event-${index}`,
-      dot: { color },
-      dates: new Date(event.date),
-      popover: { label: event.name },
-    };
-  });
+  eventDots.value = await Promise.all(
+    eventList.map(async (event, index) => {
+      let eventStrengths = [];
+      if (localStudentStore.strengths?.length > 0 && event.status !== "Past") {
+        eventStrengths = (await strengthServices.getStrengthForEvent(event.id))
+          .data;
+      }
+      const color = getEventCardColor(
+        event,
+        checkedInEvents.value,
+        registeredEvents.value,
+        cancelledEvents.value,
+        localStudentStore.strengths || [],
+        eventStrengths || [],
+      );
+      return {
+        key: `event-${index}`,
+        dot: { color },
+        dates: new Date(event.date),
+        popover: { label: event.name },
+      };
+    }),
+  );
   updateAttributes();
 };
 
 watch(selectedDates, updateAttributes, { deep: true });
-
-watch(
-  allEvents,
-  (updatedList) => {
-    if (Array.isArray(updatedList) && updatedList.length > 0) {
-      generateEventDots(updatedList);
-    }
-  },
-  { immediate: true },
-);
 
 function handleDayClick(day, event) {
   const isCtrl = event.ctrlKey || event.metaKey;
@@ -405,6 +448,17 @@ function selectThisMonth() {
               Clear
             </v-btn>
           </div>
+          <v-tooltip location="right" style="width: 75%">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="24" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>
+              To view more than one day at a time, click on the first date and shift+click on another date to select
+              a range of date, or ctrl+click on several dates to select a specific group of dates.</span
+            >
+          </v-tooltip>
         </div>
 
         <VCalendar
@@ -425,6 +479,24 @@ function selectThisMonth() {
         <div class="timeline-header">
           <strong class="timeline-title">Event Timeline</strong>
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+          <p class="timeline-range" style="padding: 5px">
+            What do these colors mean?
+          <v-tooltip location="right">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="24" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>
+              <div class="pb-1"><v-icon color="upcoming">mdi-circle</v-icon>: <strong>Upcoming</strong></div>
+              <div class="pb-1"><v-icon color="registered">mdi-circle</v-icon>: <strong>Registered</strong></div>
+              <div class="pb-1"><v-icon color="checkedin">mdi-circle</v-icon>: <strong>Completed</strong></div>
+              <div class="pb-1"><v-icon color="recommended">mdi-circle</v-icon>: <strong>Recommended</strong></div>
+              <div class="pb-1"><v-icon color="cancelled">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
+              <div class="pb-1"><v-icon color="past">mdi-circle</v-icon>: <strong>Past</strong></div>
+              </span>
+          </v-tooltip>
+          </p>
           <v-btn
             v-if="props.isAdmin"
             rounded="xl"
@@ -446,7 +518,9 @@ function selectThisMonth() {
                 :key="time"
                 class="timeline-item"
               >
-                <div class="timeline-time">{{ dateLabel }}</div>
+                <div class="timeline-time">
+                  <strong>{{ dateLabel }}</strong>
+                </div>
                 <div class="timeline-group">
                   <EventCard
                     v-for="(event, idx) in group"
@@ -540,7 +614,7 @@ function selectThisMonth() {
 
 .calendar-card {
   flex-shrink: 0;
-  width: 500px;
+  width: 550px;
   border-radius: 25px;
 }
 

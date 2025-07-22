@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { loadImage } from "../componentUtilities";
 import defaultImage from "/defaultRewardImage.png";
 import fileServices from "../../services/fileServices";
@@ -11,19 +11,33 @@ const props = defineProps({
   studentPoints: { type: Number, default: 0 },
 });
 
-const emit = defineEmits(["edit", "delete", "shop", "show", "redeem"]);
+watch(
+  () => props.reward.imageName,
+  () => {
+    fetchImage();
+  },
+  { deep: true },
+);
+
+const emit = defineEmits(["edit", "shop", "show", "redeem"]);
 
 // State
 const imageSrc = ref("");
 
 const fetchImage = async () => {
   const response = await fileServices.getFileForName(props.reward.imageName);
-  if (!response.data.image) return;
-  imageSrc.value = loadImage(response.data.image.data);
+  if (!response.data.image) imageSrc.value = defaultImage;
+  else imageSrc.value = loadImage(response.data.image.data);
 };
 
 // Computed Properties
 const canRedeem = computed(() => props.studentPoints >= props.reward.points);
+const inStock = computed(() => {
+  return (
+    props.reward.quantityAvaliable === null ||
+    props.reward.quantityAvaliable > 0
+  );
+});
 
 // Lifecycle Hooks
 onMounted(() => fetchImage());
@@ -31,7 +45,11 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card :color="'backgroundDarken'" class="rounded-xl">
+  <v-card 
+    :color="'backgroundDarken'" 
+    class="rounded-xl"
+    @click="emit('show', props.reward)"
+  >
     <v-card-text>
       <!-- Image Section -->
       <v-img
@@ -52,13 +70,40 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
-      <!-- Points Display -->
+            <!-- Points Display -->
       <p
-        v-if="props.variant === 'redeem'"
+
         class="text-subtitle-1 text-center my-2"
       >
-        {{ props.reward.points }} pts
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
       </p>
+
+      <p class="text-subtitle-1 text-center my-2">
+        {{
+          props.reward.quantityAvaliable !== null
+            ? props.reward.quantityAvaliable > 0
+              ? `${props.reward.quantityAvaliable} Remaining`
+              : "Out of Stock"
+            : "Unlimited"
+        }}
+      </p>
+      <p class="text-subtitle-1 text-center my-2">
+        Status: {{ props.reward.status }}
+      </p>
+
+      <!-- Points Display -->
+      <p
+
+        class="text-subtitle-1 text-center my-2"
+      >
+      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
+      </p>
+
+      <p class="text-subtitle-1 text-center my-2">
+        {{ props.reward.quantityAvaliable !== null ? props.reward.quantityAvaliable > 0 ? `${props.reward.quantityAvaliable} Remaining` : "Out of Stock" : "Unlimited" }}
+        </p> 
+
+
 
       <!-- Action Buttons -->
       <v-row class="ma-2 justify-center">
@@ -68,7 +113,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             v-if="isView"
             color="primary"
             class="rounded-lg"
-            @click="emit('show', props.reward)"
+            @click.stop="emit('show', props.reward)"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
           </v-btn>
@@ -77,16 +122,9 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             <v-btn
               color="warning"
               class="mr-2 rounded-lg"
-              @click="emit('edit', props.reward.id)"
+              @click.stop="emit('edit', props.reward.id)"
             >
               <v-icon icon="mdi-pencil" color="text" size="x-large" />
-            </v-btn>
-            <v-btn
-              color="danger"
-              class="rounded-lg"
-              @click="emit('delete', props.reward.id, props.reward.imageName)"
-            >
-              <v-icon icon="mdi-delete" color="text" size="x-large" />
             </v-btn>
           </template>
         </template>
@@ -94,13 +132,19 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         <!-- Redeem Variant Buttons -->
         <template v-else-if="props.variant === 'redeem'">
           <v-btn
-            :color="canRedeem ? 'primary' : 'danger'"
+            :color="canRedeem && inStock ? 'primary' : 'danger'"
             class="rounded-lg"
-            :variant="!canRedeem ? 'outlined' : undefined"
-            :readonly="!canRedeem"
-            @click="canRedeem && emit('redeem', props.reward)"
+            :variant="!canRedeem || !inStock ? 'outlined' : undefined"
+            :readonly="!canRedeem || !inStock"
+            @click.stop="canRedeem && inStock && emit('redeem', props.reward)"
           >
-            {{ canRedeem ? "Redeem" : "Not enough points" }}
+            {{
+              inStock
+                ? canRedeem
+                  ? "Redeem"
+                  : "Not enough points"
+                : "Out of stock"
+            }}
           </v-btn>
         </template>
       </v-row>

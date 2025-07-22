@@ -20,9 +20,12 @@ const emit = defineEmits(["edit", "delete"]);
         Scheduling Type: {{ props.experience.schedulingType }}
       </p>
       <p class="text-subtitle-1 font-weight-regular">
-        Cateogry: {{ props.experience.category }}
-      </p></v-card-text
-    >
+        Category: {{ props.experience.category }}
+      </p>
+      <p class="text-subtitle-1 font-weight-regular">
+        Status: {{ props.experience.status }}
+      </p>
+    </v-card-text>
     <v-row class="ma-2 float-right">
       <v-btn
         color="warning"
@@ -31,12 +34,6 @@ const emit = defineEmits(["edit", "delete"]);
       >
         <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
       </v-btn>
-      <v-btn
-        color="danger"
-        class="cardButton"
-        @click="emit('delete', props.experience.id)"
-        ><v-icon icon="mdi-delete" color="text" size="x-large"></v-icon
-      ></v-btn>
     </v-row>
   </v-card>
 </template>

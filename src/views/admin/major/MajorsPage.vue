@@ -58,7 +58,7 @@ const getMajors = async (pageNumber = page.value) => {
       searchQuery.value,
       { ...filters.value, ...sortOptions.value },
     );
-    console.log(result);
+   
     majors.value = result.data.majors;
     count.value = result.data.count;
   } catch (error) {

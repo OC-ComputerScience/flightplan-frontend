@@ -1,17 +1,26 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import experienceServices from "../../services/experienceServices";
 import { addExperienceToBadgeStore } from "../../stores/addExperienceToBadgeStore";
 import { required, positiveNumber } from "../../utils/formValidators";
 
 const store = addExperienceToBadgeStore();
-const { visible } = storeToRefs(store);
+const { visible, selectedRuleExperience } = storeToRefs(store);
 
 const emit = defineEmits(["addExperienceToBadge", "close"]);
 const experiences = ref([]);
 const quantity = ref(1);
 const selectedExperience = ref(null);
+
+watch(
+  () => selectedRuleExperience,
+  (ruleExperience) => {
+    quantity.value = ruleExperience?.value?.quantity ?? 1;
+    selectedExperience.value = ruleExperience?.value?.experience ?? null;
+  },
+  { deep: true },
+);
 
 const fetchExperiences = async () => {
   const response = await experienceServices.getAllExperiences();

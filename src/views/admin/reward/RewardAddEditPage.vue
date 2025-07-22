@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, positiveNumber } from "../../../utils/formValidators";
+import { required, positiveNumber, zeroOrGreater } from "../../../utils/formValidators";
 import rewardServices from "../../../services/rewardServices";
 import fileServices from "../../../services/fileServices";
 import ImageInput from "../../../components/modals/ImageInput.vue";
@@ -19,9 +19,11 @@ const errorMessage = ref("");
 const form = ref(null);
 const formData = ref({ imageName: null });
 const image = ref(null);
+const hasQuantity = ref(false);
 
 // Form data
 const redemptionTypes = ["In-Person", "Digital"];
+const statusTypes = ref([]);
 
 // Functions
 const handleCancel = () => {
@@ -31,6 +33,11 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
   if (!isValid) return;
+  if (hasQuantity.value) {
+    formData.value.quantityAvaliable = formData.value.quantityAvaliable;
+  } else {
+    formData.value.quantityAvaliable = null;
+  }
   try {
     if (props.isAdd) {
       await uploadImage();
@@ -74,6 +81,13 @@ const handleImageUpdate = async () => {
 
 // Vue functions
 onMounted(async () => {
+  try {
+    const statusRes = await rewardServices.getStatusTypes();
+    statusTypes.value = statusRes.data;
+  } catch (err) {
+    console.error("Error fetching status types:", err);
+  }
+
   if (!props.isAdd) {
     try {
       let response = await rewardServices.getReward(route.params.id);
@@ -83,6 +97,9 @@ onMounted(async () => {
           formData.value.imageName,
         );
         image.value = new File([response.data.image], formData.value.imageName);
+      }
+      if (formData.value.quantityAvaliable !== null) {
+        hasQuantity.value = true;
       }
     } catch (err) {
       console.log("Error", err);
@@ -153,6 +170,14 @@ watch(
         label="Redemption Info"
         :rules="[required]"
       ></v-text-field>
+      <v-select
+        v-model="formData.status"
+        :items="statusTypes"
+        variant="solo"
+        rounded="lg"
+        label="Status"
+        :rules="[required]"
+      ></v-select>
       <v-textarea
         v-model="formData.description"
         variant="solo"
@@ -160,6 +185,20 @@ watch(
         label="Description"
         :rules="[required]"
       ></v-textarea>
+      <v-checkbox
+        v-model="hasQuantity"
+        label="Limited Quantity?"
+        variant="solo"
+        rounded="lg"
+      ></v-checkbox>
+      <v-text-field
+        v-if="hasQuantity"
+        v-model="formData.quantityAvaliable"
+        variant="solo"
+        rounded="lg"
+        label="Quantity Available"
+        :rules="[required, zeroOrGreater]"
+      ></v-text-field>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn

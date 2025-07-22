@@ -35,7 +35,7 @@ const props = defineProps({
         class="mr-3 flex-shrink-0"
       />
 
-      <div class="font-weight-bold mr-3">
+      <div class=" mr-3">
         {{
           props.notification.user
             ? props.notification.user.fullName
@@ -43,12 +43,8 @@ const props = defineProps({
         }}
       </div>
 
-      <div class="mr-3">
+      <div class="font-weight-bold mr-3">
         {{ props.notification.header }}
-      </div>
-
-      <div class="text-body-2 mr-3">
-        {{ props.notification.description }}
       </div>
     </v-row>
   </v-card>

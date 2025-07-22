@@ -25,7 +25,7 @@ const getExperiences = async (pageNumber = page.value) => {
       PAGE_SIZE,
       searchQuery.value,
     );
-    console.log(result);
+   
     experiences.value = result.data.experiences;
     count.value = result.data.count;
   } catch (error) {
@@ -37,15 +37,6 @@ const getExperiences = async (pageNumber = page.value) => {
 const handleAdd = () => router.push({ name: "addExperience" });
 const handleEdit = (experienceId) =>
   router.push({ name: "editExperience", params: { id: experienceId } });
-
-const handleDelete = async (experienceId) => {
-  try {
-    await experienceServices.deleteExperience(experienceId);
-    await getExperiences(); // Re-fetch experiences after delete
-  } catch (error) {
-    console.error("Error deleting experience:", error);
-  }
-};
 
 const handleSearchChange = (input) => {
   searchQuery.value = input;

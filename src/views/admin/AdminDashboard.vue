@@ -17,6 +17,7 @@ import {
   Title,
 } from "chart.js";
 import { Pie, Bar } from "vue-chartjs";
+import { getEventCardColor } from "../../utils/eventStatus";
 
 ChartJS.register(
   ArcElement,
@@ -218,10 +219,28 @@ const onTrackOptions = {
 };
 
 const getEvents = async () => {
+  const today = new Date();
+  const nextSaturday = new Date(today);
+  nextSaturday.setDate(today.getDate() + 7);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
   await eventServices
-    .getAllEvents()
+    .getAllEvents(1, 1000, "", { startDate: yesterday, endDate: nextSaturday })
     .then((res) => {
-      events.value = res.data.events;
+      events.value = res.data.events
+        .filter((event) => {
+          if (event.status === 'Cancelled' || event.status === 'Completed' || event.status === 'Past') return false;
+
+          const eventDate = new Date(event.date);
+          if (eventDate.toDateString() === today.toDateString()) {
+            const endTime = new Date(event.endTime);
+            return endTime > today;
+          }
+          return true;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
@@ -266,6 +285,8 @@ onMounted(() => {
               :key="index"
               :event="item"
               :view-only="true"
+              :no-actions="true"
+              :status-label="getEventCardColor(item, [], [], [])"
               color="background"
               :is-event-viewing="false"
               :to="{ name: 'admin-calendar' }"

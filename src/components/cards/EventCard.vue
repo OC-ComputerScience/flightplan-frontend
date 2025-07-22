@@ -1,11 +1,15 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { userStore } from "../../stores/userStore";
+import { isRecommended } from "../../utils/recommended";
+import { studentStore } from "../../stores/studentStore";
 import eventServices from "../../services/eventServices";
+import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
+import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
 
 dayjs.extend(advancedFormat);
 
@@ -18,13 +22,14 @@ const emit = defineEmits([
   "unregister",
 ]);
 const store = userStore();
+const localStudentStore = studentStore();
 
 const props = defineProps({
   event: {
     type: Object,
     required: true,
   },
-  viewOnly: {
+  viewOnly: { // true - students, false - admin
     type: Boolean,
     default: false,
   },
@@ -40,11 +45,37 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  noActions: {
+    type: Boolean,
+    default: false,
+  },
+  registerOnly: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const isRegistered = ref(false);
+const confirmCancelDialog = ref(false);
+const canCancel = ref(true);
+const isRecommendedEvent = ref(false);
+
+const calculateRecommended = async () => {
+  const eventStrengths = (
+    await strengthServices.getStrengthForEvent(props.event.id)
+  ).data;
+  if (!localStudentStore.strengths) {
+    await localStudentStore.setupStore();
+  }
+
+  isRecommendedEvent.value = isRecommended(
+    localStudentStore.strengths,
+    eventStrengths,
+  );
+};
 
 onMounted(async () => {
+  calculateRecommended();
   let userId = Utils.getStore("user").userId;
   await studentServices
     .getStudentForUserId(userId)
@@ -85,6 +116,66 @@ const editEvent = () => {
   emit("edit", props.event.id);
 };
 
+const directCancel = () => {
+  confirmCancelDialog.value = true;
+};
+
+const confirmCancel = async () => {
+  try {
+    await eventServices.updateEvent(props.event.id, {
+      status: "Cancelled",
+    });
+
+    var registeredStudents = [];
+
+    await eventServices
+      .getRegisteredStudents(props.event.id)
+      .then((res) => {
+        res.data.forEach((student) => {
+          registeredStudents.push(student.studentId);
+
+          var eventToCancelObject = {
+            id: props.event.id,
+            name: props.event.name,
+            date: props.event.date,
+            startTime: props.event.startTime,
+            endTime: props.event.endTime,
+            location: props.event.location,
+          };
+
+          eventToCancelObject.date = new Date(
+            eventToCancelObject.date,
+          ).toLocaleDateString();
+          eventToCancelObject.startTime = formatTime(
+            new Date(eventToCancelObject.startTime),
+          );
+          eventToCancelObject.endTime = formatTime(
+            new Date(eventToCancelObject.endTime),
+          );
+
+          createEventNotification(
+            eventToCancelObject,
+            student.user.id,
+            true,
+            true,
+          );
+        });
+        canCancel.value = false;
+      })
+      .catch((err) => {
+        console.error("Error creating notifcation: ", err);
+      });
+
+    if (registeredStudents.length > 0) await eventServices.unregisterStudents(props.event.id, registeredStudents);
+  } catch (err) {
+    console.error("Error cancelling event:", err);
+  }
+};
+
+watch(() => props.event.status, (newStatus) => {
+  canCancel.value = newStatus !== 'Cancelled';
+}, { immediate: true });
+
 const cancelEvent = () => {
   emit("cancel", props.event.id);
 };
@@ -98,15 +189,37 @@ const resolvedStatusLabel = computed(() => {
     return props.statusLabel;
   }
 
-  switch (props.status) {
-    case "success":
-      return "Checked In";
-    case "warning":
-      return "Registered";
-    case "grey":
-      return "Cancelled";
-    default:
-      return "Not Registered";
+
+  if (props.adminView) {
+    switch (props.status) {
+      case "checkedin":
+        return "Upcoming";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "Passed";
+      case "registered":
+        return "Upcoming"
+      case "upcoming":
+        return "Upcoming";
+      default:
+        return "Upcoming";
+    }
+  } else {
+    switch (props.status) {
+      case "checkedin":
+        return "Checked In";
+      case "canceled":
+        return "Cancelled";
+      case "passed":
+        return "registered";
+      case "registered":
+        return "Registered"
+      case "upcoming":
+        return "Upcoming (Not Registered)";
+      default:
+        return "Upcoming";
+    }
   }
 });
 
@@ -131,7 +244,7 @@ const handleRegistration = () => {
       <v-col>
         <v-card-text>
           <p class="text-h5 text-no-wrap text-truncate">
-            {{ props.event.name }}
+            {{ props.event.name }} <strong>{{ props.event.status === "Cancelled" ? "(Cancelled)" : "" }}</strong>
           </p>
           <p
             class="text-subtitle-1 font-weight-regular text-no-wrap text-truncate"
@@ -144,8 +257,8 @@ const handleRegistration = () => {
           <p class="text-subtitle-1 font-weight-regular">
             {{ eventTime }}
           </p>
-          <p v-if="!store.isAdmin" class="text-subtitle-2 font-weight-medium">
-            Status: {{ resolvedStatusLabel }}
+          <p class="text-subtitle-2 font-weight-medium">
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
         <v-row class="ma-2 float-right">
@@ -165,11 +278,13 @@ const handleRegistration = () => {
           </v-btn>
 
           <v-btn
-            color="danger"
-            class="cardButton elevation-0"
-            @click="emit('delete', props.event.id)"
-            ><v-icon icon="mdi-delete" color="text" size="x-large"></v-icon
-          ></v-btn>
+            v-if="canCancel"
+            color="error"
+            class="mr-2 cardButton elevation-0"
+            @click="directCancel()"
+          >
+            <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
+          </v-btn>
         </v-row>
       </v-col>
     </v-row>
@@ -184,8 +299,33 @@ const handleRegistration = () => {
       <div class="h-fill left-accent my-2 ml-2" :class="`bg-${status}`"></div>
       <v-col>
         <v-card-text>
-          <p class="text-h6 text-truncate w-100">
-            {{ props.event.name }}
+          <v-row no-gutters align="center">
+            <p class="text-h6 text-truncate">
+              {{ props.event.name }}
+              <strong>{{
+                props.event.status === "Cancelled" ? "(Cancelled)" : ""
+              }}</strong>
+            </p>
+            <v-spacer></v-spacer>
+            <v-tooltip
+              v-if="isRecommendedEvent"
+              location="right"
+              style="width: 75%"
+              bottom
+            >
+              <template #activator="{ props: recomendedToolTipProps }">
+                <v-icon
+                  icon="mdi-star"
+                  v-bind="recomendedToolTipProps"
+                  size="x-large"
+                  color="recommended"
+                />
+              </template>
+              <span>Recommended based on your Strengths</span>
+            </v-tooltip>
+          </v-row>
+          <p v-if="props.noActions && !props.adminView"class="text-subtitle-2 font-weight-regular">
+            {{ eventDate}}
           </p>
           <p class="text-subtitle-2 font-weight-regular">
             {{ props.event.location }}
@@ -193,14 +333,15 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ props.event.description }}
           </p>
+
           <p class="text-subtitle-2 font-weight-regular">
             {{ eventTime }}
           </p>
           <p class="text-subtitle-2 font-weight-medium">
-            {{ statusLabel }}
+            Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="props.adminView" class="ma-2 float-left">
+        <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
           <v-btn
             color="warning"
             class="mr-2 cardButton elevation-0"
@@ -217,9 +358,9 @@ const handleRegistration = () => {
             <v-icon icon="mdi-cancel" color="text" size="x-large"></v-icon>
           </v-btn>
         </v-row>
-        <v-row v-else class="ma-2 float-left">
+        <v-row v-else-if="!props.noActions || props.registerOnly" class="ma-2 float-left">
           <v-btn
-            v-if="isRegistered && props.status !== 'grey'"
+            v-if="isRegistered && props.event.status === 'Upcoming'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop.prevent="handleRegistration"
@@ -227,7 +368,7 @@ const handleRegistration = () => {
             {{ "Unregister" }}</v-btn
           >
           <v-btn
-            v-else-if="!isRegistered && props.status !== 'grey'"
+            v-else-if="!isRegistered && props.event.status === 'Upcoming'"
             color="primary"
             class="mr-2 cardButton elevation-0"
             @click.stop.prevent="handleRegistration"
@@ -238,6 +379,14 @@ const handleRegistration = () => {
       </v-col>
     </v-row>
   </v-card>
+  <ConfirmDialog
+    v-model="confirmCancelDialog"
+    title="Cancel Event?"
+    confirm-text="Yes, Cancel Event"
+    cancel-text="No, Close"
+    confirm-color="error"
+    @confirm="confirmCancel"
+  />
 </template>
 
 <style scoped>

@@ -12,10 +12,16 @@ import { useNotificationStore } from "../../stores/notificationStore";
 import { useFlightPlanStore } from "../../stores/flightPlanStore";
 import { useRouter } from "vue-router";
 import { getEventCardColor } from "../../utils/eventStatus";
+import FirstTimeInstructions from "../../components/dialogs/FirstTimeInstructions.vue";
+import StudentApprovalDialog from "../../components/dialogs/StudentApprovalDialog.vue";
+import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
+import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
+import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
+const cancelledEvents = ref([]);
 const notifications = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(14);
@@ -27,10 +33,15 @@ const progress = ref(0);
 const points = ref(0);
 const selectedFlightPlan = ref(null);
 const flightPlans = ref([]);
+const allFlightPlanItems = ref([]);
 const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
 const router = useRouter();
+
+const useStudentApprovalDialogStore = studentApprovalDialogStore();
+const useStudentViewSubmissionDialogStore = studentViewSubmissionDialogStore();
+
 const getNotifications = async (page = 1) => {
   try {
     const res = await notificationServices.getAllNotificationsForUser(
@@ -81,6 +92,9 @@ const fetchStudentStatus = async () => {
     ]);
     registeredEvents.value = registeredRes.data;
     checkedInEvents.value = checkedInRes.data;
+    cancelledEvents.value = events.value.filter(
+      (event) => event.status === "Cancelled",
+    );
   } catch (err) {
     console.error("Error fetching student status:", err);
   }
@@ -110,9 +124,10 @@ const fetchFlightPlan = async () => {
 
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
-      flightPlanItems.value = response.data[0].flightPlanItems
-        .filter((item) => item.status === "Incomplete")
-        .slice(0, 3);
+      flightPlanItems.value = response.data[0].flightPlanItems.filter(
+        (item) => item.status !== "Complete",
+      );
+      allFlightPlanItems.value = response.data[0].flightPlanItems;
       await fetchFlightPlanProgress();
     }
   } catch (err) {
@@ -138,9 +153,9 @@ const fetchFlightPlanProgress = async () => {
       (plan) => plan.id === selectedFlightPlan.value.value,
     );
     if (selectedFlightPlanData) {
-      flightPlanItems.value = selectedFlightPlanData.flightPlanItems
-        .filter((item) => item.status === "Incomplete")
-        .slice(0, 3);
+      flightPlanItems.value = selectedFlightPlanData.flightPlanItems.filter(
+        (item) => item.status !== "Complete",
+      );
     }
 
     // Store the selected semester in the flight plan store
@@ -153,14 +168,26 @@ const fetchFlightPlanProgress = async () => {
 const getEvents = async () => {
   const today = new Date();
   const nextSaturday = new Date(today);
-  nextSaturday.setDate(today.getDate() + ((6 - today.getDay + 7) % 7 || 7));
+  nextSaturday.setDate(today.getDate() + 7);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
   await eventServices
-    .getAllEvents(1, 1000, "", { startDate: today, endDate: nextSaturday })
+    .getAllEvents(1, 1000, "", { startDate: yesterday, endDate: nextSaturday })
     .then((res) => {
-      events.value = res.data.events.sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      );
+      events.value = res.data.events
+        .filter((event) => {
+          if (event.status === 'Cancelled' || event.status === 'Completed' || event.status === 'Past') return false;
+
+          const eventDate = new Date(event.date);
+          if (eventDate.toDateString() === today.toDateString()) {
+            const endTime = new Date(event.endTime);
+            return endTime > today;
+          }
+          return true;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
@@ -172,8 +199,76 @@ const openNotification = (x) => {
 
 const openFlightPlanItem = (item) => {
   flightPlanStore.setActiveFlightPlanItem(item);
-  flightPlanStore.setSelectedSemester(selectedFlightPlan.value);
-  router.push({ name: "student-flightPlan" });
+  // console.log(item)
+  useStudentViewSubmissionDialogStore.setFlightPlanItem(item);
+  useStudentViewSubmissionDialogStore.toggleVisibility();
+};
+
+// getting cookie - w3 schools
+const getCookie = (cname) => {
+  let name = cname + "=";
+  let ca = document.cookie.split(';');
+  for(let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+const handleIncompleteButtonClick = (flightPlanItem) => {
+  useStudentApprovalDialogStore.toggleVisibility();
+  useStudentApprovalDialogStore.setFlightPlanItem(flightPlanItem);
+};
+
+const handlePendingButtonClick = (flightPlanItem) => {
+  useStudentViewSubmissionDialogStore.setFlightPlanItem(flightPlanItem);
+  useStudentViewSubmissionDialogStore.toggleVisibility();
+};
+
+const handleAddItems = () => {
+  fetchFlightPlanAndItems();
+};
+
+const handleDelete = async (flightPlanItem) => {
+  await flightPlanItemServices.deleteFlightPlanItem(flightPlanItem.id);
+  await fetchFlightPlanAndItems();
+};
+
+const showFlightPlanItem = ref(false);
+const flightPlanItemToShow = ref({});
+
+const handleShow = (flightPlanItem) => {
+  flightPlanItemToShow.value = flightPlanItem;
+  showFlightPlanItem.value = true;
+};
+
+const handleRegister = async (event) => {
+  if (!studentId.value) return;
+  try {
+    await eventServices.registerStudents(event.id, [studentId.value]);
+    await fetchStudentStatus();
+    const updatedEvent = await eventServices.getEvent(event.id);
+    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+  } catch (err) {
+    console.error("Registration error:", err);
+  }
+};
+
+const handleUnregister = async (event) => {
+  if (!studentId.value) return;
+  try {
+    await eventServices.unregisterStudents(event.id, [studentId.value]);
+    await fetchStudentStatus();
+    const updatedEvent = await eventServices.getEvent(event.id);
+    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+  } catch (err) {
+    console.error("Unregistration error:", err);
+  }
 };
 
 onMounted(async () => {
@@ -189,25 +284,43 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div v-if="getCookie('showFirstTimeInstructions') === 'true'">  <FirstTimeInstructions /></div>
+
   <div class="dashboard-container">
     <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">
           <v-card-text>
-            <v-select
-              v-model="selectedFlightPlan"
-              :items="flightPlans"
-              :item-title="(item) => item.label"
-              :item-value="(item) => item.value"
-              variant="solo"
-              bg-color="background"
-              return-object
-              class="mb-4"
-              density="comfortable"
-              flat
-              @update:model-value="fetchFlightPlanProgress"
-            ></v-select>
+            <div class="d-flex align-center justify-start mb-4">
+              <strong class="section-headers"
+                >{{ selectedFlightPlan?.label }} Flight Plan</strong
+              >
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
+                </template>
+                <span
+                  >Overview of your flight plan completion progress for the
+                  selected semester</span
+                >
+              </v-tooltip>
+            </div>
+            <div class="d-flex align-center justify-start mb-4">
+              <p
+                class="section-headers"
+                style="font-size: 16px;"
+              >
+                Work hard to complete the flight plan items below so you will be well prepared to help your career soar!
+              </p>
+            </div>
+            <strong
+              >Current Flight Plan Completion Progress ({{
+                allFlightPlanItems.length - flightPlanItems.length
+              }}/{{ allFlightPlanItems.length }} Items Complete):
+            </strong>
             <v-progress-linear
               v-model="progress"
               color="primary"
@@ -218,7 +331,7 @@ onMounted(async () => {
               <strong>{{ progress }}%</strong>
             </v-progress-linear>
             <div class="text-center mt-2">
-              <span class="text-subtitle-1"
+              <span class="text-h6"
                 >Available Points: {{ points }}</span
               >
             </div>
@@ -229,22 +342,35 @@ onMounted(async () => {
 
     <div class="dashboard-grid">
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Flight Plan</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Flight Plan</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span
+              >Your list of incomplete tasks and experiences for the selected
+              semester</span
+            >
+          </v-tooltip>
+        </div>
         <div id="flightPlanList">
           <template v-if="flightPlanItems.length > 0">
-            <FlightPlanItemCard
-              v-for="(item, index) in flightPlanItems"
-              :key="index"
-              :flight-plan-item="item"
-              class="flightPlanItem"
-              color="background"
-              :to="{ name: 'student-flightPlan' }"
-              :is-flight-plan-view="false"
-              background-color="background"
-              @click="openFlightPlanItem(item)"
-            />
+          <FlightPlanItemCard
+          v-for="(item, index) in flightPlanItems"
+          :key="index"
+          :flight-plan-item="item"
+          :is-admin="false"
+          :is-flight-plan-view="false"
+          :flight-plan-items="flightPlanItems"
+          @incomplete="handleIncompleteButtonClick"
+          @register="handleRegister"
+          @view="handlePendingButtonClick"
+          @delete="handleDelete"
+          @click="handleShow"
+        ></FlightPlanItemCard>
           </template>
           <div v-else class="text-center pa-4">
             <span class="text-subtitle-1"
@@ -261,9 +387,20 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px">
-          Notifications
-        </strong>
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Notifications</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span
+              >Notifications regarding flight plan task and experience statuses,
+              information about events you've registered for, and more</span
+            >
+          </v-tooltip>
+        </div>
         <div id="notifList">
           <NotificationCard
             v-for="(item, index) in notifications.slice(0, 5)"
@@ -284,21 +421,37 @@ onMounted(async () => {
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
-        <strong style="font-size: 24px; text-align: center; margin-left: 10px"
-          >Calendar</strong
-        >
+        <div class="d-flex align-center justify-center">
+          <strong class="section-headers">Calendar</strong>
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props" size="20" class="ml-2"
+                >mdi-information-outline</v-icon
+              >
+            </template>
+            <span>Register for upcoming events this week</span>
+          </v-tooltip>
+        </div>
         <div id="eventList">
           <EventCard
             v-for="(event, index) in events"
             :key="index"
             color="background"
             :view-only="true"
+            :no-actions="true"
+            :register-only="true"
             :status="
-              getEventCardColor(event, checkedInEvents, registeredEvents)
+              getEventCardColor(
+                event,
+                checkedInEvents,
+                registeredEvents,
+                cancelledEvents,
+              )
             "
             :event="event"
             class="event"
-            :to="{ name: 'student-calendar' }"
+            @register="handleRegister(event)"
+            @unregister="handleUnregister(event)"
           />
         </div>
         <v-btn
@@ -311,6 +464,13 @@ onMounted(async () => {
       </v-card>
     </div>
   </div>
+
+  <StudentApprovalDialog
+    @submit="fetchFlightPlanAndItems"
+  ></StudentApprovalDialog>
+  <ViewSubmissionDialog
+    @discard="fetchFlightPlanAndItems"
+  ></ViewSubmissionDialog>
 </template>
 
 <style>
@@ -374,5 +534,11 @@ onMounted(async () => {
   margin-top: auto;
   text-align: center;
   width: 100%;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

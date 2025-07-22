@@ -25,7 +25,9 @@ const form = ref(null);
 const formData = ref({ imageName: null });
 const image = ref(null);
 const rules = ref([]);
+const statuses = ref([]);
 const selectedRule = ref("Task and Experience Defined");
+const selectedStatus = ref([]);
 const ruleTasks = ref([]);
 const ruleExperiences = ref([]);
 
@@ -72,6 +74,7 @@ const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
 
   formData.value.ruleType = selectedRule.value;
+  formData.value.status = selectedStatus.value;
 
   if (selectedRule.value === "Task and Experience Defined") {
     if (ruleTasks.value.length === 0 && ruleExperiences.value.length === 0) {
@@ -136,6 +139,16 @@ const fetchRuleTypes = async () => {
   }
 };
 
+const fetchStatusTypes = async () => {
+  try {
+    const response = await badgeServices.getStatusTypes();
+    statuses.value = response.data;
+  } catch (error) {
+    console.error("Error fetching status types:", error);
+    errorMessage.value = "Failed to load status types";
+  }
+};
+
 const mapTasksToRuleFormat = (tasks) => {
   return (
     tasks?.map((task) => ({
@@ -167,6 +180,7 @@ const fetchBadgeImage = async (imageName) => {
 // Lifecycle Hooks
 onMounted(async () => {
   await fetchRuleTypes();
+  await fetchStatusTypes();
   if (props.isAdd) return;
 
   try {
@@ -183,6 +197,7 @@ onMounted(async () => {
 
     // Set rule type
     selectedRule.value = badgeData.ruleType;
+    selectedStatus.value = badgeData.status;
 
     // Fetch and set image if exists
     if (badgeData.imageName) {
@@ -231,6 +246,13 @@ onMounted(async () => {
         label="Rule Type"
         :items="rules"
       ></v-select>
+      <v-select
+        v-model="selectedStatus"
+        variant="solo"
+        rounded="lg"
+        label="Status"
+        :items="statuses"
+      ></v-select>
       <div v-if="selectedRule === 'Task and Experience Defined'">
         <v-expansion-panels class="mb-4 rounded-lg">
           <v-expansion-panel class="mb-2">
@@ -247,10 +269,16 @@ onMounted(async () => {
                 <div class="ma-2 d-flex">
                   <div class="ma-3">Quantity: {{ ruleTask.quantity }}</div>
                   <v-btn
+                    class="rounded-lg bg-warning mr-3"
+                    @click="addTaskStore.editRuleTask(ruleTask)"
+                  >
+                    <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                  </v-btn>
+                  <v-btn
                     class="rounded-lg bg-danger"
-                    icon="mdi-delete"
                     @click="removeTask(ruleTask)"
                   >
+                    <v-icon icon="mdi-delete" color="text" size="x-large" />
                   </v-btn>
                 </div>
               </v-row>
@@ -258,7 +286,7 @@ onMounted(async () => {
                 <v-btn
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
-                  @click="addTaskStore.toggleVisibility"
+                  @click="addTaskStore.addRuleTask()"
                   >Add Task</v-btn
                 ></v-row
               >
@@ -283,10 +311,18 @@ onMounted(async () => {
                     Quantity: {{ ruleExperience.quantity }}
                   </div>
                   <v-btn
+                    class="rounded-lg bg-warning mr-3"
+                    @click="
+                      addExperienceStore.editRuleExperience(ruleExperience)
+                    "
+                  >
+                    <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                  </v-btn>
+                  <v-btn
                     class="rounded-lg bg-danger"
-                    icon="mdi-delete"
                     @click="removeExperience(ruleExperience)"
                   >
+                    <v-icon icon="mdi-delete" color="text" size="x-large" />
                   </v-btn>
                 </div>
               </v-row>
@@ -294,7 +330,7 @@ onMounted(async () => {
                 <v-btn
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
-                  @click="addExperienceStore.toggleVisibility"
+                  @click="addExperienceStore.addRuleExperience()"
                   >Add Experience</v-btn
                 ></v-row
               >

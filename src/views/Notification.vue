@@ -8,6 +8,7 @@ import { userStore } from "../stores/userStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSelectedNotificationsStore } from "../stores/selectedNotificationsStore";
 import ConfirmDialog from "../components/dialogs/ConfirmDialog.vue";
+import { sanitizeHtml } from "../utils/htmlSanitization";
 
 const notifications = ref([]);
 const selectedNotif = ref({});
@@ -21,6 +22,7 @@ const notifStore = useNotificationStore();
 const isAdmin = ref(false);
 const selectedNotificationsStore = useSelectedNotificationsStore();
 const confirmDelete = ref(false);
+const selectedAll = ref(false);
 
 const getNotifications = async (page = 1) => {
   try {
@@ -83,6 +85,15 @@ const editItem = async (item) => {
 
     if (response.status === 200) {
       item.read = true; // Update the notification locally after successful API call
+
+      if (!selectedAll.value) {
+        selectedNotificationsStore.clearSelection();
+        selectedNotificationsStore.addNotification(item.id)
+      }
+      else {
+        selectedNotificationsStore.addNotification(item.id)
+      }
+
     } else {
       console.error("Failed to update notification:", response);
     }
@@ -107,10 +118,12 @@ const handleCheckboxToggle = (notification) => {
 const handleSelectAll = () => {
   if (selectedNotificationsStore.selectedNotificationIds.length > 0) {
     selectedNotificationsStore.clearSelection();
+    selectedAll.value = false;
   } else {
     notifications.value.forEach((notification) => {
       selectedNotificationsStore.addNotification(notification.id);
     });
+    selectedAll.value = true;
   }
 };
 
@@ -123,6 +136,7 @@ const handleBatchDelete = async () => {
     );
     selectedNotificationsStore.clearSelection();
     await getNotifications(currentPage.value);
+    selectedAll.value = false;
     closeDialogs();
   } catch (error) {
     console.error("Error deleting notifications:", error);
@@ -138,7 +152,8 @@ const closeDialogs = () => {
   <div class="container">
     <div class="notifContainer">
       <div class="d-flex align-center">
-        <h1>Notifications</h1>
+        <h1 class="mt-1">Notifications</h1>
+        
         <v-card
           v-if="!noNotifications"
           color="primary"
@@ -146,16 +161,24 @@ const closeDialogs = () => {
           @click.stop
         >
           <v-checkbox
+            label = "Select All"
             hide-details
             density="compact"
             class="ma-0 pa-0"
             :model-value="
-              selectedNotificationsStore.selectedNotificationIds.length > 0
+              selectedNotificationsStore.selectedNotificationIds.length === notifications.length
             "
             color="white"
             @click="handleSelectAll"
           />
         </v-card>
+        <v-row justify="center" class="mr-2">
+          <v-col cols="12">
+            <v-card color="backgroundDarken" style="border-radius: 25px">
+              </v-card
+            >
+          </v-col>
+        </v-row>
         <v-btn
           v-if="selectedNotificationsStore.selectedNotificationIds.length > 0"
           color="danger"
@@ -226,7 +249,10 @@ const closeDialogs = () => {
       <p>
         ------------------------------------------------------------------------
       </p>
-      <p class="description">{{ selectedNotif.description }}</p>
+      <p
+        class="description"
+        v-html="sanitizeHtml(selectedNotif.description)"
+      ></p>
     </v-card>
   </div>
 
@@ -301,5 +327,15 @@ const closeDialogs = () => {
   background-color: var(--v-background-darken1);
   border-radius: 4px;
   color: var(--v-text-base);
+}
+
+.description {
+  white-space: pre-wrap;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

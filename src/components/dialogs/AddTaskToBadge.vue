@@ -1,17 +1,26 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import taskServices from "../../services/taskServices";
 import { addTaskToBadgeStore } from "../../stores/addTaskToBadgeStore";
 import { required, positiveNumber } from "../../utils/formValidators";
 
 const store = addTaskToBadgeStore();
-const { visible } = storeToRefs(store);
+const { visible, selectedRuleTask } = storeToRefs(store);
 
 const emit = defineEmits(["addTaskToBadge", "close"]);
 const tasks = ref([]);
 const quantity = ref(1);
 const selectedTask = ref(null);
+
+watch(
+  () => selectedRuleTask,
+  (ruleTask) => {
+    quantity.value = ruleTask?.value?.quantity ?? 1;
+    selectedTask.value = ruleTask?.value?.task ?? null;
+  },
+  { deep: true },
+);
 
 const fetchTasks = async () => {
   const response = await taskServices.getAllTasks();

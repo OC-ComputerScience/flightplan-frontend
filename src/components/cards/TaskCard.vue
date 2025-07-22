@@ -18,8 +18,11 @@ const emit = defineEmits(["edit", "delete"]);
       </p>
       <p class="text-subtitle-1 font-weight-regular">
         Completion Type: {{ props.task.submissionType }}
-      </p></v-card-text
-    >
+      </p>
+      <p class="text-subtitle-1 font-weight-regular">
+        Status: {{ props.task.status }}
+      </p>
+    </v-card-text>
     <v-row class="ma-2 float-right">
       <v-btn
         color="warning"
@@ -28,12 +31,6 @@ const emit = defineEmits(["edit", "delete"]);
       >
         <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
       </v-btn>
-      <v-btn
-        color="danger"
-        class="cardButton"
-        @click="emit('delete', props.task.id)"
-        ><v-icon icon="mdi-delete" color="text" size="x-large"></v-icon
-      ></v-btn>
     </v-row>
   </v-card>
 </template>

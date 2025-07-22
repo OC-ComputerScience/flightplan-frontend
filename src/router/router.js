@@ -294,6 +294,13 @@ const studentRoutes = [
     component: Profile,
   },
   {
+    path: "profile/:id/edit",
+    name: "editProfile",
+    beforeEnter: isCorrectUserOrAdmin,
+    component: UserAddEditPage,
+    props: { isAdd: false },
+  },
+  {
     path: "event/checkIn/:eventToken",
     name: "studentEventCheckin",
     component: StudentEventCheckIn,
@@ -395,6 +402,15 @@ export async function loginRedirect() {
   }
 }
 
+async function isCorrectUserOrAdmin(to) {
+  const store = userStore();
+  const userId = to.params.id;
+  const response =
+    (await store.user.userId) == userId || (await store.isAdmin())
+      ? true
+      : { name: "unauthorized" };
+  return response;
+}
 async function isAdmin() {
   const store = userStore();
   const response = (await store.isAdmin()) ? true : { name: "unauthorized" };

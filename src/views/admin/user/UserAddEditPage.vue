@@ -5,10 +5,14 @@ import userServices from "../../../services/userServices";
 import studentServices from "../../../services/studentServices";
 import strengthServices from "../../../services/strengthServices";
 import majorServices from "../../../services/majorServices";
-import { required, atLeast } from "../../../utils/formValidators";
+import linkServices from "../../../services/linkServices";
+import { required, atLeast, fromWebsite, noGreaterThan } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
 import { userStore } from "../../../stores/userStore";
+import { linkOptions } from "../../../utils/linkOptions";
+import { addLinkToUserStore } from "../../../stores/addLinkToUserStore";
+import AddLinkToUser from "../../../components/dialogs/AddLinkToUser.vue";
 
 const props = defineProps({ isAdd: Boolean });
 const store = userStore();
@@ -24,15 +28,34 @@ const initialMajors = ref([]);
 const majorOptions = ref([]);
 const semesterTypes = ref(semesters);
 
+const links = ref([]);
+const initialLinks = ref([]);
+const addLinkStore = addLinkToUserStore();
+
 const isStudent = ref(true);
 
 const route = useRoute();
 const router = useRouter();
 
 const requiredNumberOfStrengths = 1;
+const maximumNumberOfStrengths = 5;
 const requiredNumberOfMajors = 1;
 
 const handleCancel = () => router.back();
+
+const handleAddLinkToUser = (response) => {
+  const link = {
+    websiteName: response.link.name,
+    link: response.link.link,
+  };
+  links.value.push(link);
+};
+
+const removeLink = (link) => {
+  links.value = links.value.filter(
+    (l) => l.link !== link.link || l.websiteName !== link.websiteName,
+  );
+};
 
 const addMajorsAndStrengths = async (studentId) => {
   await addStrengths(studentId);
@@ -48,6 +71,17 @@ const addStrengths = async (studentId) => {
 const addMajors = async (studentId) => {
   for (const major of majors.value) {
     await studentServices.addMajor(studentId, major);
+  }
+};
+
+const addLinks = async (userId) => {
+  for (const link of links.value) {
+    const linkData = {
+      userId: userId,
+      websiteName: link.websiteName,
+      link: link.link,
+    };
+    await linkServices.createLink(linkData);
   }
 };
 
@@ -90,6 +124,23 @@ const updateStrengths = async (studentId) => {
   }
 };
 
+const updateLinks = async (userId) => {
+  for (const link of links.value) {
+    const linkData = { userId: userId, ...link };
+    if (linkData.id) {
+      await linkServices.updateLink(linkData.id, linkData);
+    } else {
+      await linkServices.createLink(linkData);
+    }
+  }
+  for (const link of initialLinks.value) {
+    const linkId = getId(link);
+    if (!links.value.some((l) => getId(l) === linkId)) {
+      await linkServices.deleteLink(linkId);
+    }
+  }
+};
+
 const getId = (item) =>
   typeof item === "object" && item !== null ? item.id : item;
 
@@ -111,26 +162,28 @@ const handleSubmit = async () => {
 
     if (props.isAdd) {
       const user = (await userServices.createUser(submitData)).data;
+      await addLinks(user.id);
 
       if (isStudent.value) {
         submitData.student.userId = user.id;
         const student = (
           await studentServices.createStudent(submitData.student)
         ).data;
-        addMajorsAndStrengths(student.id);
+        await addMajorsAndStrengths(student.id);
       }
     } else {
       await userServices.updateUser(submitData);
+      await updateLinks(route.params.id);
 
       if (isStudent.value) {
         if (submitData.student.id) {
           await studentServices.updateStudent(submitData.student);
-          updateMajorsAndStrengths(submitData.student.id);
+          await updateMajorsAndStrengths(submitData.student.id);
         } else {
           submitData.student.userId = route.params.id;
           const student = (await userServices.createUser(submitData.student))
             .data;
-          addMajorsAndStrengths(student.id);
+          await addMajorsAndStrengths(student.id);
         }
       }
     }
@@ -171,9 +224,13 @@ onMounted(async () => {
       const studentMajors = (
         await majorServices.getMajorsForStudent(student.id)
       ).data;
+      const userLinks = (await linkServices.getAllLinksForUser(route.params.id))
+        .data;
 
       formData.value = user;
       formData.value.student = student;
+      links.value = userLinks;
+      initialLinks.value = userLinks;
       selectedDate.value = new Date(student.graduationDate);
 
       strengths.value = studentStrengths.map((studentStrengths) => ({
@@ -248,6 +305,70 @@ onMounted(async () => {
         rounded="lg"
         label="Profile Description"
       ></v-textarea>
+
+      <v-expansion-panels class="mb-4 rounded-lg" eager>
+        <v-expansion-panel class="mb-2">
+          <v-expansion-panel-title>Links</v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <v-row
+              v-for="link in links"
+              :key="link.id"
+              class="bg-backgroundDarken my-2 rounded-lg d-flex justify-space-between"
+            >
+              <v-col cols="2">
+                <v-select
+                  :model-value="link.websiteName"
+                  variant="solo"
+                  rounded="lg"
+                  label="Website"
+                  item-value="name"
+                  :items="linkOptions"
+                  item-title="name"
+                  :rules="[required]"
+                  @update:model-value="
+                    (val) => {
+                      link.websiteName = val;
+                      link.link = linkOptions.find((l) => l.name === val).link;
+                    }
+                  "
+                ></v-select>
+              </v-col>
+              <v-col>
+                <v-text-field
+                  v-model="link.link"
+                  variant="solo"
+                  rounded="lg"
+                  label="Link"
+                  :rules="[
+                    fromWebsite(
+                      link.link,
+                      linkOptions.find((l) => l.name === link.websiteName)
+                        ?.link,
+                    ),
+                  ]"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="1">
+                <v-btn
+                  class="rounded-lg bg-danger"
+                  icon="mdi-delete"
+                  @click="removeLink(link)"
+                >
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-btn
+                block
+                class="rounded-lg bg-backgroundDarken mb-2 mt-4"
+                @click="addLinkStore.toggleVisibility"
+                >Add Link</v-btn
+              ></v-row
+            >
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
+
       <v-row no-gutters>
         <v-col v-if="store.isAdmin" cols="1" class="mr-11">
           <v-tooltip location="top">
@@ -298,7 +419,8 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
-          :rules="[atLeast(strengths, requiredNumberOfStrengths)]"
+          :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
+
         />
 
         <v-autocomplete
@@ -327,4 +449,5 @@ onMounted(async () => {
       </v-row>
     </v-container>
   </v-form>
+  <AddLinkToUser @add-link-to-user="handleAddLinkToUser" />
 </template>

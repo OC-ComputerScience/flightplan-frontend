@@ -56,6 +56,30 @@
   font-size: 1.1rem !important; /* Adjust as needed */
 }
 
+.vc-upcoming {
+  background-color: rgb(var(--v-theme-upcoming)) !important;
+}
+
+.vc-registered {
+  background-color: rgb(var(--v-theme-registered)) !important;
+}
+
+.vc-checkedin {
+  background-color: rgb(var(--v-theme-checkedin)) !important;
+}
+
+.vc-recommended {
+  background-color: rgb(var(--v-theme-recommended)) !important;
+}
+
+.vc-past {
+  background-color: rgb(var(--v-theme-past)) !important;
+}
+
+.vc-canceled {
+  background-color: rgb(var(--v-theme-canceled)) !important;
+}
+
 .vc-dot {
   width: 5px;
   height: 5px;

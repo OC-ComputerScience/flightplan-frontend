@@ -12,12 +12,15 @@ import { userStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
 import { viewBadgeAwardsStore } from "../stores/viewBadgeAwardsStore";
 import ViewBadgeAwards from "../components/dialogs/ViewBadgeAwards.vue";
+import { viewAwardedBadgeStore } from "../stores/viewAwardedBadgeStore";
+import ViewAwardedBadge from "../components/dialogs/ViewAwardedBadge.vue";
 
 const store = userStore();
 const route = useRoute();
 const router = useRouter();
 
 const badgeAwardsStore = viewBadgeAwardsStore();
+const viewBadgeStore = viewAwardedBadgeStore();
 const noBadges = ref(false);
 const noStrengths = ref(false);
 
@@ -25,6 +28,7 @@ const links = ref([]);
 const strengths = ref([]);
 const badges = ref([]);
 const unviewedBadges = ref([]);
+const selectedBadge = ref({});
 const selectedUser = ref([]);
 const selectedStudent = ref([]);
 const selectedMajor = ref([]);
@@ -95,9 +99,18 @@ const getBadges = async (id, page = 1) => {
   }
 };
 
+const canEditProfile = () => {
+  return store.user.userId == route.params.userId || isAdmin.value;
+};
+
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editUser", params: { id: userId } });
+  router.push({ name: "editProfile", params: { id: userId } });
+
+const handleViewBadge = (badge) => {
+  selectedBadge.value = badge;
+  viewBadgeStore.toggleVisibility();
+};
 
 const fetchUnviewedBadges = async () => {
   const response = await badgeServices.getUnviewedBadges(route.params.userId);
@@ -221,7 +234,7 @@ onMounted(async () => {
         <v-spacer />
         <v-col cols="1" class="d-flex justify-end align-right">
           <v-btn
-            v-if="store.user.userId == route.params.userId"
+            v-if="canEditProfile()"
             color="primary"
             class="mr-2 cardButton elevation-0"
             @click.stop="handleEdit(route.params.userId)"
@@ -236,7 +249,15 @@ onMounted(async () => {
       <v-col cols="12" md="6">
         <div class="adminItem">
           <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
+            <div class="d-flex align-center justify-start">
+              <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                </template>
+                <span>Your badges earned so far. Continue progressing through your flight plans to earn more!</span>
+              </v-tooltip>
+            </div>
           </v-card>
           <v-row v-if="!noBadges">
             <v-col
@@ -245,7 +266,11 @@ onMounted(async () => {
               cols="12"
               md="4"
             >
-              <BadgeCard :badge="item" :is-profile-page="true" />
+              <BadgeCard
+                :badge="item"
+                :is-profile-page="true"
+                @view="handleViewBadge"
+              />
             </v-col>
           </v-row>
           <v-row v-else>
@@ -280,8 +305,16 @@ onMounted(async () => {
       <!-- Strengths Section (Stacked Vertically, Stretching Full Width) -->
       <v-col cols="12" md="6">
         <div class="adminItem" style="margin-right: 2vw">
-          <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
+          <v-card color="backgroundDarken">
+            <div class="d-flex align-center justify-start">
+              <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                </template>
+                <span>Your top 5 clifton strengths</span>
+              </v-tooltip>
+            </div>
           </v-card>
           <!-- Stacked Strengths (Stretching Full Width) -->
           <v-row
@@ -300,8 +333,8 @@ onMounted(async () => {
           </v-row>
           <v-row v-else>
             <div class="adminItem" style="text-align: center">
-              No Clifton Strengths listed<br />
-              Contact Charlotte Hamil to change this! <br /><br />
+              No Clifton Strengths found<br />
+              Find a task to take the Galups Strength Assessment in your Flight Plan or contact Charlotte Hamil for more info! <br /><br />
               <b
                 >"Before I formed you in the womb I knew you, and before you
                 were born I consecrated you; I appointed you a prophet to the
@@ -315,6 +348,7 @@ onMounted(async () => {
     </v-row>
   </v-row>
   <ViewBadgeAwards :badges="unviewedBadges" />
+  <ViewAwardedBadge :badge="selectedBadge" />
 </template>
 
 <style scoped>
@@ -335,6 +369,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   padding: 15px 0px 5px 0px;
+  margin: 0 2vw 2vh 2vw;
   border-radius: 25px;
   height: 100%;
 }
