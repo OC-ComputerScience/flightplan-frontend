@@ -17,12 +17,13 @@ const { visible, flightPlanItem } = storeToRefs(dialogStore);
 
 const optionalReviewers = ref([{ label: "None", value: null }]);
 const selectedOptionalReviewer = ref();
+const selfApprovedCheck = ref(false);
 const reflectionText = ref("");
 const files = ref([]);
 const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
-const submissionId = ref(null)
+const submissionId = ref(null);
 
 const submissionType = computed(() => {
   if (flightPlanItem.value.task) {
@@ -107,7 +108,6 @@ const handleSubmit = async () => {
           errorMessage.value = "Please upload a file";
           return;
         }
-        console.log("Auto submission: ", automaticSubmission);
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
@@ -181,6 +181,11 @@ const handleSubmit = async () => {
         }
 
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           let responseMessage = await automaticSubmissionHandler(
             submissionType.value,
           );
@@ -197,7 +202,7 @@ const handleSubmit = async () => {
               isAutomatic: true,
             };
 
-            submissionId.value = (await submissionServices.createSubmission(submissionData)).data[0].id;
+            await submissionServices.createSubmission(submissionData)
             handleAutoApproval();
             debounceSubmit();
             break;
@@ -205,13 +210,15 @@ const handleSubmit = async () => {
         }
 
         if (!automaticSubmission) {
-          submissionId.value = (await submissionServices.createSubmissions(submissions)).data[0].id;
+          submissionId.value = (
+            await submissionServices.createSubmissions(submissions)
+          ).data[0].id;
           successMessage.value = "Submission successful!";
           debounceSubmit();
         }
         break;
     }
-    generateNotification();
+    if (!automaticSubmission) generateNotification();
     successMessage.value = "Submission successful!";
     debounceSubmit();
   } catch (error) {
@@ -246,7 +253,7 @@ const submitFiles = async (autoSubmission = false) => {
     }),
   );
 
-  submissionId.value = result[0].data.id
+  submissionId.value = result[0].data.id;
 };
 
 const submitReflection = async (autoSubmission = false) => {
@@ -255,11 +262,13 @@ const submitReflection = async (autoSubmission = false) => {
     submissionType: "text",
   };
 
-  submissionId.value = (await submissionServices.createSubmission({
-    ...submissionData,
-    value: reflectionText.value,
-    isAutomatic: autoSubmission,
-  })).data.id;
+  submissionId.value = (
+    await submissionServices.createSubmission({
+      ...submissionData,
+      value: reflectionText.value,
+      isAutomatic: autoSubmission,
+    })
+  ).data.id;
 };
 
 const generateNotification = async () => {
@@ -307,8 +316,8 @@ const handleAutoApproval = async () => {
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
-      console.log("Flight plan item approved successfully");
       successMessage.value = "Flight plan item submission approved";
+      debounceSubmit()
     })
     .catch((error) => {
       errorMessage.value =
@@ -326,7 +335,10 @@ watch(visible, () => {
   }
 });
 
-onMounted(fetchOptionalReviewers);
+onMounted(() => {
+  selfApprovedCheck.value = false
+  fetchOptionalReviewers();
+})
 </script>
 
 <template>
@@ -429,7 +441,10 @@ onMounted(fetchOptionalReviewers);
             </div>
 
             <div
-              v-if="!submissionType.includes('Auto')"
+              v-if="
+                !submissionType.includes('Auto') &&
+                !submissionType.includes('Self-Approved')
+              "
               class="d-flex justify-center mt-4"
             >
               <p class="mr-2 mt-1">(Optional) Request Reviewer</p>
@@ -445,6 +460,21 @@ onMounted(fetchOptionalReviewers);
                   item-value="value"
                 ></v-select>
               </div>
+            </div>
+
+            <div
+              v-if="submissionType.includes('Self-Approved') || submissionType.includes('Auto')"
+              class="d-flex align-center justify-center mt-4"
+            >
+              <v-checkbox
+                v-model="selfApprovedCheck"
+                class="ma-0 pa-0"
+                hide-details
+                density="compact"
+              />
+              <span class="ml-2"
+                >I certify that I have completed this item</span
+              >
             </div>
             <div v-if="errorMessage">
               <v-alert type="danger" variant="tonal" closable>{{

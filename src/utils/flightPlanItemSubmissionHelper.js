@@ -56,6 +56,8 @@ export const automaticSubmissionHandler = async (autoType) => {
             }
 
             return;
+        case "Self-Approved":
+            return
         default:
             console.error("Invalid type provided:", autoType);
     }
