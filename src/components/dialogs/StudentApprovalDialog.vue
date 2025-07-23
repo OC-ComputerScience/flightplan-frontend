@@ -132,7 +132,7 @@ const handleSubmit = async () => {
 
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
-          awaithandleAutoApproval();
+          await handleAutoApproval();
         }
 
         await submitFiles(automaticSubmission);
@@ -197,7 +197,7 @@ const handleSubmit = async () => {
               isAutomatic: true,
             };
 
-            await submissionServices.createSubmission(submissionData);
+            submissionId.value = (await submissionServices.createSubmission(submissionData)).data[0].id;
             handleAutoApproval();
             debounceSubmit();
             break;
@@ -205,8 +205,7 @@ const handleSubmit = async () => {
         }
 
         if (!automaticSubmission) {
-          let response = await submissionServices.createSubmissions(submissions);
-          submissionId.value = response.data[0].id
+          submissionId.value = (await submissionServices.createSubmissions(submissions)).data[0].id;
           successMessage.value = "Submission successful!";
           debounceSubmit();
         }
@@ -236,7 +235,7 @@ const submitFiles = async (autoSubmission = false) => {
     flightPlanItemId: flightPlanItem.value.id,
     submissionType: "file",
   };
-  await Promise.all(
+  let result = await Promise.all(
     files.value.map(async (file) => {
       const { data } = await fileServices.uploadFile({ file }, "submissions");
       return submissionServices.createSubmission({
@@ -246,6 +245,8 @@ const submitFiles = async (autoSubmission = false) => {
       });
     }),
   );
+
+  submissionId.value = result[0].data.id
 };
 
 const submitReflection = async (autoSubmission = false) => {
@@ -254,11 +255,11 @@ const submitReflection = async (autoSubmission = false) => {
     submissionType: "text",
   };
 
-  await submissionServices.createSubmission({
+  submissionId.value = (await submissionServices.createSubmission({
     ...submissionData,
     value: reflectionText.value,
     isAutomatic: autoSubmission,
-  });
+  })).data.id;
 };
 
 const generateNotification = async () => {
@@ -302,6 +303,7 @@ const generateNotification = async () => {
 };
 
 const handleAutoApproval = async () => {
+  console.log("Approving ")
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
