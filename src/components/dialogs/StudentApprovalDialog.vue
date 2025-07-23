@@ -8,6 +8,8 @@ import flightPlanItemServices from "../../services/flightPlanItemServices";
 import fileServices from "../../services/fileServices";
 import { required, characterLimit } from "../../utils/formValidators";
 import { automaticSubmissionHandler } from "../../utils/flightPlanItemSubmissionHelper";
+import { createNotification } from "../../utils/notificationHandler";
+import { userStore } from "../../stores/userStore";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -94,7 +96,7 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
-          await submitReflection(automaticSubmission);
+        await submitReflection(automaticSubmission);
         break;
 
       case "Upload Document - Review":
@@ -108,7 +110,7 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
-          await submitFiles(automaticSubmission);
+        await submitFiles(automaticSubmission);
 
         break;
 
@@ -130,11 +132,10 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           awaithandleAutoApproval();
         }
-        
+
         await submitFiles(automaticSubmission);
         await submitReflection(automaticSubmission);
         break;
-
       }
 
       default:
@@ -186,15 +187,15 @@ const handleSubmit = async () => {
             errorMessage.value = responseMessage;
           } else {
             successMessage.value = "Submission successful!";
-            
-            const submissionData = {
-            flightPlanItemId: flightPlanItem.value.id,
-            submissionType: "automatic",
-            value: `This was an automatic approval submission for ${flightPlanItem.value.name} flight plan item`,
-            isAutomatic: true,
-          };
 
-          await submissionServices.createSubmission(submissionData);
+            const submissionData = {
+              flightPlanItemId: flightPlanItem.value.id,
+              submissionType: "automatic",
+              value: `This was an automatic approval submission for ${flightPlanItem.value.name} flight plan item`,
+              isAutomatic: true,
+            };
+
+            await submissionServices.createSubmission(submissionData);
             handleAutoApproval();
             debounceSubmit();
             break;
@@ -208,6 +209,7 @@ const handleSubmit = async () => {
         }
         break;
     }
+    generateNotification(flightPlanItem.value.id);
     successMessage.value = "Submission successful!";
     debounceSubmit();
   } catch (error) {
@@ -254,6 +256,46 @@ const submitReflection = async (autoSubmission = false) => {
     value: reflectionText.value,
     isAutomatic: autoSubmission,
   });
+};
+
+const generateNotification = async (flightPlanItemId) => {
+  let response = await userServices.getAllAdmins();
+  let admins = response.data;
+  let store = userStore();
+  let userId = store.user?.userId;
+  let baseUrl = window.location.origin;
+  let submissionUrl = `${baseUrl}/admin/approvals?id=${flightPlanItemId}`;
+  let header = `New Flight Plan Item Submission - ${String(store.user?.fullName)}`;
+  let body = `A new submission has been made for the flight plan item ${String(flightPlanItem.value.name)}. View it by clicking <a href="${submissionUrl}">here</a>.`;
+
+  if (selectedOptionalReviewer.value == null) {
+    admins.forEach((admin) => {
+      createNotification(
+        header,
+        body,
+        false,
+        admin.id,
+        userId,
+        true,
+        admin.email,
+      );
+    });
+  } else {
+    let reviewer = await userServices.getUserById(
+      selectedOptionalReviewer.value,
+    );
+    let reviewerEmail = reviewer.data.email;
+    console.log(reviewerEmail);
+    createNotification(
+      header,
+      body,
+      false,
+      selectedOptionalReviewer.value,
+      userId,
+      true,
+      reviewerEmail,
+    );
+  }
 };
 
 const handleAutoApproval = async () => {

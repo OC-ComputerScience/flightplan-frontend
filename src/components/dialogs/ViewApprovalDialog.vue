@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore";
 import { storeToRefs } from "pinia";
 import flightPlanItemServices from "../../services/flightPlanItemServices";
@@ -7,6 +7,8 @@ import studentServices from "../../services/studentServices";
 import submissionServices from "../../services/submissionServices";
 import { VueFilesPreview } from "vue-files-preview";
 import { createNotification } from "../../utils/notificationHandler";
+
+
 const emit = defineEmits(["reject", "approve"]);
 
 const dialogStore = adminApprovalDialogStore();
@@ -55,6 +57,8 @@ const handleReject = async () => {
         read: false,
         userId: student.user.id,
         sentBy: 1, // Sent by the system
+        email: false,
+        emailAddress: null
       });
     }
     rejectMessage.value = "Flight plan item rejected";
@@ -91,7 +95,6 @@ const handleApprove = async () => {
 
 const getSubmission = () => {
   const selectedSubmission = submissions.value[selectedSubmissionIndex.value];
-  console.log("Selected submission:", selectedSubmission);
   if (selectedSubmission.submissionType === "text") {
     selectedSubmissionType.value = "text";
   } else if (selectedSubmission.submissionType === "file") {
