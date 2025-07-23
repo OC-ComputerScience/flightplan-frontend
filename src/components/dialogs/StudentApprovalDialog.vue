@@ -22,6 +22,8 @@ const files = ref([]);
 const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
+const submissionId = ref(null)
+
 const submissionType = computed(() => {
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.submissionType;
@@ -203,13 +205,14 @@ const handleSubmit = async () => {
         }
 
         if (!automaticSubmission) {
-          await submissionServices.createSubmissions(submissions);
+          let response = await submissionServices.createSubmissions(submissions);
+          submissionId.value = response.data[0].id
           successMessage.value = "Submission successful!";
           debounceSubmit();
         }
         break;
     }
-    generateNotification(flightPlanItem.value.id);
+    generateNotification();
     successMessage.value = "Submission successful!";
     debounceSubmit();
   } catch (error) {
@@ -258,13 +261,13 @@ const submitReflection = async (autoSubmission = false) => {
   });
 };
 
-const generateNotification = async (flightPlanItemId) => {
+const generateNotification = async () => {
   let response = await userServices.getAllAdmins();
   let admins = response.data;
   let store = userStore();
   let userId = store.user?.userId;
   let baseUrl = window.location.origin;
-  let submissionUrl = `${baseUrl}/admin/approvals?id=${flightPlanItemId}`;
+  let submissionUrl = `${baseUrl}/admin/approvals?id=${submissionId.value}`;
   let header = `New Flight Plan Item Submission - ${String(store.user?.fullName)}`;
   let body = `A new submission has been made for the flight plan item ${String(flightPlanItem.value.name)}. View it by clicking <a href="${submissionUrl}">here</a>.`;
 

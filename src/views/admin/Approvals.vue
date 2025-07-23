@@ -7,7 +7,7 @@ import ViewApprovalDialog from "../../components/dialogs/ViewApprovalDialog.vue"
 import { ref, onMounted, computed, watch } from "vue";
 import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore";
 import { useDisplay } from "vuetify";
-import { useRoute } from 'vue-router';
+import { useRoute } from "vue-router";
 
 const route = useRoute();
 const specificIdParam = !!route.query.id;
@@ -59,11 +59,20 @@ const handleApprove = (flightPlanItem) => {
 watch([page, searchQuery], fetchPendingApprovals);
 
 onMounted(async () => {
+  let allSubmissions = (await flightPlanItemServices.getPendingApprovals()).data.flightPlanItems;
   await fetchPendingApprovals();
   if (specificIdParam) {
-    pendingApprovals.value.forEach(item => {
+    let foundItem = null;
+    allSubmissions.forEach((item) => {
+      if (
+        item.submission &&
+        item.submission.find((sub) => sub.id == route.query.id)
+      ) {
+        foundItem = item;
+        return;
+      }
     });
-    let foundItem = pendingApprovals.value.find(item => item.id === Number(route.query.id));
+
     if (foundItem) {
       handleApprove(foundItem);
     }
