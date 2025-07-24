@@ -14,6 +14,7 @@ export const automaticSubmissionHandler = async (autoType) => {
 
     var response = null;
     var linkedInRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/[\w-]+/i;
+    var found = false;
 
     switch (autoType) { 
         case "Auto Complete - Major":
@@ -26,13 +27,12 @@ export const automaticSubmissionHandler = async (autoType) => {
 
             return;
         case "Auto Complete - LinkedIn":
-            let found = false;
+            found = false;
             response = await linkServices.getAllLinksForUser(store.user?.userId)
             const studentLinks = response.data;
 
             studentLinks.forEach(link => {
                 if (link.websiteName === "LinkedIn" && linkedInRegex.test(link.link)) {
-                    console.log("LinkedIn link found: ", link.link);
                     found = true;
                     return;
                 }
@@ -43,7 +43,20 @@ export const automaticSubmissionHandler = async (autoType) => {
 
             return;
         case "Auto Complete - Handshake":
-            return "Task completion not implemented"
+            found = false
+            response = await linkServices.getAllLinksForUser(store.user?.userId);
+            const links = response.data;
+
+            links.forEach(link => {
+                if (link.websiteName === "Handshake") {
+                    found = true;
+                    return;
+                }
+            })
+
+            if (!found) {
+                return "No valid Handshake link found on your profile"
+            }
         case "Auto-Complete - Strengths":
             response = await strengthServices.getStrengthsForStudent(studentId);
             const studentStrengths = response.data;
