@@ -142,9 +142,9 @@ const handleRegister = async (event) => {
     await eventServices.registerStudents(event.id, [studentId.value]);
     await fetchStudentStatus();
     const updatedEvent = await eventServices.getEvent(event.id);
-    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    registrationUpdateMessage.value = "Successfully registered for the event! You will receive email notifications as the event approaches"
     useEventRegistrationConfirmationStore.toggleVisibility(true);
-    useEventRegistrationConfirmationStore.isRegistering = false;
+    useEventRegistrationConfirmationStore.toggleRegistration(true)
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Registration error:", err);
@@ -159,7 +159,7 @@ const handleUnregister = async (event) => {
     const updatedEvent = await eventServices.getEvent(event.id);
     registrationUpdateMessage.value = "Successfully unregistered from the event"
     useEventRegistrationConfirmationStore.toggleVisibility(true);
-    useEventRegistrationConfirmationStore.isRegistering = false;
+    useEventRegistrationConfirmationStore.toggleRegistration(false);
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Unregistration error:", err);
