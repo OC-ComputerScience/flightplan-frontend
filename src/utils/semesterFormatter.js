@@ -16,3 +16,16 @@ export const formatSemester = (semesterFromGraduation) => {
   if (semesterValue) return semesterValue;
   else return semesterFromGraduation + "Semesters From Graduation";
 };
+
+export const years = [
+  { value: 4, name: "Freshmen" },
+  { value: 3, name: "Sophomore" },
+  { value: 2, name: "Junior" },
+  { value: 1, name: "Senior" },
+];
+
+export const formatYear = (yearFromGraduation) => {
+  const yearValue = years.find((year) => year.value === yearFromGraduation);
+  if (yearValue) return yearValue;
+  else return yearFromGraduation + "Years From Graduation";
+};

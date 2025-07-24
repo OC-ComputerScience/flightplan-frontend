@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required } from "../../../utils/formValidators";
+import { required, positiveNumber } from "../../../utils/formValidators";
+import { years } from "../../../utils/semesterFormatter";
 import badgeServices from "../../../services/badgeServices";
 import fileServices from "../../../services/fileServices";
 import { addTaskToBadgeStore } from "../../../stores/addTaskToBadgeStore";
@@ -26,10 +27,11 @@ const formData = ref({ imageName: null });
 const image = ref(null);
 const rules = ref([]);
 const statuses = ref([]);
-const selectedRule = ref("Task and Experience Defined");
+const selectedRule = ref("Experiences and Tasks");
 const selectedStatus = ref([]);
 const ruleTasks = ref([]);
 const ruleExperiences = ref([]);
+const yearTypes = ref(years);
 
 // Functions
 const handleCancel = () => {
@@ -76,7 +78,7 @@ const handleSubmit = async () => {
   formData.value.ruleType = selectedRule.value;
   formData.value.status = selectedStatus.value;
 
-  if (selectedRule.value === "Task and Experience Defined") {
+  if (selectedRule.value === "Experiences and Tasks") {
     if (ruleTasks.value.length === 0 && ruleExperiences.value.length === 0) {
       errorMessage.value = "You must add at least one task or experience";
       return;
@@ -239,21 +241,40 @@ onMounted(async () => {
         label="Description"
         :rules="[required]"
       ></v-textarea>
-      <v-select
-        v-model="selectedRule"
-        variant="solo"
-        rounded="lg"
-        label="Rule Type"
-        :items="rules"
-      ></v-select>
-      <v-select
-        v-model="selectedStatus"
-        variant="solo"
-        rounded="lg"
-        label="Status"
-        :items="statuses"
-      ></v-select>
-      <div v-if="selectedRule === 'Task and Experience Defined'">
+
+      <v-tooltip location="top left" style="width: 75%" bottom>
+        <template #activator="{ props: toolTipProps }">
+          <v-select
+            v-model="selectedRule"
+            variant="solo"
+            rounded="lg"
+            label="Rule Type"
+            :items="rules"
+            v-bind="toolTipProps"
+          />
+        </template>
+        <span v-if="selectedRule === 'Experiences and Tasks'"
+          >Gained when an amount experiences and tasks are completed</span
+        >
+        <span v-else-if="selectedRule === 'All Tasks and Experiences for Year'"
+          >Gained when all tasks and experiences for a year are completed</span
+        >
+        <span v-else-if="selectedRule === 'All Tasks for Year'"
+          >Gained when all tasks for a year are completed</span
+        >
+        <span v-else-if="selectedRule === 'Number of Tasks for Year'"
+          >Gained when an amount of tasks for a year are completed</span
+        >
+        <span v-else-if="selectedRule === 'Number of Badges'"
+          >Gained when student gains an amount of badges</span
+        >
+        <span
+          v-else-if="selectedRule === 'Number of Tasks or Experiences for year'"
+          >Gained when an amount of tasks or experiences for a year are
+          completed</span
+        >
+      </v-tooltip>
+      <div v-if="selectedRule === 'Experiences and Tasks'">
         <v-expansion-panels class="mb-4 rounded-lg">
           <v-expansion-panel class="mb-2">
             <v-expansion-panel-title>Tasks</v-expansion-panel-title>
@@ -338,6 +359,110 @@ onMounted(async () => {
           </v-expansion-panel>
         </v-expansion-panels>
       </div>
+      <div v-else-if="selectedRule === 'All Tasks and Experiences for Year'">
+        <v-row dense>
+          <v-col :cols="12">
+            <v-select
+              v-model="formData.yearsFromGrad"
+              variant="solo"
+              rounded="lg"
+              label="Year"
+              :items="yearTypes"
+              item-value="value"
+              item-title="name"
+              :rules="[required]"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </div>
+      <div v-else-if="selectedRule === 'All Tasks for Year'">
+        <v-row dense>
+          <v-col :cols="12">
+            <v-select
+              v-model="formData.yearsFromGrad"
+              variant="solo"
+              rounded="lg"
+              label="Year"
+              :items="yearTypes"
+              item-value="value"
+              item-title="name"
+              :rules="[required]"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </div>
+      <div v-else-if="selectedRule === 'Number of Tasks for Year'">
+        <v-row dense>
+          <v-col :cols="6">
+            <v-text-field
+              v-model="formData.completionQuantityOne"
+              variant="solo"
+              rounded="lg"
+              label="Quantity"
+              :rules="[required, positiveNumber]"
+            ></v-text-field>
+          </v-col>
+          <v-col :cols="6">
+            <v-select
+              v-model="formData.yearsFromGrad"
+              variant="solo"
+              rounded="lg"
+              label="Year"
+              :items="yearTypes"
+              item-value="value"
+              item-title="name"
+              :rules="[required]"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </div>
+      <div v-else-if="selectedRule === 'Number of Badges'">
+        <v-row dense>
+          <v-col :cols="12">
+            <v-text-field
+              v-model="formData.completionQuantityOne"
+              variant="solo"
+              rounded="lg"
+              label="Quantity"
+              :rules="[required, positiveNumber]"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </div>
+      <div
+        v-else-if="selectedRule === 'Number of Tasks or Experiences for year'"
+      >
+        <v-row dense>
+          <v-col :cols="6">
+            <v-text-field
+              v-model="formData.completionQuantityOne"
+              variant="solo"
+              rounded="lg"
+              label="Quantity"
+              :rules="[required, positiveNumber]"
+            ></v-text-field>
+          </v-col>
+          <v-col :cols="6">
+            <v-select
+              v-model="formData.yearsFromGrad"
+              variant="solo"
+              rounded="lg"
+              label="Year"
+              :items="yearTypes"
+              item-value="value"
+              item-title="name"
+              :rules="[required]"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </div>
+      <v-select
+        v-model="selectedStatus"
+        variant="solo"
+        rounded="lg"
+        label="Status"
+        :items="statuses"
+      ></v-select>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">
         <v-btn

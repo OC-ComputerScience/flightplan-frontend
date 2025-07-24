@@ -155,7 +155,7 @@ onMounted(async () => {
   const passedId = route.params.userId;
   isAdmin.value = await store.isAdmin();
 
-  if (!isAdmin.value) {
+  if (store.user.userId == route.params.userId) {
     await fetchUnviewedBadges();
   }
 
