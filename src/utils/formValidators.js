@@ -59,3 +59,11 @@ export const characterLimit = (value, min) => {
     return true;
   }
 }
+
+export const isLink = (value) => {
+  const webPattern = /^https?:\/\/www\.[\w.-]+\.[a-z]{2,}$/;
+  if (!webPattern.test(value))
+    return "Link must start with http(s)://www. and end with a valid domain";
+  else
+    return true
+}

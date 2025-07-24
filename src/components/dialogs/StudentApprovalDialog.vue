@@ -45,7 +45,15 @@ const hasInstructionsLink = computed(() => {
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.instructionsLink;
   } else {
-    return flightPlanItem.value.experience.instructionsLink;
+    return flightPlanItem.value.experience.instructionsLink && flightPlanItem.value.experience.instructionsLinkDescription;
+  }
+});
+
+const hasInstructionsDescription = computed(() => {
+  if (flightPlanItem.value.task) {
+    return flightPlanItem.value.task.instructionsLinkDescription;
+  } else {
+    return flightPlanItem.value.experience.instructionsLinkDescription;
   }
 });
 
@@ -365,14 +373,14 @@ onMounted(() => {
               <strong>Instructions: </strong>
               <p class="text-body-1">{{ hasInstructions }}</p>
             </div>
-            <div v-if="hasInstructionsLink" class="mb-4">
+            <div v-if="hasInstructionsLink && hasInstructionsDescription" class="mb-4">
               <p class="text-body-1">
                 <a
                   :href="hasInstructionsLink"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-primary"
-                  >View More Instructions</a
+                  >{{ hasInstructionsDescription }}</a
                 >
               </p>
             </div>
@@ -445,7 +453,7 @@ onMounted(() => {
               "
               class="d-flex justify-center mt-4"
             >
-              <p class="mr-2 mt-1">(Optional) Request Reviewer</p>
+              <p class="mr-2 mt-1">(Optional) Request Specific Reviewer</p>
               <div class="w-25">
                 <v-select
                   v-model="selectedOptionalReviewer"
