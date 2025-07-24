@@ -105,6 +105,12 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
+        console.log(reflectionText.length)
+        if (reflectionText.value.length < 400) {
+          errorMessage.value = "Your reflection must be at least 400 characters"
+          return;
+        }
+
         if (automaticSubmission) {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
@@ -130,6 +136,11 @@ const handleSubmit = async () => {
       case "Upload Document & Reflection - Auto Approve": {
         if (noText) {
           errorMessage.value = "Please write a reflection";
+          return;
+        }
+
+        if (reflectionText.value.length < 400) {
+          errorMessage.value = "Your reflection must be at least 400 characters"
           return;
         }
 
