@@ -21,7 +21,7 @@ export const automaticSubmissionHandler = async (autoType) => {
             const studentMajors = response.data;
             console.log(studentMajors)
 
-            if (!studentMajors || studentMajors.filter(major => major.name === "Undeclared").length > 0) {
+            if (!studentMajors || studentMajors.filter(major => major.name === "Undecided").length > 0) {
                 return "You have not declared a major"
             }
 
