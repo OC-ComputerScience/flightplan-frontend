@@ -45,7 +45,10 @@ const hasInstructionsLink = computed(() => {
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.instructionsLink;
   } else {
-    return flightPlanItem.value.experience.instructionsLink && flightPlanItem.value.experience.instructionsLinkDescription;
+    return (
+      flightPlanItem.value.experience.instructionsLink &&
+      flightPlanItem.value.experience.instructionsLinkDescription
+    );
   }
 });
 
@@ -207,7 +210,7 @@ const handleSubmit = async () => {
               isAutomatic: true,
             };
 
-            await submissionServices.createSubmission(submissionData)
+            await submissionServices.createSubmission(submissionData);
             handleAutoApproval();
             debounceSubmit();
             break;
@@ -224,10 +227,10 @@ const handleSubmit = async () => {
         }
         break;
     }
-    if (!automaticSubmission) 
-    { generateNotification();
-    successMessage.value = "Submission successful!";
-    debounceSubmit();
+    if (!automaticSubmission) {
+      generateNotification();
+      successMessage.value = "Submission successful!";
+      debounceSubmit();
     }
   } catch (error) {
     errorMessage.value =
@@ -323,7 +326,7 @@ const handleAutoApproval = async () => {
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
       successMessage.value = "Flight plan item submission approved";
-      debounceSubmit()
+      debounceSubmit();
     })
     .catch((error) => {
       errorMessage.value =
@@ -338,20 +341,31 @@ watch(visible, () => {
     selectedOptionalReviewer.value = null;
     successMessage.value = "";
     errorMessage.value = "";
-    selfApprovedCheck.value = false
+    selfApprovedCheck.value = false;
   }
 });
 
 onMounted(() => {
   fetchOptionalReviewers();
-})
+});
 </script>
 
 <template>
-  <v-dialog v-model="visible" style="width: 50%"transition="dialog-bottom-transition">
+  <v-dialog
+    v-model="visible"
+    style="width: 50%"
+    transition="dialog-bottom-transition"
+  >
     <v-card rounded="xl" color="backgroundDarken">
-      <v-card-title class="text-h4 d-flex justify-center align-center">
-        <span class="flex-grow-1 text-center">
+      <v-card-title class="text-h5 d-flex justify-center align-center">
+        <span
+          class="flex-grow-1 text-center"
+          style="
+            overflow-wrap: break-word;
+            white-space: normal;
+            word-break: break-word;
+          "
+        >
           Complete {{ flightPlanItem.name }}
         </span>
         <v-icon
@@ -373,7 +387,10 @@ onMounted(() => {
               <strong>Instructions: </strong>
               <p class="text-body-1">{{ hasInstructions }}</p>
             </div>
-            <div v-if="hasInstructionsLink && hasInstructionsDescription" class="mb-4">
+            <div
+              v-if="hasInstructionsLink && hasInstructionsDescription"
+              class="mb-4"
+            >
               <p class="text-body-1">
                 <a
                   :href="hasInstructionsLink"
@@ -469,7 +486,10 @@ onMounted(() => {
             </div>
 
             <div
-              v-if="submissionType.includes('Self-Approved') || submissionType.includes('Auto')"
+              v-if="
+                submissionType.includes('Self-Approved') ||
+                submissionType.includes('Auto')
+              "
               class="d-flex align-center justify-center mt-4"
             >
               <v-checkbox
