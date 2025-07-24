@@ -87,7 +87,6 @@ const handleSubmit = async () => {
   }
 
   try {
-    console.log(submissionType.value);
     switch (submissionType.value) {
       case "Reflection - Review":
       case "Reflection - Auto Approve":
@@ -118,8 +117,6 @@ const handleSubmit = async () => {
 
       case "Upload Document & Reflection - Review":
       case "Upload Document & Reflection - Auto Approve": {
-        console.log("Handling mixed submission type");
-
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
@@ -189,8 +186,6 @@ const handleSubmit = async () => {
           let responseMessage = await automaticSubmissionHandler(
             submissionType.value,
           );
-
-          console.log(responseMessage)
 
           if (responseMessage) {
             errorMessage.value = responseMessage;
@@ -303,7 +298,6 @@ const generateNotification = async () => {
       selectedOptionalReviewer.value,
     );
     let reviewerEmail = reviewer.data.email;
-    console.log(reviewerEmail);
     createNotification(
       header,
       body,
@@ -317,7 +311,6 @@ const generateNotification = async () => {
 };
 
 const handleAutoApproval = async () => {
-  console.log("Approving ")
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
