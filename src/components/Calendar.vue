@@ -12,6 +12,10 @@ import { studentStore } from "../stores/studentStore";
 import { getEventCardColor } from "../utils/eventStatus";
 import { createEventCancelNotification } from "../utils/notificationHandler";
 import { formatTime } from "../utils/dateTimeHelpers";
+import EventRegistrationConfirmation from "../components/dialogs/EventRegistrationConfirmation.vue";
+import { eventRegistrationConfirmationStore } from "../stores/eventRegistrationConfirmationStore";
+const registrationUpdateMessage = ref("")
+const useEventRegistrationConfirmationStore = eventRegistrationConfirmationStore();
 
 const store = userStore();
 const localStudentStore = studentStore();
@@ -138,6 +142,9 @@ const handleRegister = async (event) => {
     await eventServices.registerStudents(event.id, [studentId.value]);
     await fetchStudentStatus();
     const updatedEvent = await eventServices.getEvent(event.id);
+    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.isRegistering = false;
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Registration error:", err);
@@ -150,6 +157,9 @@ const handleUnregister = async (event) => {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
     await fetchStudentStatus();
     const updatedEvent = await eventServices.getEvent(event.id);
+    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.isRegistering = false;
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Unregistration error:", err);
@@ -579,6 +589,10 @@ function selectThisMonth() {
       </v-card>
     </div>
   </div>
+    <EventRegistrationConfirmation
+    v-model="useEventRegistrationConfirmationStore.visible"
+    :message="registrationUpdateMessage"
+  />
 </template>
 
 <style scoped>
