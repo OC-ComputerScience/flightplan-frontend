@@ -341,9 +341,9 @@ const handleRegistration = () => {
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
+        <v-row v-if="props.adminView && !props.noActions && props.event.status !== 'Cancelled' && props.event.status !== 'Past'" class="ma-2 float-left">
           <v-btn
-            :color='props.event.status !== "Cancelled" && props.event.status !== "Past" ? "warning" : "primary"'
+            color="warning"
             class="mr-2 cardButton elevation-0"
             @click.stop="editEvent"
           >
