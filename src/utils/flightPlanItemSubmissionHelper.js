@@ -19,6 +19,7 @@ export const automaticSubmissionHandler = async (autoType) => {
         case "Auto Complete - Major":
             response = await majorServices.getMajorsForStudent(studentId);
             const studentMajors = response.data;
+            console.log(studentMajors)
 
             if (!studentMajors || studentMajors.filter(major => major.name === "Undeclared").length > 0) {
                 return "You have not declared a major"

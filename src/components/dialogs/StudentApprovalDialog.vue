@@ -190,6 +190,8 @@ const handleSubmit = async () => {
             submissionType.value,
           );
 
+          console.log(responseMessage)
+
           if (responseMessage) {
             errorMessage.value = responseMessage;
           } else {
@@ -207,6 +209,7 @@ const handleSubmit = async () => {
             debounceSubmit();
             break;
           }
+          break;
         }
 
         if (!automaticSubmission) {
@@ -218,9 +221,11 @@ const handleSubmit = async () => {
         }
         break;
     }
-    if (!automaticSubmission) generateNotification();
+    if (!automaticSubmission) 
+    { generateNotification();
     successMessage.value = "Submission successful!";
     debounceSubmit();
+    }
   } catch (error) {
     errorMessage.value =
       error.response?.data?.message || "An unexpected error occurred.";
@@ -332,11 +337,11 @@ watch(visible, () => {
     selectedOptionalReviewer.value = null;
     successMessage.value = "";
     errorMessage.value = "";
+    selfApprovedCheck.value = false
   }
 });
 
 onMounted(() => {
-  selfApprovedCheck.value = false
   fetchOptionalReviewers();
 })
 </script>
