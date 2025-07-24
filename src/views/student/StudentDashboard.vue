@@ -17,6 +17,7 @@ import StudentApprovalDialog from "../../components/dialogs/StudentApprovalDialo
 import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
 import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
 import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
+import flightPlanItemServices from "../../services/flightPlanItemServices"
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -197,13 +198,6 @@ const openNotification = (x) => {
   notifStore.setActiveNotification(x);
 };
 
-const openFlightPlanItem = (item) => {
-  flightPlanStore.setActiveFlightPlanItem(item);
-  // console.log(item)
-  useStudentViewSubmissionDialogStore.setFlightPlanItem(item);
-  useStudentViewSubmissionDialogStore.toggleVisibility();
-};
-
 // getting cookie - w3 schools
 const getCookie = (cname) => {
   let name = cname + "=";
@@ -230,13 +224,23 @@ const handlePendingButtonClick = (flightPlanItem) => {
   useStudentViewSubmissionDialogStore.toggleVisibility();
 };
 
-const handleAddItems = () => {
-  fetchFlightPlanAndItems();
-};
-
-const handleDelete = async (flightPlanItem) => {
-  await flightPlanItemServices.deleteFlightPlanItem(flightPlanItem.id);
-  await fetchFlightPlanAndItems();
+const fetchFlightPlanAndItems = async () => {
+    const params = {
+    page: 1,
+    pageSize: 1,
+    searchQuery: "",
+    filters: null,
+  };
+  const response =
+    await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+      selectedFlightPlan.value.value,
+      params
+    );
+  flightPlanItems.value = response.data.flightPlanItems;
+  
+  const pointsResponse = await studentServices.getPoints(studentId.value);
+  points.value = pointsResponse.data.points;
+  await fetchFlightPlanProgress()
 };
 
 const showFlightPlanItem = ref(false);
@@ -368,7 +372,6 @@ onMounted(async () => {
           @incomplete="handleIncompleteButtonClick"
           @register="handleRegister"
           @view="handlePendingButtonClick"
-          @delete="handleDelete"
           @click="handleShow"
         ></FlightPlanItemCard>
           </template>

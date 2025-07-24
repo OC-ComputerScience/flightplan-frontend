@@ -195,7 +195,7 @@ onMounted(async () => {
           <p style="font-size: 16px; text-align: right !important">Major</p>
           <p style="font-size: 16px; text-align: right !important">Email</p>
           <p
-            v-for="(link, index) in links.slice(0, 3)"
+            v-for="(link, index) in links"
             :key="index"
             style="text-align: right !important; font-size: 16px"
           >
@@ -210,7 +210,7 @@ onMounted(async () => {
             {{ selectedUser.email }}
           </a>
           <a
-            v-for="(link, index) in links.slice(0, 3)"
+            v-for="(link, index) in links"
             :key="index"
             style="text-align: left !important; font-size: 16px"
             :href="link.link"
