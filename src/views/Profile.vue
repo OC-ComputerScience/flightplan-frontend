@@ -169,100 +169,100 @@ onMounted(async () => {
 
 <template>
   <v-row class="background">
+    <!-- Page Title -->
+    <v-row class="w-100 mb-2">
+      <v-col cols="12">
+        <h1
+          class="text-h3 font-weight-bold"
+          style="width:100%;text-align:left;"
+        >
+          Profile
+        </h1>
+      </v-col>
+    </v-row>
+
     <!-- Profile Section -->
     <v-card color="backgroundDarken" class="topBar">
       <v-row class="w-100">
-        <v-col cols="2" class="d-flex flex-column align-center justify-center">
-          <v-img
-            src="/Birb.png"
-            height="200"
-            width="200"
-            class="profile-pic"
-            style="
-              position: absolute;
-              top: -20px;
-              z-index: 10000;
-              border-radius: 50%;
-            "
-          />
-          <div style="margin-top: 160px">
-            <p class="text-h6 font-weight-bold">
+        <!-- Name, Edit, Flight Plan -->
+        <v-col cols="12" md="6" class="d-flex flex-column justify-center">
+          <div class="d-flex align-center mb-2" style="width:100%;">
+            <span class="text-h4 font-weight-bold" style="flex:1;">
               {{ selectedUser.fullName }}
+            </span>
+            <v-btn
+              v-if="canEditProfile()"
+              color="primary"
+              class="ml-2 cardButton elevation-0"
+              @click.stop="handleEdit(route.params.userId)"
+              size="small"
+            >
+              <v-icon icon="mdi-pencil" color="text" size="large"></v-icon>
+              <span class="ml-1">Edit Profile</span>
+            </v-btn>
+            <v-btn
+              v-if="isAdmin"
+              color="primary"
+              class="ml-2 cardButton elevation-0"
+              @click="toFlightPlan"
+              size="small"
+            >
+              <v-icon icon="mdi-airplane" color="text" size="large"></v-icon>
+              <span class="ml-1">View Flight Plan</span>
+            </v-btn>
+          </div>
+          <div class="mb-1" style="font-size:1.1em;">
+            <span>{{ selectedUser.email }}</span>
+            <span v-if="selectedMajor.length" class="ml-3">
+              {{ selectedMajor.map((major) => major.name).join(", ") }}
+            </span>
+          </div>
+          <div class="mb-2">
+            <h3
+              class="text-h6 font-weight-bold mb-1"
+              style="text-align:left;"
+            >
+              About Me:
+            </h3>
+            <p style="text-align:left; font-size:1em;">
+              {{ selectedUser.profileDescription }}
             </p>
           </div>
-        </v-col>
-
-        <v-col cols="4" class="d-flex flex-column justify-center">
-          <h3 style="text-align: left">About Me:</h3>
-          <p style="text-align: left; display: flex; font-size: 18px">
-            {{ selectedUser.profileDescription }}
-          </p>
-        </v-col>
-        <v-col class="v-col-2 d-flex flex-column justify-center text-right">
-          <p style="font-size: 16px; text-align: right !important">Major</p>
-          <p style="font-size: 16px; text-align: right !important">Email</p>
-          <p
-            v-for="(link, index) in links"
-            :key="index"
-            style="text-align: right !important; font-size: 16px"
-          >
-            {{ link.websiteName }}
-          </p>
-        </v-col>
-        <v-col cols="4" class="d-flex flex-column justify-center text-left">
-          <p class="text-subtitle-1">
-            {{ selectedMajor.map((major) => major.name).join(", ") }}
-          </p>
-          <a style="text-align: left !important">
-            {{ selectedUser.email }}
-          </a>
-          <a
-            v-for="(link, index) in links"
-            :key="index"
-            style="text-align: left !important; font-size: 16px"
-            :href="link.link"
-            target="_blank"
-          >
-            {{ link.link }}
-            <br />
-          </a>
-        </v-col>
-        <v-col cols="1" class="d-flex align-right">
-          <v-icon
-            v-if="isAdmin"
-            :size="32"
-            style="margin-left: 85%; margin-top: 5%"
-            color="primary"
-            class="d-flex align-right"
-            @click="toFlightPlan"
-            >mdi-airplane</v-icon
-          >
-        </v-col>
-        <v-spacer />
-        <v-col cols="1" class="d-flex justify-end align-right">
-          <v-btn
-            v-if="canEditProfile()"
-            color="primary"
-            class="mr-2 cardButton elevation-0"
-            @click.stop="handleEdit(route.params.userId)"
-          >
-            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
-          </v-btn>
+          <div>
+            <span
+              v-for="(link, index) in links"
+              :key="index"
+              class="mr-2"
+            >
+              <a
+                :href="link.link"
+                target="_blank"
+                style="font-size:1em"
+                >{{ link.websiteName }}</a
+              >
+            </span>
+          </div>
         </v-col>
       </v-row>
     </v-card>
 
     <v-row>
+      <!-- Badges Section -->
       <v-col cols="12" md="6">
         <div class="adminItem">
           <v-card color="backgroundDarken" style="margin-bottom: 25px">
             <div class="d-flex align-center justify-start">
-              <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
+              <h2 class="section-headers">Badges</h2>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                  <v-icon v-bind="props" size="20" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
                 </template>
-                <span>Your badges earned so far. Continue progressing through your flight plans to earn more!</span>
+                <span
+                  >Your badges earned so far. Continue progressing through your
+                  flight plans to earn more!</span
+                >
               </v-tooltip>
             </div>
           </v-card>
@@ -271,7 +271,7 @@ onMounted(async () => {
               v-for="(item, index) in badges"
               :key="index"
               cols="12"
-              md="4"
+              md="12"
             >
               <BadgeCard
                 :badge="item"
@@ -309,15 +309,17 @@ onMounted(async () => {
         </div>
       </v-col>
 
-      <!-- Strengths Section (Stacked Vertically, Stretching Full Width) -->
+      <!-- Strengths Section -->
       <v-col cols="12" md="6">
-        <div class="adminItem" style="margin-right: 2vw">
+        <div class="adminItem">
           <v-card color="backgroundDarken">
             <div class="d-flex align-center justify-start">
-              <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
+              <h2 class="section-headers">Clifton Strengths</h2>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
+                  <v-icon v-bind="props" size="20" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
                 </template>
                 <span>Your top 5 clifton strengths</span>
               </v-tooltip>
@@ -325,17 +327,14 @@ onMounted(async () => {
             </div>
 
           </v-card>
-          <!-- Stacked Strengths (Stretching Full Width) -->
           <v-row
             v-if="strengths && strengths.length > 0"
             class="strengths-list"
-            style="margin: 0; padding: 0"
           >
             <v-col
               v-for="(item, index) in strengths"
               :key="index"
               cols="12"
-              style="padding: 0; margin: 0"
             >
               <StrengthCard :strength="item" />
             </v-col>
