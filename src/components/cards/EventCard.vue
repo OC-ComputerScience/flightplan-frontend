@@ -10,6 +10,7 @@ import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
 import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
+import { createEventCancelNotification } from "../../utils/notificationHandler";
 
 dayjs.extend(advancedFormat);
 
@@ -153,11 +154,12 @@ const confirmCancel = async () => {
             new Date(eventToCancelObject.endTime),
           );
 
-          createEventNotification(
+          createEventCancelNotification(
             eventToCancelObject,
             student.user.id,
             true,
-            true,
+            1, 
+            student.user.email
           );
         });
         canCancel.value = false;
