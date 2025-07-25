@@ -50,10 +50,6 @@ const closeDialogue = () => {
             such as career fairs or conferences
           </li>
         </ul>
-
-        <!-- <p class="text-body-1 mt-2">
-          (I'm sorry Dr. Shank, it's been too long since I took technical writing)
-        </p> -->
       </v-card-text>
 
       <v-card-actions class="pb-4 pr-4 pl-4">

@@ -37,7 +37,6 @@ const isStudent = ref(true);
 const route = useRoute();
 const router = useRouter();
 
-const requiredNumberOfStrengths = 1;
 const maximumNumberOfStrengths = 5;
 const requiredNumberOfMajors = 1;
 
