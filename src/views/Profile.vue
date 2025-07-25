@@ -168,13 +168,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-row class="background">
+  <v-row class="background" no-gutters>
     <!-- Page Title -->
-    <v-row class="w-100 mb-2">
+    <v-row class="w-100 mb-1" no-gutters>
       <v-col cols="12">
         <h1
           class="text-h3 font-weight-bold"
-          style="width:100%;text-align:left;"
+          style="width: 100%; text-align: left; font-size: 2.5vw"
         >
           Profile
         </h1>
@@ -182,12 +182,23 @@ onMounted(async () => {
     </v-row>
 
     <!-- Profile Section -->
-    <v-card color="backgroundDarken" class="topBar">
-      <v-row class="w-100">
-        <!-- Name, Edit, Flight Plan -->
-        <v-col cols="12" md="6" class="d-flex flex-column justify-center">
-          <div class="d-flex align-center mb-2" style="width:100%;">
-            <span class="text-h4 font-weight-bold" style="flex:1;">
+    <v-card
+      color="backgroundDarken"
+      class="topBar pa-4 rounded-xl"
+      style="width: 100%; min-width: 0"
+    >
+      <v-row class="w-100" no-gutters>
+        <v-col
+          cols="12"
+          md="6"
+          class="d-flex flex-column justify-center"
+          style="min-width: 0"
+        >
+          <div class="d-flex align-center mb-2" style="width: 100%">
+            <span
+              class="text-h4 font-weight-bold"
+              style="flex: 1; font-size: 2vw"
+            >
               {{ selectedUser.fullName }}
             </span>
             <v-btn
@@ -198,7 +209,7 @@ onMounted(async () => {
               size="small"
             >
               <v-icon icon="mdi-pencil" color="text" size="large"></v-icon>
-              <span class="ml-1">Edit Profile</span>
+              <span class="ml-1" style="font-size: 1vw">Edit Profile</span>
             </v-btn>
             <v-btn
               v-if="isAdmin"
@@ -208,10 +219,10 @@ onMounted(async () => {
               size="small"
             >
               <v-icon icon="mdi-airplane" color="text" size="large"></v-icon>
-              <span class="ml-1">View Flight Plan</span>
+              <span class="ml-1" style="font-size: 1vw">View Flight Plan</span>
             </v-btn>
           </div>
-          <div class="mb-1" style="font-size:1.1em;">
+          <div class="mb-1" style="font-size: 1.2vw">
             <span>{{ selectedUser.email }}</span>
             <span v-if="selectedMajor.length" class="ml-3">
               {{ selectedMajor.map((major) => major.name).join(", ") }}
@@ -220,26 +231,19 @@ onMounted(async () => {
           <div class="mb-2">
             <h3
               class="text-h6 font-weight-bold mb-1"
-              style="text-align:left;"
+              style="text-align: left; font-size: 1.5vw"
             >
               About Me:
             </h3>
-            <p style="text-align:left; font-size:1em;">
+            <p style="text-align: left; font-size: 1.1vw">
               {{ selectedUser.profileDescription }}
             </p>
           </div>
           <div>
-            <span
-              v-for="(link, index) in links"
-              :key="index"
-              class="mr-2"
-            >
-              <a
-                :href="link.link"
-                target="_blank"
-                style="font-size:1em"
-                >{{ link.websiteName }}</a
-              >
+            <span v-for="(link, index) in links" :key="index" class="mr-2">
+              <a :href="link.link" target="_blank" style="font-size: 1vw">
+                {{ link.websiteName }}
+              </a>
             </span>
           </div>
         </v-col>
@@ -249,20 +253,20 @@ onMounted(async () => {
     <v-row>
       <!-- Badges Section -->
       <v-col cols="12" md="6">
-        <div class="adminItem">
-          <v-card color="backgroundDarken" style="margin-bottom: 25px">
+        <div class="adminItem pa-4 rounded-xl" style="min-width: 0">
+          <v-card color="backgroundDarken" style="margin-bottom: 2vh">
             <div class="d-flex align-center justify-start">
-              <h2 class="section-headers">Badges</h2>
+              <h2 class="section-headers" style="font-size: 2vw">Badges</h2>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-icon v-bind="props" size="20" class="ml-2"
                     >mdi-information-outline</v-icon
                   >
                 </template>
-                <span
-                  >Your badges earned so far. Continue progressing through your
-                  flight plans to earn more!</span
-                >
+                <span style="font-size: 1vw">
+                  Your badges earned so far. Continue progressing through your
+                  flight plans to earn more!
+                </span>
               </v-tooltip>
             </div>
           </v-card>
@@ -272,6 +276,7 @@ onMounted(async () => {
               :key="index"
               cols="12"
               md="12"
+              style="min-width: 0"
             >
               <BadgeCard
                 :badge="item"
@@ -281,17 +286,16 @@ onMounted(async () => {
             </v-col>
           </v-row>
           <v-row v-else>
-            <div class="adminItem" style="text-align: center">
+            <div class="adminItem" style="text-align: center; font-size: 1vw">
               No badges! <br />
               Complete some flight plan items to be rewarded!
-              <br />
-              <br />
-              <b
-                >The LORD repay you for what you have done, and a full reward be
+              <br /><br />
+              <b>
+                The LORD repay you for what you have done, and a full reward be
                 given you by the LORD, the God of Israel, under whose wings you
                 have come to take refuge!" <br />
-                - Ruth 2:12</b
-              >
+                - Ruth 2:12
+              </b>
             </div>
           </v-row>
           <v-row
@@ -311,17 +315,19 @@ onMounted(async () => {
 
       <!-- Strengths Section -->
       <v-col cols="12" md="6">
-        <div class="adminItem">
+        <div class="adminItem pa-4 rounded-xl" style="min-width: 0">
           <v-card color="backgroundDarken">
             <div class="d-flex align-center justify-start">
-              <h2 class="section-headers">Clifton Strengths</h2>
+              <h2 class="section-headers" style="font-size: 2vw">
+                Clifton Strengths
+              </h2>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-icon v-bind="props" size="20" class="ml-2"
                     >mdi-information-outline</v-icon
                   >
                 </template>
-                <span>Your top 5 clifton strengths</span>
+                <span style="font-size: 1vw">Your top 5 clifton strengths</span>
               </v-tooltip>
               <v-btn rounded="xl" class="ml-auto mr-4" color="primary" @click="openStrengthsDialog">Update Strengths</v-btn>
             </div>
@@ -335,20 +341,22 @@ onMounted(async () => {
               v-for="(item, index) in strengths"
               :key="index"
               cols="12"
+              style="min-width: 0"
             >
               <StrengthCard :strength="item" />
             </v-col>
           </v-row>
           <v-row v-else>
-            <div class="adminItem" style="text-align: center">
+            <div class="adminItem" style="text-align: center; font-size: 1vw">
               No Clifton Strengths found<br />
-              Find a task to take the Galups Strength Assessment in your Flight Plan or contact Charlotte Hamil for more info! <br /><br />
-              <b
-                >"Before I formed you in the womb I knew you, and before you
-                were born I consecrated you; I appointed you a prophet to the
+              Find a task to take the Galups Strength Assessment in your Flight
+              Plan or contact Charlotte Hamil for more info! <br /><br />
+              <b>
+                "Before I formed you in the womb I knew you, and before you were
+                born I consecrated you; I appointed you a prophet to the
                 nations." <br />
-                - Jeremiah 1:5</b
-              >
+                - Jeremiah 1:5
+              </b>
             </div>
           </v-row>
         </div>
