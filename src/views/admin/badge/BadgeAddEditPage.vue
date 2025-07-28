@@ -269,7 +269,7 @@ onMounted(async () => {
           >Gained when student gains an amount of badges</span
         >
         <span
-          v-else-if="selectedRule === 'Number of Tasks or Experiences for year'"
+          v-else-if="selectedRule === 'Number of Tasks or Experiences for Year'"
           >Gained when an amount of tasks or experiences for a year are
           completed</span
         >
@@ -430,7 +430,7 @@ onMounted(async () => {
         </v-row>
       </div>
       <div
-        v-else-if="selectedRule === 'Number of Tasks or Experiences for year'"
+        v-else-if="selectedRule === 'Number of Tasks or Experiences for Year'"
       >
         <v-row dense>
           <v-col :cols="6">
