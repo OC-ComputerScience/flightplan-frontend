@@ -17,7 +17,12 @@ import StudentApprovalDialog from "../../components/dialogs/StudentApprovalDialo
 import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogStore";
 import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
 import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
+
+import EventRegistrationConfirmation from "../../components/dialogs/EventRegistrationConfirmation.vue";
+import { eventRegistrationConfirmationStore } from "../../stores/eventRegistrationConfirmationStore";
+
 import flightPlanItemServices from "../../services/flightPlanItemServices"
+
 
 const studentId = ref(null);
 const registeredEvents = ref([]);
@@ -38,10 +43,12 @@ const allFlightPlanItems = ref([]);
 const flightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
+const registrationUpdateMessage = ref("")
 const router = useRouter();
 
 const useStudentApprovalDialogStore = studentApprovalDialogStore();
 const useStudentViewSubmissionDialogStore = studentViewSubmissionDialogStore();
+const useEventRegistrationConfirmationStore = eventRegistrationConfirmationStore();
 
 const getNotifications = async (page = 1) => {
   try {
@@ -256,8 +263,9 @@ const handleRegister = async (event) => {
   try {
     await eventServices.registerStudents(event.id, [studentId.value]);
     await fetchStudentStatus();
-    const updatedEvent = await eventServices.getEvent(event.id);
-    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+    registrationUpdateMessage.value = "Successfully registered for the event! You will receive email notifications as the event approaches"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(true);
   } catch (err) {
     console.error("Registration error:", err);
   }
@@ -268,8 +276,9 @@ const handleUnregister = async (event) => {
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
     await fetchStudentStatus();
-    const updatedEvent = await eventServices.getEvent(event.id);
-    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(false);
   } catch (err) {
     console.error("Unregistration error:", err);
   }
@@ -474,6 +483,10 @@ onMounted(async () => {
   <ViewSubmissionDialog
     @discard="fetchFlightPlanAndItems"
   ></ViewSubmissionDialog>
+  <EventRegistrationConfirmation
+    v-model="useEventRegistrationConfirmationStore.visible"
+    :message="registrationUpdateMessage"
+  />
 </template>
 
 <style>
