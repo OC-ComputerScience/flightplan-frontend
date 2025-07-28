@@ -14,6 +14,7 @@ import { viewBadgeAwardsStore } from "../stores/viewBadgeAwardsStore";
 import ViewBadgeAwards from "../components/dialogs/ViewBadgeAwards.vue";
 import { viewAwardedBadgeStore } from "../stores/viewAwardedBadgeStore";
 import ViewAwardedBadge from "../components/dialogs/ViewAwardedBadge.vue";
+import StudentMaintainCliftonStrengths from "../components/dialogs/StudentMaintainCliftonStrengths.vue";
 
 const store = userStore();
 const route = useRoute();
@@ -33,6 +34,8 @@ const selectedUser = ref([]);
 const selectedStudent = ref([]);
 const selectedMajor = ref([]);
 const isAdmin = ref(false);
+
+const showStrengthsDialog = ref(false);
 
 // Add pagination variables
 const currentPage = ref(1);
@@ -139,6 +142,10 @@ const getStudent = async (userId) => {
   }
 };
 
+const openStrengthsDialog = () => {
+  showStrengthsDialog.value = true;
+}
+
 // Add watcher for pagination
 watch(currentPage, (newPage) => {
   getBadges(route.params.userId, newPage);
@@ -195,7 +202,7 @@ onMounted(async () => {
           <p style="font-size: 16px; text-align: right !important">Major</p>
           <p style="font-size: 16px; text-align: right !important">Email</p>
           <p
-            v-for="(link, index) in links.slice(0, 3)"
+            v-for="(link, index) in links"
             :key="index"
             style="text-align: right !important; font-size: 16px"
           >
@@ -210,7 +217,7 @@ onMounted(async () => {
             {{ selectedUser.email }}
           </a>
           <a
-            v-for="(link, index) in links.slice(0, 3)"
+            v-for="(link, index) in links"
             :key="index"
             style="text-align: left !important; font-size: 16px"
             :href="link.link"
@@ -314,7 +321,9 @@ onMounted(async () => {
                 </template>
                 <span>Your top 5 clifton strengths</span>
               </v-tooltip>
+              <v-btn rounded="xl" class="ml-auto mr-4" color="primary" @click="openStrengthsDialog">Update Strengths</v-btn>
             </div>
+
           </v-card>
           <!-- Stacked Strengths (Stretching Full Width) -->
           <v-row
@@ -323,7 +332,7 @@ onMounted(async () => {
             style="margin: 0; padding: 0"
           >
             <v-col
-              v-for="(item, index) in strengths.slice(0, 5)"
+              v-for="(item, index) in strengths"
               :key="index"
               cols="12"
               style="padding: 0; margin: 0"
@@ -349,6 +358,7 @@ onMounted(async () => {
   </v-row>
   <ViewBadgeAwards :badges="unviewedBadges" />
   <ViewAwardedBadge :badge="selectedBadge" />
+  <StudentMaintainCliftonStrengths v-if="showStrengthsDialog" @close="showStrengthsDialog = false" :id=route.params.userId @submit="getStrengths(route.params.userId); showStrengthsDialog=false"/>
 </template>
 
 <style scoped>

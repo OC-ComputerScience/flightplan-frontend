@@ -80,6 +80,7 @@ const confirmCancel = async () => {
     await eventServices
       .getRegisteredStudents(eventToCancel.value)
       .then((res) => {
+        if (res.data !== null) {
         res.data.forEach((student) => {
           registeredStudents.push(student.studentId);
 
@@ -95,15 +96,20 @@ const confirmCancel = async () => {
 
           createEventCancelNotification(eventToCancelObject.value, student.user.id, true, 1, student.user.email);
         });
+      }
+
+
       })
       .catch((err) => {
         console.error("Error creating notifcation: ", err);
       });
 
+      if (registeredStudents.length > 0) {
     await eventServices.unregisterStudents(
       eventToCancel.value,
       registeredStudents,
     );
+      }
 
     cancelledEvents.value.push(eventToCancel.value);
     await getEvents();
@@ -116,6 +122,7 @@ const confirmCancel = async () => {
     console.error("Error cancelling event:", err);
   }
 };
+
 const handleAdd = () => {
   router.push({
     name: "addEvent",

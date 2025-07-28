@@ -61,7 +61,7 @@ const adminRoutes = [
     component: Profile,
   },
   {
-    path: "approvals",
+    path: "approvals/:id?",
     name: "admin-approvals",
     component: Approvals,
   },

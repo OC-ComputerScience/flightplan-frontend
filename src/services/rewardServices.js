@@ -40,8 +40,17 @@ export default {
   getStatusTypes() {
     return apiClient.get("/reward/types/statusTypes");
   },
-  getAllActiveRewards() {
-    return apiClient.get("/reward/active");
+  getAllActiveRewards(page, pageSize, searchQuery, filters = {}) {
+    return apiClient.get("/reward/active", {
+      params: {
+        page: page,
+        pageSize: pageSize,
+        searchQuery: searchQuery,
+        redemptionType: filters?.redemptionType,
+        sortAttribute: filters?.sortAttribute,
+        sortDirection: filters?.sortDirection,
+      },
+    });
   },
   getAllInactiveRewards() {
     return apiClient.get("/reward/inactive");
