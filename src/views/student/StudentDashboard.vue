@@ -21,6 +21,7 @@ import flightPlanItemServices from "../../services/flightPlanItemServices";
 import experienceServices from "../../services/experienceServices";
 import SelectEventExperience from "../../components/dialogs/SelectEventExperience.vue";
 import { viewSelectEventExperienceStore } from "../../stores/viewSelectEventExperienceStore";
+import { createOptionalFlightPlanExperience } from "../../utils/flightPlanExperienceItemHelper";
 
 const studentId = ref(null);
 const student = ref(null);
@@ -301,15 +302,19 @@ const handleRegister = async (event) => {
       )
     ).data.flightPlanItems.filter((item) =>
       eventExperiences.some(
-        (experience) => experience.id == item.experience?.id,
+        (experience) =>
+          experience.id == item.experienceId && item.status === "Incomplete",
       ),
     );
 
-    if (
-      dialogFlightPlanItems.value.every((item) => item.status !== "Incomplete")
-    ) {
-      handleRegisterEventExperience(event);
-    } else if (eventExperiences.length == 1) {
+    if (dialogFlightPlanItems.value.length === 0) {
+      const optionalFlightPlanItem = await createOptionalFlightPlanExperience(
+        event,
+        eventExperiences[0],
+        currentFlightPlan,
+      );
+      handleRegisterEventExperience(event, optionalFlightPlanItem);
+    } else if (dialogFlightPlanItems.value.length == 1) {
       handleRegisterEventExperience(event, dialogFlightPlanItems.value[0]);
     } else {
       selectedEvent.value = event;
@@ -322,15 +327,17 @@ const handleRegister = async (event) => {
 
 const handleUnregisterEventExperience = async (
   event,
-  flightPlanItem = null,
+  flightPlanItems = null,
 ) => {
   if (!studentId.value) return;
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
 
-    if (flightPlanItem && flightPlanItem.length == 1) {
+    if (flightPlanItems[0]?.optional) {
+      flightPlanItemServices.deleteFlightPlanItem(flightPlanItems[0].id);
+    } else if (flightPlanItems && flightPlanItems.length == 1) {
       const updatedItem = {
-        ...flightPlanItem[0],
+        ...flightPlanItems[0],
         eventId: null,
         status: "Incomplete",
       };

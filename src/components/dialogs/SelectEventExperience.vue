@@ -3,7 +3,6 @@ import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { viewSelectEventExperienceStore } from "../../stores/viewSelectEventExperienceStore";
 import FlightPlanitemCard from "../cards/FlightPlanItemCard.vue";
-import dayjs from "dayjs";
 const store = viewSelectEventExperienceStore();
 const { visible } = storeToRefs(store);
 
@@ -38,10 +37,6 @@ const register = () => {
   emit("register", selectedEvent.value, selectedFlightPlanItem.value);
   store.toggleVisibility();
 };
-
-const formatDate = (date) => dayjs(date).format("dddd, MMMM D");
-const formatTime = (start, end) =>
-  `${dayjs(start).format("h:mma")} - ${dayjs(end).format("h:mma")}`;
 </script>
 <template>
   <v-dialog v-model="visible" max-width="1000px">
@@ -83,8 +78,8 @@ const formatTime = (start, end) =>
               :is-flight-plan-view="true"
               :background-color="
                 flightPlanItem == selectedFlightPlanItem
-                  ? 'background'
-                  : 'background opacity-50'
+                  ? 'background thick-border'
+                  : 'background'
               "
               @click="handleShow"
             />
@@ -107,37 +102,6 @@ const formatTime = (start, end) =>
               </p>
               <p>{{ selectedFlightPlanItem.status }}</p>
               <p>Points: {{ selectedFlightPlanItem.experience.points }}</p>
-              <div v-if="selectedFlightPlanItem.event">
-                <v-divider class="my-4" />
-                <h2>Event: {{ selectedFlightPlanItem.status }}</h2>
-                <h3>{{ selectedFlightPlanItem.event.name }}</h3>
-                <p>{{ selectedFlightPlanItem.event.description }}</p>
-                <p>
-                  <strong>Location:</strong>
-                  {{ selectedFlightPlanItem.event.location || "No Location" }}
-                </p>
-                <p>
-                  <strong>Date:</strong>
-                  {{ formatDate(selectedFlightPlanItem.event.date) }}
-                </p>
-                <p>
-                  <strong>Time:</strong>
-                  {{
-                    formatTime(
-                      selectedFlightPlanItem.event.startTime,
-                      selectedFlightPlanItem.event.endTime,
-                    )
-                  }}
-                </p>
-                <p>
-                  <strong>Attendance:</strong>
-                  {{ selectedFlightPlanItem.event.attendanceType }}
-                </p>
-                <p>
-                  <strong>Registration:</strong>
-                  {{ selectedFlightPlanItem.event.registration }}
-                </p>
-              </div>
               <div>
                 <v-btn
                   v-if="selectedFlightPlanItem.status === 'Incomplete'"

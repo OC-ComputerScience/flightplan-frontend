@@ -458,4 +458,7 @@ const handleViewRegisteredEvent = async () => {
   max-width: 80%;
   display: block;
 }
+.thick-border {
+  border: 2px solid rgb(var(--v-theme-primary));
+}
 </style>
