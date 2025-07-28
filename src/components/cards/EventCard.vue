@@ -198,7 +198,7 @@ const resolvedStatusLabel = computed(() => {
         return "Upcoming";
       case "canceled":
         return "Cancelled";
-      case "passed":
+      case "past":
         return "Passed";
       case "registered":
         return "Upcoming"
@@ -213,7 +213,7 @@ const resolvedStatusLabel = computed(() => {
         return "Checked In";
       case "canceled":
         return "Cancelled";
-      case "passed":
+      case "past":
         return "registered";
       case "registered":
         return "Registered"
@@ -343,16 +343,20 @@ const handleRegistration = () => {
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
+        <v-row v-if="props.adminView && !props.noActions && props.event.status !== 'Cancelled' && props.event.status !== 'Past'" class="ma-2 float-left">
           <v-btn
             color="warning"
             class="mr-2 cardButton elevation-0"
             @click.stop="editEvent"
           >
-            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+            <v-icon 
+            color="text" 
+            size="x-large"
+            :icon='props.event.status !== "Cancelled" && props.event.status !== "Past" ? "mdi-pencil" : "mdi-eye"'>
+            </v-icon>
           </v-btn>
           <v-btn
-            v-if="props.status !== 'grey'"
+            v-if="props.event.status !== 'Cancelled' && props.event.status !== 'Past'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop="cancelEvent"
