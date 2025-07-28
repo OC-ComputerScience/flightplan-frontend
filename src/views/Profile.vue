@@ -321,8 +321,9 @@ onMounted(async () => {
                 </template>
                 <span>Your top 5 clifton strengths</span>
               </v-tooltip>
+              <v-btn rounded="xl" class="ml-auto mr-4" color="primary" @click="openStrengthsDialog">Edit Strengths</v-btn>
             </div>
-            <v-btn rounded="xl" color="primary" @click="openStrengthsDialog">Edit Strengths</v-btn>
+
           </v-card>
           <!-- Stacked Strengths (Stretching Full Width) -->
           <v-row

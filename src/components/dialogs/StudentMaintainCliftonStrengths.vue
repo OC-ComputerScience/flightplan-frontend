@@ -14,19 +14,19 @@ const emit = defineEmits(["submit"]);
 
 const props = defineProps({
   id: {
-    type: Number,
+    type: String,
     required: true,
   },
 });
 
 const closeDialogue = () => {
-  emit("submit")
+  emit("submit");
   visible.value = false;
 };
 
 const handleSubmit = async () => {
   await updateStrengths(props.id);
-    emit("submit")
+  emit("submit");
   visible.value = false;
 };
 
@@ -61,8 +61,7 @@ onMounted(async () => {
       ...strength,
     }));
 
-    const student = (await studentServices.getStudentForUserId(props.id))
-      .data;
+    const student = (await studentServices.getStudentForUserId(props.id)).data;
     const studentStrengths = (
       await strengthServices.getStrengthsForStudent(student.id)
     ).data;
@@ -81,16 +80,19 @@ onMounted(async () => {
 
 <template>
   <v-dialog v-model="visible" max-width="50%" class="rounded-xl">
-    <v-card class="rounded-xl">
-      <v-card-title class="text-h5 text-center pt-4 pr-4 pl-4">
+          <v-container
+      class="bg-backgroundDarken rounded-t-xl"
+      style="max-height: 90vh; overflow-y: auto"
+    >
+          <v-card-title class="text-h5 text-center pt-4 pr-4 pl-4">
         Add / Remove Clifton Strengths
       </v-card-title>
-      <v-card-text class="text-center pb-8 pl-16 pr-16 pt-6">
-        <p class="text-left pb-8">
-          Add or remove your Clifton Strengths below:
-        </p>
-      </v-card-text>
+    <v-card class="rounded-xl">
 
+
+      <p class="text-left pa-8">
+        Add or remove your Clifton Strengths using the dropdown menu below:
+      </p>
       <v-autocomplete
         v-model="strengths"
         variant="solo"
@@ -102,23 +104,24 @@ onMounted(async () => {
         multiple
         chips
         :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
+        :menu-props="{ top: true }"
       />
 
-      <v-card-actions class="pb-4 pr-4 pl-4">
-        <v-col class="d-flex flex-column align-center">
-          <v-btn rounded="xl" color="primary" @click="handleSubmit"
-            >Submit</v-btn
-          >
-          <v-btn
-            color="primary"
-            variant="text"
-            class="rounded-lg"
-            @click="closeDialogue"
-          >
-            Cancel
-          </v-btn>
-        </v-col>
-      </v-card-actions>
+      <!-- <v-card-actions class="pb-4 pr-4 pl-4"> -->
+
+      <!-- </v-card-actions> -->
     </v-card>
+          <v-row class="justify-center mb-4 mt-4">
+        <v-btn
+          class="mr-2"
+          variant="outlined"
+          rounded="xl"
+          @click="closeDialogue"
+          >Cancel</v-btn
+        >
+        <v-btn rounded="xl" color="primary" @click="handleSubmit">Submit</v-btn>
+      </v-row>
+    </v-container>
+
   </v-dialog>
 </template>
