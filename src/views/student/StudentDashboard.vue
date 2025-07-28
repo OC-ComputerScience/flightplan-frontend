@@ -28,8 +28,6 @@ import { createOptionalFlightPlanExperience } from "../../utils/flightPlanExperi
 import EventRegistrationConfirmation from "../../components/dialogs/EventRegistrationConfirmation.vue";
 import { eventRegistrationConfirmationStore } from "../../stores/eventRegistrationConfirmationStore";
 
-import flightPlanItemServices from "../../services/flightPlanItemServices"
-
 
 
 const studentId = ref(null);
