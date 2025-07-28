@@ -80,38 +80,32 @@ onMounted(async () => {
 
 <template>
   <v-dialog v-model="visible" max-width="50%" class="rounded-xl">
-          <v-container
+    <v-container
       class="bg-backgroundDarken rounded-t-xl"
       style="max-height: 90vh; overflow-y: auto"
     >
-          <v-card-title class="text-h5 text-center pt-4 pr-4 pl-4">
+      <v-card-title class="text-h5 text-center pt-4 pr-4 pl-4">
         Add / Remove Clifton Strengths
       </v-card-title>
-    <v-card class="rounded-xl">
-
-
-      <p class="text-left pa-8">
-        Add or remove your Clifton Strengths using the dropdown menu below:
-      </p>
-      <v-autocomplete
-        v-model="strengths"
-        variant="solo"
-        rounded="lg"
-        label="Strengths"
-        :items="strengthOptions"
-        item-value="value"
-        item-title="title"
-        multiple
-        chips
-        :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
-        :menu-props="{ top: true }"
-      />
-
-      <!-- <v-card-actions class="pb-4 pr-4 pl-4"> -->
-
-      <!-- </v-card-actions> -->
-    </v-card>
-          <v-row class="justify-center mb-4 mt-4">
+      <v-card class="rounded-xl">
+        <p class="text-left pa-8">
+          Add or remove your Clifton Strengths using the dropdown menu below:
+        </p>
+        <v-autocomplete
+          v-model="strengths"
+          variant="solo"
+          rounded="lg"
+          label="Strengths"
+          :items="strengthOptions"
+          item-value="value"
+          item-title="title"
+          multiple
+          chips
+          :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
+          :menu-props="{ top: true }"
+        />
+      </v-card>
+      <v-row class="justify-center mb-4 mt-4">
         <v-btn
           class="mr-2"
           variant="outlined"
@@ -119,9 +113,8 @@ onMounted(async () => {
           @click="closeDialogue"
           >Cancel</v-btn
         >
-        <v-btn rounded="xl" color="primary" @click="handleSubmit">Submit</v-btn>
+        <v-btn rounded="xl" color="primary" @click="handleSubmit">Update</v-btn>
       </v-row>
     </v-container>
-
   </v-dialog>
 </template>
