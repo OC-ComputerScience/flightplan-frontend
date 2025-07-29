@@ -141,8 +141,14 @@ const fetchFlightPlan = async () => {
       return {
         label: `${flightPlan.semester.term.charAt(0).toUpperCase() + flightPlan.semester.term.slice(1)} ${flightPlan.semester.year}`,
         value: flightPlan.id,
+        semestersFromGrad: flightPlan.semestersFromGrad,
       };
     });
+
+    flightPlans.value.sort(
+    (a, b) =>
+      (a.semestersFromGrad ?? Infinity) - (b.semestersFromGrad ?? Infinity),
+    );
 
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
