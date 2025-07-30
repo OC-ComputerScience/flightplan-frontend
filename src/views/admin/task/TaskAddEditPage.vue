@@ -221,6 +221,17 @@ onMounted(async () => {
       </v-row>
       <v-row no-gutters>
         <v-select
+          v-model="formData.semesterEnd"
+          variant="solo"
+          rounded="lg"
+          label="Semester End"
+          :items="[{ name: 'None', value: null }, ...semesterTypes]"
+          item-value="value"
+          item-title="name"
+        ></v-select>
+      </v-row>
+      <v-row no-gutters>
+        <v-select
           v-model="formData.status"
           variant="solo"
           rounded="lg"
