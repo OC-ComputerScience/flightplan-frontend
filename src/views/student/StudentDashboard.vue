@@ -301,8 +301,6 @@ const handleRegister = async (event) => {
     await experienceServices.getAllExperiencesForEvent(event.id)
   ).data;
 
-  console.log("Event Experiences:", eventExperiences);
-
   if (eventExperiences.length > 0) {
     const currentFlightPlan = (
       await flightPlanServices.getFlightPlanForStudentAndSemester(
