@@ -241,6 +241,17 @@ onMounted(async () => {
             :rules="[required]"
           ></v-select>
         </v-col>
+        <v-col :cols="12">
+          <v-select
+            v-model="formData.semesterEnd"
+            variant="solo"
+            rounded="lg"
+            label="Semester End"
+            :items="[{ name: 'None', value: null }, ...semesterTypes]"
+            item-value="value"
+            item-title="name"
+          ></v-select>
+        </v-col>
       </v-row>
       <v-row no-gutters>
           <v-autocomplete
