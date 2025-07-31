@@ -179,7 +179,10 @@ const fetchFlightPlan = async () => {
   flightPlans.value = response.data.map((flightPlan) => ({
     label: formatFlightPlanLabel(flightPlan),
     value: flightPlan.id,
+    semestersFromGrad: flightPlan.semestersFromGrad,
   }));
+
+  flightPlans.value.sort((a, b) => a.semestersFromGrad - b.semestersFromGrad);
 
   // Use stored semester if available, otherwise use first one
   if (flightPlanStore.selectedSemester) {
