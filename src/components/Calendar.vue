@@ -75,7 +75,6 @@ const handleCancel = (eventId) => {
 };
 
 const confirmCancel = async () => {
-  console.log("Confirming cancellation for event:", eventToCancel.value);
   try {
     await eventServices.updateEvent(eventToCancel.value, {
       status: "Cancelled",
@@ -86,7 +85,6 @@ const confirmCancel = async () => {
     await eventServices
       .getRegisteredStudents(eventToCancel.value)
       .then((res) => {
-        console.log("Registered students for cancellation:", res.data);
         if (res.data !== null) {
         res.data.forEach((student) => {
           registeredStudents.push(student.studentId);
