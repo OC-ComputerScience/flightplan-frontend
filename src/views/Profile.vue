@@ -191,7 +191,7 @@ onMounted(async () => {
             >
               <div class="align-center mb-2" style="width: 100%">
                 <span
-                  class="text-h4 font-weight-bold"
+                  class="text-h4 font-weight-bold mr-3"
                   style="flex: 1; font-size: 2vw"
                 >
                   {{ selectedUser.fullName }}
@@ -199,18 +199,18 @@ onMounted(async () => {
                 <v-btn
                   v-if="canEditProfile()"
                   color="primary"
-                  class="ml-2 cardButton elevation-0"
-                  size="small"
-                  @click.stop="handleEdit(route.params.userId)"
+                  class="ml-auto cardButton elevation-0"
+                  rounded="xl"
+                  @click="handleEdit(selectedUser.id)"
                 >
                   <v-icon icon="mdi-pencil" color="text" size="large"></v-icon>
-                  <span class="ml-1" style="font-size: 1vw">Edit Profile</span>
+                  Edit Profile
                 </v-btn>
                 <v-btn
                   v-if="isAdmin"
                   color="primary"
                   class="ml-2 cardButton elevation-0"
-                  size="small"
+                  rounded="xl"
                   @click="toFlightPlan"
                 >
                   <v-icon
@@ -218,37 +218,38 @@ onMounted(async () => {
                     color="text"
                     size="large"
                   ></v-icon>
-                  <span class="ml-1" style="font-size: 1vw"
-                    >View Flight Plan</span
-                  >
+                  View Flight Plan
                 </v-btn>
               </div>
-              <div class="mb-1" style="font-size: 1.2vw; text-align: left">
-                <span class="text-h5" style="text-align: left; font-size: 1.5vw"
+              <div class="mb-1" style="text-align: left">
+                <span class="text-h6" style="text-align: left; font-size: 1.1vw"
                   >Email:</span
                 >
-                <span class="text-h5 ml-1" style="font-size: 1.5vw">{{
+                <span class="text-body-1 ml-1" style="font-size: 0.7vw">{{
                   selectedUser.email
                 }}</span>
-                <span class="text-h5 ml-4" style="font-size: 1.5vw"
-                  >Major(s):</span
-                >
+              </div>
+              <div class="mb-1" style="text-align: left">
+                <span class="text-h6" style="font-size: 1.1vw">Major(s):</span>
                 <span
                   v-if="selectedMajor.length"
-                  class="text-h5 ml-1"
-                  style="font-size: 1.5vw"
+                  class="text-body-1 ml-1"
+                  style="font-size: 0.7vw"
                 >
                   {{ selectedMajor.map((major) => major.name).join(", ") }}
                 </span>
               </div>
               <div class="mb-2">
                 <h3
-                  class="text-h6 font-weight-bold mb-1"
+                  class="text-h6 mb-1"
                   style="text-align: left; font-size: 1.5vw"
                 >
                   About Me:
                 </h3>
-                <p style="text-align: left; font-size: 1.1vw">
+                <p
+                  class="text-body-1"
+                  style="text-align: left; font-size: 1.1vw"
+                >
                   {{ selectedUser.profileDescription }}
                 </p>
               </div>
@@ -392,7 +393,6 @@ onMounted(async () => {
 .topBar {
   width: 100%;
   margin-right: 2vw;
-  height: 25vh; /* Allows it to grow dynamically */
   max-width: 100%;
 }
 

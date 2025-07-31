@@ -41,7 +41,12 @@ const categoryColor = computed(() => {
     @mouseleave="hoveredStrength = null"
   >
     <v-row align="center" class="strength-header">
-      <v-card class="category" :style="{ backgroundColor: categoryColor }">
+      <v-card
+        class="category"
+        :style="{
+          backgroundColor: categoryColor,
+        }"
+      >
         <h3>{{ props.strength.number }}</h3>
       </v-card>
       <h3 class="strength-name">{{ props.strength.name }}</h3>
@@ -69,7 +74,7 @@ const categoryColor = computed(() => {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 4vh;
+  height: 5vh;
   padding: 0;
 }
 
@@ -79,26 +84,24 @@ const categoryColor = computed(() => {
   font-weight: 500;
   align-items: center;
   padding: 8px 0;
+  height: 100%;
 }
 
 .category {
-  height: 5vh;
   width: 35px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 8px;
+  border-radius: 8px 0 0 8px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
   margin-left: 5px;
   padding: 0;
+  transition: height 0.3s ease;
+  height: 5vh;
 }
 
 .domain {
   margin-right: 15px;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
   padding: 0;
 }
 
@@ -106,7 +109,6 @@ const categoryColor = computed(() => {
   margin: 40px 15px 0px 15px;
   font-size: 0.95rem;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .expanded {
