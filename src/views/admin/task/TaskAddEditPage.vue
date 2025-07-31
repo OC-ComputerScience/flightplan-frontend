@@ -294,7 +294,7 @@ onMounted(async () => {
         variant="solo"
         rounded="lg"
         label="Additional Instructions Link"
-        :rules="[isLink]"
+        :rules="formData.instructionsLinkDescription ? [isLink] : []"
       ></v-text-field>
       <v-text-field
         v-model="formData.rationale"
