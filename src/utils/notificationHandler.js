@@ -37,7 +37,7 @@ export const createEventCancelNotification = async (
   event,
   userId,
   email = false,
-  sentBy = 1,
+  sentBy = null,
   emailAddress = null,
 ) => {
   let notificationData = {
@@ -79,7 +79,7 @@ export const createEventUpdateNotification = async (
   event,
   userId,
   email = false,
-  sentBy = 1,
+  sentBy = null,
   emailAddress = null,
 ) => {
   let notificationData = {

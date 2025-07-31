@@ -103,7 +103,7 @@ const confirmCancel = async () => {
             eventToCancelObject.value,
             student.user.id,
             true,
-            1,
+            null,
             student.user.email,
           );
         });
