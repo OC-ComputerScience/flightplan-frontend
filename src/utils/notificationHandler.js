@@ -37,9 +37,10 @@ export const createEventCancelNotification = async (
   event,
   userId,
   email = false,
-  sentBy = 1,
+  sentBy = null,
   emailAddress = null,
 ) => {
+  console.log("Creating event cancel notification for user:", userId);
   let notificationData = {
     header: `${event.name || "Event"} Event on ${event.date} Cancelled`,
     description: `The event ${event.name || "you registered for"} on ${event.date} you have registed for has been cancelled.` +
@@ -79,7 +80,7 @@ export const createEventUpdateNotification = async (
   event,
   userId,
   email = false,
-  sentBy = 1,
+  sentBy = null,
   emailAddress = null,
 ) => {
   let notificationData = {

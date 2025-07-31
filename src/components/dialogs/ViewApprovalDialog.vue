@@ -56,7 +56,7 @@ const handleReject = async () => {
         description: rejectReason.value ?? "No reason provided",
         read: false,
         userId: student.user.id,
-        sentBy: 1, // Sent by the system
+        sentBy: null,
         email: false,
         emailAddress: null
       });
