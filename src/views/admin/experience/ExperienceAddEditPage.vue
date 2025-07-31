@@ -29,9 +29,6 @@ const majorOptions = ref([]);
 const route = useRoute();
 const router = useRouter();
 
-const requiredNumberOfStrengths = 1;
-const requiredNumberOfMajors = 1;
-
 const handleCancel = () => {
   router.push({ name: "experience" });
 };
@@ -324,10 +321,17 @@ onMounted(async () => {
         label="Completion Instructions"
       ></v-textarea>
       <v-text-field
+        v-model="formData.instructionsLinkDescription"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link Description"
+      ></v-text-field>
+      <v-text-field
         v-model="formData.instructionsLink"
         variant="solo"
         rounded="lg"
         label="Additional Instructions Link"
+        :rules="[isLink]"
       ></v-text-field>
       <v-text-field
         v-model="formData.rationale"

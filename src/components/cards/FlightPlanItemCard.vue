@@ -364,7 +364,8 @@ const handleViewRegisteredEvent = async () => {
               <v-btn
                 v-if="
                   flightPlanItem.flightPlanItemType === 'Experience' &&
-                  flightPlanItem.experience?.submissionType === 'attendance' &&
+                  flightPlanItem.experience?.submissionType === 'Attendance - Reflection' || 
+                  flightPlanItem.experience?.submissionType === 'Attendance - Auto Approve' &&
                   flightPlanItem.status === 'Incomplete'
                 "
                 class="mr-4 mb-3"
