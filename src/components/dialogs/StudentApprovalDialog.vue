@@ -105,9 +105,10 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-        console.log(reflectionText.length)
+        console.log(reflectionText.length);
         if (reflectionText.value.length < 400) {
-          errorMessage.value = "Your reflection must be at least 400 characters"
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
           return;
         }
 
@@ -140,7 +141,8 @@ const handleSubmit = async () => {
         }
 
         if (reflectionText.value.length < 400) {
-          errorMessage.value = "Your reflection must be at least 400 characters"
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
           return;
         }
 
@@ -158,6 +160,27 @@ const handleSubmit = async () => {
         await submitReflection(automaticSubmission);
         break;
       }
+
+      case "Attendance - Reflection":
+        /*
+         * TODO:
+         * Check the following:
+         * 1. If event date has passed
+         *   If yes, continue
+         *   If no, then display "Please check back after the event has ended to complete this item"
+         * 2. If attendance has been posted
+         *   If yes, then allow to submit if student has attendance marked (if not, then display "Your attendance for this event was not recorded. Please Contact <a href="mailto:careerservices@oc.edu">Career Services</a>")
+         *   If no, then allow the student to submit and set item status to "Pending Registration""
+         * 3. Continue
+         */
+          if (noText) {
+            errorMessage.value = "Please write a reflection";
+            return;
+          }
+          await submitAttendanceReflection();
+          await handleAutoApproval();
+
+        break;
 
       default:
         // Mixed or other types
@@ -293,6 +316,21 @@ const submitReflection = async (autoSubmission = false) => {
   ).data.id;
 };
 
+const submitAttendanceReflection = async () => {
+  const submissionData = {
+    flightPlanItemId: flightPlanItem.value.id,
+    submissionType: "text",
+  };
+
+  submissionId.value = (
+    await submissionServices.createSubmission({
+      ...submissionData,
+      value: reflectionText.value,
+      isAutomatic: true,
+    })
+  ).data.id;
+};
+
 const generateNotification = async () => {
   let response = await userServices.getAllAdmins();
   let admins = response.data;
@@ -415,7 +453,8 @@ onMounted(() => {
             <v-textarea
               v-if="
                 submissionType === 'Reflection - Review' ||
-                submissionType === 'Reflection - Auto Approve'
+                submissionType === 'Reflection - Auto Approve' || 
+                submissionType === 'Attendance - Reflection'
               "
               v-model="reflectionText"
               label="Reflection"

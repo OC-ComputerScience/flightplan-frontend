@@ -211,6 +211,8 @@ const color = computed(() => {
       Rejected: "danger",
       Pending: "warning",
       Registered: "warning",
+      "Pending Registration": "warning",
+      "Awaiting Reflection": "warning",
     }[status] || "primary"
   );
 });
@@ -330,7 +332,8 @@ const handleViewRegisteredEvent = async () => {
                   ['Task', 'Experience'].includes(
                     flightPlanItem.flightPlanItemType,
                   ) &&
-                  flightPlanItem.status === 'Incomplete' &&
+                  flightPlanItem.status === 'Incomplete' ||
+                  flightPlanItem.status === 'Awaiting Reflection' &&
                   (flightPlanItem.flightPlanItemType === 'Task' ||
                     isSubmissionExperience)
                 "
