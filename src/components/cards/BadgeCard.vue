@@ -76,6 +76,7 @@ const cardClass = computed(() => {
 }
 
 .profile-card {
+  min-width: 150px;
   max-width: 200px;
 }
 
