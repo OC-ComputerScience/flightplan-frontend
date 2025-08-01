@@ -10,6 +10,8 @@ import { required, characterLimit } from "../../utils/formValidators";
 import { automaticSubmissionHandler } from "../../utils/flightPlanItemSubmissionHelper";
 import { createNotification } from "../../utils/notificationHandler";
 import { userStore } from "../../stores/userStore";
+import eventServices from "../../services/eventServices";
+import studentServices from "../../services/studentServices";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -24,6 +26,45 @@ const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
 const submissionId = ref(null);
+const cannotSubmitText = ref("")
+
+const avaliableToSubmit = ref(false);
+
+watch(
+  () => flightPlanItem.value,
+  async (item) => {
+    avaliableToSubmit.value = false;
+
+    if (
+      item.task ||
+      (!item.experience.submissionType === "Attendance - Reflection" &&
+        !item.experience.submissionType === "Attendance - Auto Approve")
+    ) {
+      avaliableToSubmit.value = true;
+      return;
+    }
+
+    let eventId = item.eventId;
+    if (eventId) {
+      try {
+        const event = await eventServices.getEvent(eventId);
+        if (event.data.status === 'Past') {
+          avaliableToSubmit.value = true;
+        } else {
+          cannotSubmitText.value = `Cannot complete ${flightPlanItem.value.name}. Please check back after the event, ${event.data.name}, has ended to complete this item.`;
+          avaliableToSubmit.value = false;
+        }
+      } catch {
+        cannotSubmitText.value = "Cannot find the event for this experience. Please contact Career Services for assistance.";
+        avaliableToSubmit.value = false;
+      }
+    } else {
+      cannotSubmitText.value = "You have not registered for an event for this experience. Please click the register button to find an upcoming event."
+      avaliableToSubmit.value = false;
+    }
+  },
+  { immediate: true }
+);
 
 const submissionType = computed(() => {
   if (flightPlanItem.value.task) {
@@ -376,21 +417,6 @@ const handleAutoApproval = async () => {
     .then(() => {
       successMessage.value = "Flight plan item submission approved";
       debounceSubmit();
-
-      let store = userStore();
-      let userId = store.user?.userId;
-      let header = `${String(flightPlanItem.value.name)} Flight Plan Item Completion`;
-      let body = `You have received ${flightPlanItem.value.task ? String(flightPlanItem.value.task.points) : String(flightPlanItem.value.experience.points)} points for completing ${String(flightPlanItem.value.name)}`;
-
-      createNotification(
-        header,
-        body,
-        false,
-        userId,
-        null,
-        true,
-        store.user?.email,
-      );
     })
     .catch((error) => {
       errorMessage.value =
@@ -439,7 +465,7 @@ onMounted(() => {
           >mdi-close</v-icon
         >
       </v-card-title>
-      <v-card-text>
+      <v-card-text v-if="avaliableToSubmit">
         <v-fade-transition mode="out-in">
           <div v-if="successMessage">
             <v-alert type="success" variant="tonal" closable>{{
@@ -587,6 +613,11 @@ onMounted(() => {
             </div>
           </div>
         </v-fade-transition>
+      </v-card-text>
+      <v-card-text v-else>
+        <v-alert type="warning" variant="tonal">
+          {{ cannotSubmitText }}
+        </v-alert>
       </v-card-text>
     </v-card>
   </v-dialog>

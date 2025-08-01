@@ -332,10 +332,15 @@ const handleViewRegisteredEvent = async () => {
                   ['Task', 'Experience'].includes(
                     flightPlanItem.flightPlanItemType,
                   ) &&
-                  flightPlanItem.status === 'Incomplete' ||
-                  flightPlanItem.status === 'Awaiting Reflection' &&
+                  ['Incomplete', 'Awaiting Reflection', 'Registered'].includes(
+                    flightPlanItem.status,
+                  ) &&
                   (flightPlanItem.flightPlanItemType === 'Task' ||
-                    isSubmissionExperience)
+                    (flightPlanItem.flightPlanItemType === 'Experience' &&
+                      (flightPlanItem.experience?.submissionType ===
+                        'Attendance - Reflection') &&
+                      flightPlanItem.eventId !== null || flightPlanItem.experience?.submissionType !==
+                        'Attendance - Reflection'))
                 "
                 class="mr-4 mb-3"
                 variant="outlined"
@@ -366,10 +371,12 @@ const handleViewRegisteredEvent = async () => {
               <!-- Attendance-based Experience Registration -->
               <v-btn
                 v-if="
-                  flightPlanItem.flightPlanItemType === 'Experience' &&
-                  flightPlanItem.experience?.submissionType === 'Attendance - Reflection' || 
-                  flightPlanItem.experience?.submissionType === 'Attendance - Auto Approve' &&
-                  flightPlanItem.status === 'Incomplete'
+                  (flightPlanItem.flightPlanItemType === 'Experience' &&
+                    flightPlanItem.experience?.submissionType ===
+                      'Attendance - Reflection') ||
+                  (flightPlanItem.experience?.submissionType ===
+                    'Attendance - Auto Approve' &&
+                    flightPlanItem.status === 'Incomplete')
                 "
                 class="mr-4 mb-3"
                 variant="outlined"
