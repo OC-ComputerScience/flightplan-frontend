@@ -111,7 +111,7 @@ const handleLogout = async () => {
    
     // Clear user data from store
     const token = store.user.token;
-    console.log("Logging out user with token:", token);
+  
    
     store.$reset();
 
