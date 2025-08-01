@@ -266,6 +266,7 @@ const completeExperience = async (event) => {
               :key="event.id || idx"
               :event="event"
               :view-only="true"
+              :no-actions="true"
               :status="eventColors[event.id] || 'primary'"
               :status-label="eventStatusLabels[event.id] || ''"
               :is-event-viewing="false"
