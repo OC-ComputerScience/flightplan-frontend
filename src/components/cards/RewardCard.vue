@@ -10,6 +10,7 @@ const props = defineProps({
   isView: { type: Boolean, default: true },
   variant: { type: String, default: "default" },
   studentPoints: { type: Number, default: 0 },
+  maintenanceView: { type: Boolean, default: false },
   student: { type: Object, default: null },
 });
 
@@ -114,12 +115,13 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
-            <!-- Points Display -->
-      <p
-
-        class="text-subtitle-1 text-center my-2"
-      >
-      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
+      <!-- Points Display -->
+      <p v-if="!props.maintenanceView" class="text-subtitle-1 text-center my-2">
+        {{
+          canRedeem
+            ? `${props.reward.points} pts`
+            : `Not enough points (${props.reward.points} pts)`
+        }}
       </p>
 
       <p class="text-subtitle-1 text-center my-2">
@@ -131,11 +133,14 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             : "Unlimited Stock"
         }}
       </p>
-      <p v-if="hasMaximumPerUser" class="text-subtitle-1 text-center my-2">
+      <p
+        v-if="hasMaximumPerUser && !props.maintenanceView"
+        class="text-subtitle-1 text-center my-2"
+      >
         {{ amountRedeemed ? amountRedeemed : 0 }} Reedemed /
         {{ props.reward.maximumRedemptionsPerUser }} Per Student
       </p>
-      <p class="text-subtitle-1 text-center my-2">
+      <p v-if="props.maintenanceView" class="text-subtitle-1 text-center my-2">
         Status: {{ props.reward.status }}
       </p>
 
