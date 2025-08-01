@@ -92,7 +92,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
     :color="'backgroundDarken'" 
     class="rounded-xl"
     @click="
-      emit('show', { ...props.reward, amountRedeemed: amountRedeemed.value })
+      emit('show', { ...props.reward, amountRedeemed: amountRedeemed?.value })
     "
   >
     <v-card-text>
