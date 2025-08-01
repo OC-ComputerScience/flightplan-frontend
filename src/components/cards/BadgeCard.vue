@@ -30,6 +30,7 @@ const cardClass = computed(() => {
 </script>
 
 <template>
+  <!--Need to add a filter for Active and Inactive badges-->
   <v-card
     :class="['rounded-xl', cardClass, 'bg-backgroundDarken']"
     v-bind="
@@ -55,9 +56,6 @@ const cardClass = computed(() => {
       ></v-img>
       <p class="text-subtitle-1 text-center my-2">
         {{ props.badge.name }}
-      </p>
-      <p class="text-subtitle-1 text-center my-2">
-        Status: {{ props.badge.status }}
       </p>
       <v-row v-show="!props.isProfilePage" class="ma-2 justify-center">
         <v-btn
