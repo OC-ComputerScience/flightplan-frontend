@@ -108,11 +108,8 @@ const getIcon = (linkText) => {
 
 const handleLogout = async () => {
   try {
-   
     // Clear user data from store
     const token = store.user.token;
-  
-   
     store.$reset();
 
     // Clear localStorage first
@@ -133,6 +130,7 @@ const handleLogout = async () => {
     }
 
     // Redirect to login page
+
     router.push({ name: "login" });
   } catch (error) {
     console.error("Logout error:", error);
