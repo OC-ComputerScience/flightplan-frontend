@@ -98,7 +98,7 @@ const fetchRewards = async () => {
 
 const fetchStudentById = async () => {
   try {
-    const response = await studentServices.getStudentById(
+    const response = await studentServices.getStudentForUserId(
       route.params.studentId,
     );
     student.value = response.data;
@@ -180,6 +180,7 @@ watch([searchQuery], fetchRewards);
           :is-view="false"
           variant="redeem"
           :student-points="studentPoints"
+          :student="student"
           @redeem="handleRedeem"
         ></RewardCard>
       </template>
