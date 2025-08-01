@@ -58,9 +58,9 @@ const router = useRouter();
 const showLogoutDialog = ref(false);
 const isAdmin = ref(false);
 
+ const store = userStore();
 onMounted(async () => {
-  const store = userStore();
-
+ 
   isAdmin.value = await store.isAdmin();
   const isFaculty = await store.isFaculty();
 
@@ -108,8 +108,11 @@ const getIcon = (linkText) => {
 
 const handleLogout = async () => {
   try {
+   
     // Clear user data from store
-    const store = userStore();
+    const token = store.user.token;
+    console.log("Logging out user with token:", token);
+   
     store.$reset();
 
     // Clear localStorage first
@@ -117,7 +120,10 @@ const handleLogout = async () => {
 
     try {
       // Try to notify backend of logout, but don't wait for response
-      await apiClient.post("/auth/logout", { userId: userId.value });
+      await apiClient.post("/logout", {
+        userId: userId.value,
+        token: token,
+      });
     } catch (error) {
       // Ignore any errors from the logout API call
       console.log(
