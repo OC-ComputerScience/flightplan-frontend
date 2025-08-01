@@ -284,25 +284,24 @@ onMounted(async () => {
               >
             </v-tooltip>
           </div>
-          <div id="badgeList">
-            <v-row v-if="!noBadges">
-              <v-col v-for="(item, index) in badges" :key="index" cols="12">
-                <BadgeCard
-                  :badge="item"
-                  :is-profile-page="true"
-                  @view="handleViewBadge"
-                />
-              </v-col>
-            </v-row>
-            <div v-else class="text-center pa-4" style="font-size: 1vw">
-              No badges!<br />
-              Complete some flight plan items to be rewarded!<br /><br />
-              <b>
-                "The LORD repay you for what you have done..." <br />– Ruth 2:12
-              </b>
-            </div>
+          <div v-if="!noBadges" class="badge-grid">
+            <BadgeCard
+              v-for="(item, index) in badges"
+              :key="index"
+              :badge="item"
+              :is-profile-page="true"
+              @view="handleViewBadge"
+            />
           </div>
-          <v-row v-if="!noBadges" justify="center" align="center"> </v-row>
+
+          <!-- Empty State -->
+          <div v-else class="text-center pa-4" style="font-size: 1vw">
+            No badges!<br />
+            Complete some flight plan items to be rewarded!<br /><br />
+            <b>
+              "The LORD repay you for what you have done..." <br />– Ruth 2:12
+            </b>
+          </div>
         </v-card>
       </v-col>
 
@@ -414,6 +413,13 @@ onMounted(async () => {
   overflow-x: hidden;
   margin-bottom: 10px;
   padding-right: 5px;
+}
+
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px; /* spacing between badge cards */
+  justify-content: flex-start;
 }
 
 .dashboard-cell {
