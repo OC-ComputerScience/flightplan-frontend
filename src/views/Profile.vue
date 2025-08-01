@@ -304,18 +304,7 @@ onMounted(async () => {
               </b>
             </div>
           </div>
-          <v-row
-            v-if="!noBadges"
-            justify="center"
-            align="center"
-            class="pagination"
-          >
-            <v-pagination
-              v-model="currentPage"
-              :length="totalPages"
-              :total-visible="5"
-            />
-          </v-row>
+          <v-row v-if="!noBadges" justify="center" align="center"> </v-row>
         </v-card>
       </v-col>
 
