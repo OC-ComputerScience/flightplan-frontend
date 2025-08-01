@@ -173,12 +173,12 @@ const handleSubmit = async () => {
          *   If no, then allow the student to submit and set item status to "Pending Registration""
          * 3. Continue
          */
-          if (noText) {
-            errorMessage.value = "Please write a reflection";
-            return;
-          }
-          await submitAttendanceReflection();
-          await handleAutoApproval();
+        if (noText) {
+          errorMessage.value = "Please write a reflection";
+          return;
+        }
+        await submitAttendanceReflection();
+        await handleAutoApproval();
 
         break;
 
@@ -376,6 +376,21 @@ const handleAutoApproval = async () => {
     .then(() => {
       successMessage.value = "Flight plan item submission approved";
       debounceSubmit();
+
+      let store = userStore();
+      let userId = store.user?.userId;
+      let header = `${String(flightPlanItem.value.name)} Flight Plan Item Completion`;
+      let body = `You have received ${flightPlanItem.value.task ? String(flightPlanItem.value.task.points) : String(flightPlanItem.value.experience.points)} points for completing ${String(flightPlanItem.value.name)}`;
+
+      createNotification(
+        header,
+        body,
+        false,
+        userId,
+        null,
+        true,
+        store.user?.email,
+      );
     })
     .catch((error) => {
       errorMessage.value =
@@ -453,7 +468,7 @@ onMounted(() => {
             <v-textarea
               v-if="
                 submissionType === 'Reflection - Review' ||
-                submissionType === 'Reflection - Auto Approve' || 
+                submissionType === 'Reflection - Auto Approve' ||
                 submissionType === 'Attendance - Reflection'
               "
               v-model="reflectionText"
