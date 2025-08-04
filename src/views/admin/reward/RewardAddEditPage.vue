@@ -20,6 +20,7 @@ const form = ref(null);
 const formData = ref({ imageName: null });
 const image = ref(null);
 const hasQuantity = ref(false);
+const hasMaximumPerUser = ref(false);
 
 // Form data
 const redemptionTypes = ["In-Person", "Digital"];
@@ -37,6 +38,9 @@ const handleSubmit = async () => {
     formData.value.quantityAvaliable = formData.value.quantityAvaliable;
   } else {
     formData.value.quantityAvaliable = null;
+  }
+  if (!hasMaximumPerUser.value) {
+    formData.value.maximumRedemptionsPerUser = null;
   }
   try {
     if (props.isAdd) {
@@ -100,6 +104,9 @@ onMounted(async () => {
       }
       if (formData.value.quantityAvaliable !== null) {
         hasQuantity.value = true;
+      }
+      if (formData.value.maximumRedemptionsPerUser !== null) {
+        hasMaximumPerUser.value = true;
       }
     } catch (err) {
       console.log("Error", err);
@@ -185,12 +192,21 @@ watch(
         label="Description"
         :rules="[required]"
       ></v-textarea>
-      <v-checkbox
-        v-model="hasQuantity"
-        label="Limited Quantity?"
-        variant="solo"
-        rounded="lg"
-      ></v-checkbox>
+      <v-row no-gutters>
+        <v-checkbox
+          v-model="hasQuantity"
+          label="Limited Quantity?"
+          variant="solo"
+          rounded="lg"
+          class="mr-4"
+        ></v-checkbox>
+        <v-checkbox
+          v-model="hasMaximumPerUser"
+          label="Maximum Quantity Per User?"
+          variant="solo"
+          rounded="lg"
+        ></v-checkbox>
+      </v-row>
       <v-text-field
         v-if="hasQuantity"
         v-model="formData.quantityAvaliable"
@@ -198,6 +214,14 @@ watch(
         rounded="lg"
         label="Quantity Available"
         :rules="[required, zeroOrGreater]"
+      ></v-text-field>
+      <v-text-field
+        v-if="hasMaximumPerUser"
+        v-model="formData.maximumRedemptionsPerUser"
+        variant="solo"
+        rounded="lg"
+        label="Maximum Per User"
+        :rules="[required, positiveNumber]"
       ></v-text-field>
       <ImageInput v-model="image" :image-name="formData.imageName" />
       <v-row class="justify-center my-1">

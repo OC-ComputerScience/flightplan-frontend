@@ -3,12 +3,15 @@ import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { loadImage } from "../componentUtilities";
 import defaultImage from "/defaultRewardImage.png";
 import fileServices from "../../services/fileServices";
+import studentRewardServices from "../../services/studentRewardServices";
 // Props and Emits
 const props = defineProps({
   reward: { type: Object, required: true },
   isView: { type: Boolean, default: true },
   variant: { type: String, default: "default" },
   studentPoints: { type: Number, default: 0 },
+  maintenanceView: { type: Boolean, default: false },
+  student: { type: Object, default: null },
 });
 
 watch(
@@ -19,15 +22,40 @@ watch(
   { deep: true },
 );
 
+watch(
+  () => props.studentPoints,
+  () => {
+    fetchAmountRedeemed();
+  },
+  { deep: true },
+);
+
 const emit = defineEmits(["edit", "shop", "show", "redeem"]);
+
+const emitShow = () => {
+  emit("show", { ...props.reward, amountRedeemed: amountRedeemed?.value });
+};
 
 // State
 const imageSrc = ref("");
+const amountRedeemed = ref(null);
 
 const fetchImage = async () => {
   const response = await fileServices.getFileForName(props.reward.imageName);
   if (!response.data.image) imageSrc.value = defaultImage;
   else imageSrc.value = loadImage(response.data.image.data);
+};
+
+const fetchAmountRedeemed = async () => {
+  if (!hasMaximumPerUser.value || !props.student?.id) {
+    return;
+  }
+  amountRedeemed.value = (
+    await studentRewardServices.getAllStudentRewardsForStudentAndReward(
+      props.student.id,
+      props.reward.id,
+    )
+  ).data.length;
 };
 
 // Computed Properties
@@ -38,18 +66,33 @@ const inStock = computed(() => {
     props.reward.quantityAvaliable > 0
   );
 });
+const hasMaximumPerUser = computed(
+  () => !!props.reward?.maximumRedemptionsPerUser,
+);
+
+const redeemable = computed(() => {
+  if (hasMaximumPerUser.value) {
+    if (amountRedeemed.value !== null && amountRedeemed.value !== undefined) {
+      return (
+        canRedeem.value &&
+        inStock.value &&
+        props.reward.maximumRedemptionsPerUser > amountRedeemed.value
+      );
+    }
+  }
+  return canRedeem.value && inStock.value;
+});
 
 // Lifecycle Hooks
-onMounted(() => fetchImage());
+onMounted(async () => {
+  await fetchImage();
+  await fetchAmountRedeemed();
+});
 onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card 
-    :color="'backgroundDarken'" 
-    class="rounded-xl"
-    @click="emit('show', props.reward)"
-  >
+  <v-card :color="'backgroundDarken'" class="rounded-xl" @click="emitShow()">
     <v-card-text>
       <!-- Image Section -->
       <v-img
@@ -70,12 +113,13 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ props.reward.name }}
       </p>
 
-            <!-- Points Display -->
-      <p
-
-        class="text-subtitle-1 text-center my-2"
-      >
-      {{ canRedeem ? `${props.reward.points} pts` : `Not enough points (${props.reward.points} pts)` }}
+      <!-- Points Display -->
+      <p v-if="!props.maintenanceView" class="text-subtitle-1 text-center my-2">
+        {{
+          canRedeem
+            ? `${props.reward.points} pts`
+            : `Not enough points (${props.reward.points} pts)`
+        }}
       </p>
 
       <p class="text-subtitle-1 text-center my-2">
@@ -84,10 +128,23 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             ? props.reward.quantityAvaliable > 0
               ? `${props.reward.quantityAvaliable} Remaining`
               : "Out of Stock"
-            : "Unlimited"
+            : "Unlimited Stock"
         }}
       </p>
-      <p class="text-subtitle-1 text-center my-2">
+      <p
+        v-if="hasMaximumPerUser && !props.maintenanceView"
+        class="text-subtitle-1 text-center my-2"
+      >
+        {{ amountRedeemed ? amountRedeemed : 0 }} Reedemed /
+        {{ props.reward.maximumRedemptionsPerUser }} Per Student
+      </p>
+      <p
+        v-else-if="hasMaximumPerUser && props.maintenanceView"
+        class="text-subtitle-1 text-center my-2"
+      >
+        Maximum {{ props.reward.maximumRedemptionsPerUser }} Per Student
+      </p>
+      <p v-if="props.maintenanceView" class="text-subtitle-1 text-center my-2">
         Status: {{ props.reward.status }}
       </p>
 
@@ -99,7 +156,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             v-if="isView"
             color="primary"
             class="rounded-lg"
-            @click.stop="emit('show', props.reward)"
+            @click.stop="emitShow()"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
           </v-btn>
@@ -118,18 +175,26 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         <!-- Redeem Variant Buttons -->
         <template v-else-if="props.variant === 'redeem'">
           <v-btn
-            :color="canRedeem && inStock ? 'primary' : 'danger'"
+            :color="redeemable ? 'primary' : 'danger'"
             class="rounded-lg"
-            :variant="!canRedeem || !inStock ? 'outlined' : undefined"
-            :readonly="!canRedeem || !inStock"
+            :variant="!redeemable ? 'outlined' : undefined"
+            :readonly="!redeemable"
             @click.stop="canRedeem && inStock && emit('redeem', props.reward)"
           >
             {{
-              inStock
-                ? canRedeem
-                  ? "Redeem"
-                  : "Not enough points"
-                : "Out of stock"
+              hasMaximumPerUser && amountRedeemed
+                ? props.reward?.maximumRedemptionsPerUser > amountRedeemed
+                  ? inStock
+                    ? canRedeem
+                      ? "Redeem"
+                      : "Not enough points"
+                    : "Out of stock"
+                  : "Maximum Redeemed"
+                : inStock
+                  ? canRedeem
+                    ? "Redeem"
+                    : "Not enough points"
+                  : "Out of stock"
             }}
           </v-btn>
         </template>

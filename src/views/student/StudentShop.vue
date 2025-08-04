@@ -20,6 +20,7 @@ const page = ref(1);
 const showReward = ref(false);
 const rewardToShow = ref({});
 const points = ref(0);
+const student = ref(null);
 
 const imageSrc = ref("");
 
@@ -52,8 +53,10 @@ const fetchRewards = async () => {
 };
 
 const fetchPoints = async () => {
-  const student = await studentServices.getStudentForUserId(userId.value);
-  points.value = student.data.pointsAwarded - student.data.pointsUsed;
+  student.value = (
+    await studentServices.getStudentForUserId(userId.value)
+  ).data;
+  points.value = student.value.pointsAwarded - student.value.pointsUsed;
 };
 
 const handleSearch = async (query) => {
@@ -104,7 +107,12 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
         @close-info="showReward = false"
       >
         <template #item="{ item }">
-          <RewardCard :reward="item" :studentPoints="points" @show="handleShowReward" />
+          <RewardCard
+            :reward="item"
+            :student-points="points"
+            :student="student"
+            @show="handleShowReward"
+          />
         </template>
         <template #pagination>
           <v-pagination v-model="page" :length="totalPages" />
@@ -130,6 +138,16 @@ watch([page, searchQuery], () => fetchRewards(), { immediate: true });
           <p class="text-h6">Points:</p>
           <p class="mb-2 text-subtitle-1">{{ rewardToShow.points }} pts</p>
 
+          <div v-if="!!rewardToShow.maximumRedemptionsPerUser">
+            <p class="text-h6">Limited Redemptions Per Student:</p>
+            <p class="mb-2 text-subtitle-1">
+              {{
+                rewardToShow.amountRedeemed ? rewardToShow.amountRedeemed : 0
+              }}
+              Reedemed /
+              {{ rewardToShow.maximumRedemptionsPerUser }} Per Student
+            </p>
+          </div>
           <p class="text-h6">Avaliable Quantity:</p>
           <p class="mb-2 text-subtitle-1">
             {{
