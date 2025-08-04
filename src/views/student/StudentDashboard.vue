@@ -411,7 +411,7 @@ onMounted(async () => {
   <div v-if="getCookie('showFirstTimeInstructions') === 'true'">  <FirstTimeInstructions /></div>
 
   <div class="dashboard-container">
-    <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
+    <h1 class="mt-1">Welcome, {{ store.user ? store.user.fullName : 'Student' }}!</h1>
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">

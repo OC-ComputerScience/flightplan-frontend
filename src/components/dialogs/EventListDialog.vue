@@ -128,9 +128,9 @@ onMounted(async () => {
   statusReady.value = true;
 });
 
-onUnmounted(async () => {
-  await fetchFlightPlanItemsWithEvents();
-});
+// onUnmounted(async () => {
+//   await fetchFlightPlanItemsWithEvents();
+// });
 
 watch(internalValue, async (val) => {
   if (val) {
