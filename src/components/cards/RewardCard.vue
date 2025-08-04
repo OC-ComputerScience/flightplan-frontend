@@ -32,6 +32,10 @@ watch(
 
 const emit = defineEmits(["edit", "shop", "show", "redeem"]);
 
+const emitShow = () => {
+  emit("show", { ...props.reward, amountRedeemed: amountRedeemed?.value });
+};
+
 // State
 const imageSrc = ref("");
 const amountRedeemed = ref(null);
@@ -88,13 +92,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card 
-    :color="'backgroundDarken'" 
-    class="rounded-xl"
-    @click="
-      emit('show', { ...props.reward, amountRedeemed: amountRedeemed?.value })
-    "
-  >
+  <v-card :color="'backgroundDarken'" class="rounded-xl" @click="emitShow()">
     <v-card-text>
       <!-- Image Section -->
       <v-img
@@ -140,6 +138,12 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
         {{ amountRedeemed ? amountRedeemed : 0 }} Reedemed /
         {{ props.reward.maximumRedemptionsPerUser }} Per Student
       </p>
+      <p
+        v-else-if="hasMaximumPerUser && props.maintenanceView"
+        class="text-subtitle-1 text-center my-2"
+      >
+        Maximum {{ props.reward.maximumRedemptionsPerUser }} Per Student
+      </p>
       <p v-if="props.maintenanceView" class="text-subtitle-1 text-center my-2">
         Status: {{ props.reward.status }}
       </p>
@@ -152,7 +156,7 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             v-if="isView"
             color="primary"
             class="rounded-lg"
-            @click.stop="emit('show', props.reward)"
+            @click.stop="emitShow()"
           >
             <v-icon icon="mdi-eye" color="text" size="x-large" />
           </v-btn>

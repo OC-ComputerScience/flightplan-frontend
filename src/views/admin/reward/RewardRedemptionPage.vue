@@ -98,7 +98,7 @@ const fetchRewards = async () => {
 
 const fetchStudentById = async () => {
   try {
-    const response = await studentServices.getStudentForUserId(
+    const response = await studentServices.getStudentById(
       route.params.studentId,
     );
     student.value = response.data;
