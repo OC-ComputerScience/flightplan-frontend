@@ -26,13 +26,14 @@ const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
 
 const submissionId = ref(null);
-const cannotSubmitText = ref("")
+const cannotSubmitText = ref("");
 
 const avaliableToSubmit = ref(false);
 
 watch(
   () => flightPlanItem.value,
   async (item) => {
+    checkStudentAttendance();
     avaliableToSubmit.value = false;
 
     if (
@@ -48,22 +49,24 @@ watch(
     if (eventId) {
       try {
         const event = await eventServices.getEvent(eventId);
-        if (event.data.status === 'Past') {
+        if (event.data.status === "Past") {
           avaliableToSubmit.value = true;
         } else {
           cannotSubmitText.value = `Cannot complete ${flightPlanItem.value.name}. Please check back after the event, ${event.data.name}, has ended to complete this item.`;
           avaliableToSubmit.value = false;
         }
       } catch {
-        cannotSubmitText.value = "Cannot find the event for this experience. Please contact Career Services for assistance.";
+        cannotSubmitText.value =
+          "Cannot find the event for this experience. Please contact Career Services for assistance.";
         avaliableToSubmit.value = false;
       }
     } else {
-      cannotSubmitText.value = "You have not registered for an event for this experience. Please click the register button to find an upcoming event."
+      cannotSubmitText.value =
+        "You have not registered for an event for this experience. Please click the register button to find an upcoming event.";
       avaliableToSubmit.value = false;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const submissionType = computed(() => {
@@ -100,6 +103,28 @@ const hasInstructionsDescription = computed(() => {
     return flightPlanItem.value.experience.instructionsLinkDescription;
   }
 });
+
+const didStudentAttend = ref(false);
+
+const checkStudentAttendance = async () => {
+  try {
+    const user = userStore().user;
+    if (!user?.userId || !flightPlanItem.value?.eventId) {
+      didStudentAttend.value = false;
+      return;
+    }
+    const studentRes = await studentServices.getStudentForUserId(user.userId);
+    const studentId = studentRes.data.id;
+    const attendedEventsRes =
+      await eventServices.getAttendingEventsForStudent(studentId);
+    didStudentAttend.value = attendedEventsRes.data.some(
+      (event) => event.id === flightPlanItem.value.eventId,
+    );
+  } catch (error) {
+    didStudentAttend.value = false;
+    console.error("Error checking attendance:", error);
+  }
+};
 
 const fetchOptionalReviewers = async () => {
   try {
@@ -146,7 +171,7 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-        console.log(reflectionText.length);
+
         if (reflectionText.value.length < 400) {
           errorMessage.value =
             "Your reflection must be at least 400 characters";
@@ -203,23 +228,31 @@ const handleSubmit = async () => {
       }
 
       case "Attendance - Reflection":
-        /*
-         * TODO:
-         * Check the following:
-         * 1. If event date has passed
-         *   If yes, continue
-         *   If no, then display "Please check back after the event has ended to complete this item"
-         * 2. If attendance has been posted
-         *   If yes, then allow to submit if student has attendance marked (if not, then display "Your attendance for this event was not recorded. Please Contact <a href="mailto:careerservices@oc.edu">Career Services</a>")
-         *   If no, then allow the student to submit and set item status to "Pending Registration""
-         * 3. Continue
-         */
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
         }
+
+        if (reflectionText.value.length < 400) {
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
+          return;
+        }
+
         await submitAttendanceReflection();
-        await handleAutoApproval();
+        if (didStudentAttend.value) {
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        } else {
+          errorMessage.value =
+            "Attendance for this event has not yet been posted. You will receive a notification once it has been posted.";
+
+          await flightPlanItemServices.updateFlightPlanItem({
+            ...flightPlanItem.value,
+            status: "Pending Attendance",
+          });
+          return;
+        }
 
         break;
 
@@ -302,7 +335,10 @@ const handleSubmit = async () => {
         }
         break;
     }
-    if (!automaticSubmission) {
+    if (
+      !automaticSubmission &&
+      submissionType.value !== "Attendance - Reflection"
+    ) {
       generateNotification();
       successMessage.value = "Submission successful!";
       debounceSubmit();
@@ -417,6 +453,24 @@ const handleAutoApproval = async () => {
     .then(() => {
       successMessage.value = "Flight plan item submission approved";
       debounceSubmit();
+
+      
+      if (flightPlanItem.value.flightPlanItemType === "Experience" && flightPlanItem.value.experience.submissionType === "Attendance - Auto Approve" ){
+        let store = userStore();
+        let userId = store.user?.userId;
+        let header = `${String(flightPlanItem.value.name)} Flight Plan Item Completion`;
+        let body = `You have received ${flightPlanItem.value.task ? String(flightPlanItem.value.task.points) : String(flightPlanItem.value.experience.points)} points for completing ${String(flightPlanItem.value.name)}`;
+
+        createNotification(
+          header,
+          body,
+          false,
+          userId,
+          null,
+          true,
+          store.user?.email,
+        );
+      }
     })
     .catch((error) => {
       errorMessage.value =

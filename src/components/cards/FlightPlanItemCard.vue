@@ -211,7 +211,7 @@ const color = computed(() => {
       Rejected: "danger",
       Pending: "warning",
       Registered: "warning",
-      "Pending Registration": "warning",
+      "Pending Attendance": "warning",
       "Awaiting Reflection": "warning",
     }[status] || "primary"
   );
@@ -376,7 +376,9 @@ const handleViewRegisteredEvent = async () => {
                       'Attendance - Reflection') ||
                   (flightPlanItem.experience?.submissionType ===
                     'Attendance - Auto Approve' &&
-                    flightPlanItem.status === 'Incomplete')
+                    flightPlanItem.status === 'Incomplete') &&
+                    flightPlanItem.status !== 'Pending Reflection' &&
+                    flightPlanItem.status != 'Pending Attendance'
                 "
                 class="mr-4 mb-3"
                 variant="outlined"
