@@ -144,7 +144,7 @@ const getStudent = async (userId) => {
 
 const openStrengthsDialog = () => {
   showStrengthsDialog.value = true;
-}
+};
 
 // Add watcher for pagination
 watch(currentPage, (newPage) => {
@@ -168,197 +168,205 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-row class="background">
-    <!-- Profile Section -->
-    <v-card color="backgroundDarken" class="topBar">
-      <v-row class="w-100">
-        <v-col cols="2" class="d-flex flex-column align-center justify-center">
-          <v-img
-            src="/Birb.png"
-            height="200"
-            width="200"
-            class="profile-pic"
-            style="
-              position: absolute;
-              top: -20px;
-              z-index: 10000;
-              border-radius: 50%;
-            "
-          />
-          <div style="margin-top: 160px">
-            <p class="text-h6 font-weight-bold">
-              {{ selectedUser.fullName }}
-            </p>
-          </div>
-        </v-col>
-
-        <v-col cols="4" class="d-flex flex-column justify-center">
-          <h3 style="text-align: left">About Me:</h3>
-          <p style="text-align: left; display: flex; font-size: 18px">
-            {{ selectedUser.profileDescription }}
-          </p>
-        </v-col>
-        <v-col class="v-col-2 d-flex flex-column justify-center text-right">
-          <p style="font-size: 16px; text-align: right !important">Major</p>
-          <p style="font-size: 16px; text-align: right !important">Email</p>
-          <p
-            v-for="(link, index) in links"
-            :key="index"
-            style="text-align: right !important; font-size: 16px"
-          >
-            {{ link.websiteName }}
-          </p>
-        </v-col>
-        <v-col cols="4" class="d-flex flex-column justify-center text-left">
-          <p class="text-subtitle-1">
-            {{ selectedMajor.map((major) => major.name).join(", ") }}
-          </p>
-          <a style="text-align: left !important">
-            {{ selectedUser.email }}
-          </a>
-          <a
-            v-for="(link, index) in links"
-            :key="index"
-            style="text-align: left !important; font-size: 16px"
-            :href="link.link"
-            target="_blank"
-          >
-            {{ link.link }}
-            <br />
-          </a>
-        </v-col>
-        <v-col cols="1" class="d-flex align-right">
-          <v-icon
-            v-if="isAdmin"
-            :size="32"
-            style="margin-left: 85%; margin-top: 5%"
-            color="primary"
-            class="d-flex align-right"
-            @click="toFlightPlan"
-            >mdi-airplane</v-icon
-          >
-        </v-col>
-        <v-spacer />
-        <v-col cols="1" class="d-flex justify-end align-right">
-          <v-btn
-            v-if="canEditProfile()"
-            color="primary"
-            class="mr-2 cardButton elevation-0"
-            @click.stop="handleEdit(route.params.userId)"
-          >
-            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
-
+  <v-container fluid class="pa-6">
+    <!-- Page Header -->
     <v-row>
-      <v-col cols="12" md="6">
-        <div class="adminItem">
-          <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <div class="d-flex align-center justify-start">
-              <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
-                </template>
-                <span>Your badges earned so far. Continue progressing through your flight plans to earn more!</span>
-              </v-tooltip>
-            </div>
-          </v-card>
-          <v-row v-if="!noBadges">
-            <v-col
-              v-for="(item, index) in badges"
-              :key="index"
-              cols="12"
-              md="4"
-            >
-              <BadgeCard
-                :badge="item"
-                :is-profile-page="true"
-                @view="handleViewBadge"
-              />
-            </v-col>
-          </v-row>
-          <v-row v-else>
-            <div class="adminItem" style="text-align: center">
-              No badges! <br />
-              Complete some flight plan items to be rewarded!
-              <br />
-              <br />
-              <b
-                >The LORD repay you for what you have done, and a full reward be
-                given you by the LORD, the God of Israel, under whose wings you
-                have come to take refuge!" <br />
-                - Ruth 2:12</b
-              >
-            </div>
-          </v-row>
-          <v-row
-            v-if="!noBadges"
-            justify="center"
-            align="center"
-            class="pagination"
-          >
-            <v-pagination
-              v-model="currentPage"
-              :length="totalPages"
-              :total-visible="5"
-            ></v-pagination>
-          </v-row>
-        </div>
-      </v-col>
-
-      <!-- Strengths Section (Stacked Vertically, Stretching Full Width) -->
-      <v-col cols="12" md="6">
-        <div class="adminItem" style="margin-right: 2vw">
-          <v-card color="backgroundDarken">
-            <div class="d-flex align-center justify-start">
-              <h2 style="margin: 10px 0px 5px 15px">Clifton Strengths</h2>
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="20" class="ml-2">mdi-information-outline</v-icon>
-                </template>
-                <span>Your top 5 clifton strengths</span>
-              </v-tooltip>
-              <v-btn rounded="xl" class="ml-auto mr-4" color="primary" @click="openStrengthsDialog">Update Strengths</v-btn>
-            </div>
-
-          </v-card>
-          <!-- Stacked Strengths (Stretching Full Width) -->
-          <v-row
-            v-if="strengths && strengths.length > 0"
-            class="strengths-list"
-            style="margin: 0; padding: 0"
-          >
-            <v-col
-              v-for="(item, index) in strengths"
-              :key="index"
-              cols="12"
-              style="padding: 0; margin: 0"
-            >
-              <StrengthCard :strength="item" />
-            </v-col>
-          </v-row>
-          <v-row v-else>
-            <div class="adminItem" style="text-align: center">
-              No Clifton Strengths found<br />
-              Find a task to take the Galups Strength Assessment in your Flight Plan or contact Charlotte Hamil for more info! <br /><br />
-              <b
-                >"Before I formed you in the womb I knew you, and before you
-                were born I consecrated you; I appointed you a prophet to the
-                nations." <br />
-                - Jeremiah 1:5</b
-              >
-            </div>
-          </v-row>
-        </div>
+      <v-col cols="12">
+        <h1 class="font-weight-bold">Your Profile</h1>
       </v-col>
     </v-row>
-  </v-row>
+
+    <!-- Profile Section -->
+    <v-row class="mb-3">
+      <v-col cols="12">
+        <v-card color="backgroundDarken" class="topBar pa-4 rounded-xl">
+          <v-row class="w-100" no-gutters>
+            <v-col
+              cols="12"
+              md="6"
+              class="d-flex flex-column justify-center"
+              style="min-width: 0"
+            >
+              <div class="align-center mb-2" style="width: 100%">
+                <span
+                  class="text-h4 font-weight-bold mr-3"
+                  style="flex: 1; font-size: 2vw"
+                >
+                  {{ selectedUser.fullName }}
+                </span>
+                <v-btn
+                  v-if="canEditProfile()"
+                  color="primary"
+                  class="ml-auto cardButton elevation-0"
+                  rounded="xl"
+                  @click="handleEdit(selectedUser.id)"
+                >
+                  <v-icon icon="mdi-pencil" color="text" size="large"></v-icon>
+                  Edit Profile
+                </v-btn>
+                <v-btn
+                  v-if="isAdmin"
+                  color="primary"
+                  class="ml-2 cardButton elevation-0"
+                  rounded="xl"
+                  @click="toFlightPlan"
+                >
+                  <v-icon
+                    icon="mdi-airplane"
+                    color="text"
+                    size="large"
+                  ></v-icon>
+                  View Flight Plan
+                </v-btn>
+              </div>
+              <div class="mb-1" style="text-align: left">
+                <span class="text-h6" style="text-align: left; font-size: 1.1vw"
+                  >Email:</span
+                >
+                <span class="text-body-1 ml-1" style="font-size: 0.7vw">{{
+                  selectedUser.email
+                }}</span>
+              </div>
+              <div class="mb-1" style="text-align: left">
+                <span class="text-h6" style="font-size: 1.1vw">Major(s):</span>
+                <span
+                  v-if="selectedMajor.length"
+                  class="text-body-1 ml-1"
+                  style="font-size: 0.7vw"
+                >
+                  {{ selectedMajor.map((major) => major.name).join(", ") }}
+                </span>
+              </div>
+              <div class="mb-2">
+                <h3
+                  class="text-h6 mb-1"
+                  style="text-align: left; font-size: 1.5vw"
+                >
+                  About Me:
+                </h3>
+                <p
+                  class="text-body-1"
+                  style="text-align: left; font-size: 1.1vw"
+                >
+                  {{ selectedUser.profileDescription }}
+                </p>
+              </div>
+              <div>
+                <span v-for="(link, index) in links" :key="index" class="mr-2">
+                  <a :href="link.link" target="_blank" style="font-size: 1vw">
+                    {{ link.websiteName }}
+                  </a>
+                </span>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row class="mb-6" dense>
+      <!-- Badges Section -->
+      <v-col cols="12" md="6">
+        <v-card color="backgroundDarken" class="dashboard-cell pa-4">
+          <div class="d-flex align-center justify-start mb-2">
+            <strong class="section-headers" style="font-size: 2vw"
+              >Badges</strong
+            >
+            <v-tooltip location="top">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" size="20" class="ml-2"
+                  >mdi-information-outline</v-icon
+                >
+              </template>
+              <span
+                >Your badges earned so far. Continue progressing through your
+                flight plans to earn more!</span
+              >
+            </v-tooltip>
+          </div>
+          <div v-if="!noBadges" class="badge-grid">
+            <BadgeCard
+              v-for="(item, index) in badges"
+              :key="index"
+              :badge="item"
+              :is-profile-page="true"
+              @view="handleViewBadge"
+            />
+          </div>
+
+          <!-- Empty State -->
+          <div v-else class="text-center pa-4" style="font-size: 1vw">
+            No badges!<br />
+            Complete some flight plan items to be rewarded!<br /><br />
+            <b>
+              "The LORD repay you for what you have done..." <br />– Ruth 2:12
+            </b>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Strengths Section -->
+      <v-col cols="12" md="6">
+        <v-card color="backgroundDarken" class="dashboard-cell pa-4">
+          <div class="d-flex align-center justify-start mb-2">
+            <strong class="section-headers" style="font-size: 2vw"
+              >Clifton Strengths</strong
+            >
+            <v-tooltip location="top">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" size="20" class="ml-2"
+                  >mdi-information-outline</v-icon
+                >
+              </template>
+              <span>Your top 5 Clifton Strengths</span>
+            </v-tooltip>
+            <v-btn
+              rounded="xl"
+              class="ml-auto"
+              color="primary"
+              @click="openStrengthsDialog"
+              >Update Strengths</v-btn
+            >
+          </div>
+          <div id="strengthList">
+            <v-row
+              v-if="strengths && strengths.length > 0"
+              class="strengths-list"
+            >
+              <v-col
+                v-for="(item, index) in strengths"
+                :key="index"
+                cols="12"
+                class="px-4"
+              >
+                <StrengthCard :strength="item" />
+              </v-col>
+            </v-row>
+            <div v-else class="text-center pa-4" style="font-size: 1vw">
+              No Clifton Strengths found.<br />
+              Take the Gallup Strengths Assessment or contact Charlotte
+              Hamil.<br /><br />
+              <b>
+                "Before I formed you in the womb I knew you..." <br />– Jeremiah
+                1:5
+              </b>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
   <ViewBadgeAwards :badges="unviewedBadges" />
   <ViewAwardedBadge :badge="selectedBadge" />
-  <StudentMaintainCliftonStrengths v-if="showStrengthsDialog" @close="showStrengthsDialog = false" :id=route.params.userId @submit="getStrengths(route.params.userId); showStrengthsDialog=false"/>
+  <StudentMaintainCliftonStrengths
+    v-if="showStrengthsDialog"
+    :id="route.params.userId"
+    @close="showStrengthsDialog = false"
+    @submit="
+      getStrengths(route.params.userId);
+      showStrengthsDialog = false;
+    "
+  />
 </template>
 
 <style scoped>
@@ -371,7 +379,6 @@ onMounted(async () => {
 .topBar {
   width: 100%;
   margin-right: 2vw;
-  height: 25vh; /* Allows it to grow dynamically */
   max-width: 100%;
 }
 
@@ -397,5 +404,35 @@ onMounted(async () => {
 .strengths-list .v-col {
   margin: 0;
   padding: 0;
+}
+
+#badgeList,
+#strengthList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px; /* spacing between badge cards */
+  justify-content: flex-start;
+}
+
+.dashboard-cell {
+  display: flex;
+  flex-direction: column;
+  height: 62vh;
+  padding: 10px 5px;
+  border-radius: 25px;
+}
+
+.section-headers {
+  font-size: 24px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

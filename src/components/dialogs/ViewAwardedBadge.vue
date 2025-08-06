@@ -55,10 +55,11 @@ watch(visible, () => {
         </v-col>
         <v-col cols="6">
           <p class="text-h4">{{ shownBadge?.name }}</p>
-          <p class="text-h6">{{ shownBadge?.description }}</p>
           <p class="text-h7">
-            Aquired: {{ dayjs(shownBadge?.updatedAt).format("MMM D, YYYY") }}
+            Acquired: {{ dayjs(shownBadge?.updatedAt).format("MMM D, YYYY") }}
           </p>
+          <p class="text-h6">Description:</p>
+          <p class="text-body-1">{{ shownBadge?.description }}</p>
         </v-col>
         <v-spacer></v-spacer>
         <v-btn
