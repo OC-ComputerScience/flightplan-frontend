@@ -509,7 +509,7 @@ onMounted(async () => {
           variant="text"
           :to="{ name: 'student-flightPlan' }"
         >
-          See More Flight Plan Items
+          See Full Flight Plan
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
