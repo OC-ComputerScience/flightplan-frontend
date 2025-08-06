@@ -64,7 +64,7 @@ export const characterLimit = (value, min) => {
 
 export const isBetween = (value, min, max) => {
   if (value < min) {
-    return `Value be greater than ${min}`
+    return `Value must be greater than ${min}`
   }
   else if (value > max) {
     return `Value must be less than ${max}`
