@@ -20,21 +20,19 @@ export const sortFlightPlanItems = (items) => {
     experiences = getExperiences(items);
 
     tasks = tasks.sort((a, b) => {
-        if (b.task?.sequenceNumber !== a.task?.sequenceNumber) {
-            return b.task?.sequenceNumber - a.task?.sequenceNumber;
+        if (a.task?.sequenceNumber !== b.task?.sequenceNumber) {
+            return a.task?.sequenceNumber - b.task?.sequenceNumber;
         }
-
         return a.name.localeCompare(b.name);
     });
 
     experiences = experiences.sort((a, b) => {
-        if (b.experience?.sequenceNumber !== a.experience?.sequenceNumber) {
+        if (a.experience?.sequenceNumber !== b.experience?.sequenceNumber) {
             return a.experience?.sequenceNumber - b.experience?.sequenceNumber;
         }
-
         return a.name.localeCompare(b.name);
     });
 
-    let allItems =  tasks.concat(experiences);
+    let allItems = tasks.concat(experiences);
     return allItems.sort((a,b) => orderByStatus(a.status) - orderByStatus(b.status))
 }

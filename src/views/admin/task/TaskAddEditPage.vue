@@ -5,7 +5,6 @@ import {
   required,
   positiveNumber,
   isLink,
-  isBetween,
 } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
@@ -242,7 +241,7 @@ onMounted(async () => {
             variant="solo"
             rounded="lg"
             label="Flight Plan Sequence Number"
-            :rules="[isBetween(formData.sequenceNumber, 1, 5), required]"
+            :rules="[required, positiveNumber]"
           ></v-text-field>
         </v-col>
       </v-row>
