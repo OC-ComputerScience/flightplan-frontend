@@ -62,6 +62,18 @@ export const characterLimit = (value, min) => {
   }
 }
 
+export const isBetween = (value, min, max) => {
+  if (value < min) {
+    return `Value be greater than ${min}`
+  }
+  else if (value > max) {
+    return `Value must be less than ${max}`
+  }
+  else {
+    return true;
+  }
+}
+
 export const isLink = (value) => {
   const webPattern = /^https?:\/\/w?w?w?\.?[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$/;
   if (!webPattern.test(value))

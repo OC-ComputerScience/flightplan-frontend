@@ -1,7 +1,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, positiveNumber, isLink } from "../../../utils/formValidators";
+import {
+  required,
+  positiveNumber,
+  isLink,
+  isBetween,
+} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
 import majorServices from "../../../services/majorServices";
@@ -229,6 +234,17 @@ onMounted(async () => {
           item-value="value"
           item-title="name"
         ></v-select>
+      </v-row>
+      <v-row no-gutters>
+        <v-col size="6">
+          <v-text-field
+            v-model="formData.sequenceNumber"
+            variant="solo"
+            rounded="lg"
+            label="Flight Plan Sequence Number"
+            :rules="[isBetween(formData.sequenceNumber, 1, 5), required]"
+          ></v-text-field>
+        </v-col>
       </v-row>
       <v-row no-gutters>
         <v-select
