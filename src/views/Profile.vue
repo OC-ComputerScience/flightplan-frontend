@@ -267,32 +267,32 @@ onMounted(async () => {
     <v-row class="mb-6" dense>
       <!-- Badges Section -->
       <v-col cols="12" md="6">
-        <div class="adminItem">
-          <v-card color="backgroundDarken" style="margin-bottom: 25px">
-            <div class="d-flex align-center justify-start">
-              <h2 style="margin: 10px 0px 5px 15px">Badges</h2>
-              <v-tooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="20" class="ml-2"
-                    >mdi-information-outline</v-icon
-                  >
-                </template>
-                <span
-                  >Your badges earned so far. Continue progressing through your
-                  flight plans to earn more!</span
+        <v-card color="backgroundDarken" class="dashboard-cell pa-4">
+          <div class="d-flex align-center justify-start mb-2">
+            <strong class="section-headers" style="font-size: 2vw"
+              >Badges</strong
+            >
+            <v-tooltip location="top">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" size="20" class="ml-2"
+                  >mdi-information-outline</v-icon
                 >
-              </v-tooltip>
-              <v-btn
-                rounded="xl"
-                class="ml-auto mr-4"
-                color="primary"
-                :to="{ name: 'studentBadges' }"
-                >View All</v-btn
+              </template>
+              <span
+                >Your badges earned so far. Continue progressing through your
+                flight plans to earn more!</span
               >
-            </div>
-          </v-card>
-          <v-row v-if="!noBadges">
-            <v-col
+            </v-tooltip>
+            <v-btn
+              rounded="xl"
+              class="ml-auto mr-4"
+              color="primary"
+              :to="{ name: 'studentBadges' }"
+              >View All</v-btn
+            >
+          </div>
+          <div v-if="!noBadges" class="badge-grid">
+            <BadgeCard
               v-for="(item, index) in badges"
               :key="index"
               :badge="item"
