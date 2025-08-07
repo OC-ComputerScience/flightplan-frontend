@@ -285,7 +285,7 @@ onMounted(async () => {
             </v-tooltip>
             <v-btn
               rounded="xl"
-              class="ml-auto mr-4"
+              class="ml-auto mr-4 elevation-0"
               color="primary"
               :to="{ name: 'studentBadges' }"
               >View All</v-btn
@@ -329,7 +329,7 @@ onMounted(async () => {
             </v-tooltip>
             <v-btn
               rounded="xl"
-              class="ml-auto"
+              class="ml-auto mr-4 elevation-0"
               color="primary"
               @click="openStrengthsDialog"
               >Update Strengths</v-btn
