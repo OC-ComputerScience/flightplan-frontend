@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required } from "../../../utils/formValidators";
+import {
+  required,
+  positiveNumber,
+} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
 import strengthServices from "../../../services/strengthServices";
@@ -254,16 +257,27 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <v-row no-gutters>
-          <v-autocomplete
-            v-model="formData.status"
+        <v-col size="6">
+          <v-text-field
+            v-model="formData.sequenceNumber"
             variant="solo"
             rounded="lg"
-            label="Status"
-            :items="statusTypes"
-            item-value="value"
-            item-title="title"
-            :rules="[required]"
-          ></v-autocomplete>
+            label="Flight Plan Sequence Number"
+            :rules="[required, positiveNumber]"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-autocomplete
+          v-model="formData.status"
+          variant="solo"
+          rounded="lg"
+          label="Status"
+          :items="statusTypes"
+          item-value="value"
+          item-title="title"
+          :rules="[required]"
+        ></v-autocomplete>
       </v-row>
       <v-row dense>
         <v-col :cols="6">

@@ -28,6 +28,8 @@ import { createOptionalFlightPlanExperience } from "../../utils/flightPlanExperi
 import EventRegistrationConfirmation from "../../components/dialogs/EventRegistrationConfirmation.vue";
 import { eventRegistrationConfirmationStore } from "../../stores/eventRegistrationConfirmationStore";
 
+import { sortFlightPlanItems } from "../../utils/flightPlanSorterHelper";
+
 
 
 const studentId = ref(null);
@@ -184,6 +186,7 @@ const fetchFlightPlanProgress = async () => {
       flightPlanItems.value = selectedFlightPlanData.flightPlanItems.filter(
         (item) => item.status !== "Complete",
       );
+      flightPlanItems.value = await sortFlightPlanItems(flightPlanItems.value);
     }
 
     // Store the selected semester in the flight plan store
@@ -506,7 +509,7 @@ onMounted(async () => {
           variant="text"
           :to="{ name: 'student-flightPlan' }"
         >
-          See More Flight Plan Items
+          See Full Flight Plan
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">

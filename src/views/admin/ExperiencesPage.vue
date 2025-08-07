@@ -26,7 +26,7 @@ const getExperiences = async (pageNumber = page.value) => {
       searchQuery.value,
     );
    
-    experiences.value = result.data.experiences;
+    experiences.value = result.data.experiences.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
     count.value = result.data.count;
   } catch (error) {
     console.error("Error fetching experiences:", error);
