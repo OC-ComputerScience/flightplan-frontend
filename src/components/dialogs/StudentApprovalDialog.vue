@@ -460,11 +460,11 @@ const handleAutoApproval = async () => {
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
-      successMessage.value = "Flight plan item submission approved";
-      debounceSubmit();
-
-      
-      if (flightPlanItem.value.flightPlanItemType === "Experience" && flightPlanItem.value.experience.submissionType === "Attendance - Auto Approve" ){
+      if (
+        flightPlanItem.value.flightPlanItemType === "Experience" &&
+        flightPlanItem.value.experience.submissionType ===
+          "Attendance - Auto Approve"
+      ) {
         let store = userStore();
         let userId = store.user?.userId;
         let header = `${String(flightPlanItem.value.name)} Flight Plan Item Completion`;
@@ -479,6 +479,11 @@ const handleAutoApproval = async () => {
           true,
           store.user?.email,
         );
+        emit("submit");
+      }
+      else {
+      successMessage.value = "Flight plan item submission approved";
+      debounceSubmit();
       }
     })
     .catch((error) => {
@@ -678,8 +683,11 @@ onMounted(() => {
         </v-fade-transition>
       </v-card-text>
       <v-card-text v-else>
-        <v-alert type="warning" variant="tonal">
-          {{ cannotSubmitText }}
+        <v-alert type="warning" variant="tonal" color="warning">
+          <v-alert-title
+            :style="{ color: $vuetify.theme.current.colors.text }"
+            >{{ cannotSubmitText }}</v-alert-title
+          >
         </v-alert>
       </v-card-text>
     </v-card>

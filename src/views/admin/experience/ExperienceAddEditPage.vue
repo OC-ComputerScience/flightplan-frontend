@@ -202,16 +202,6 @@ onMounted(async () => {
         </v-col>
         <v-col :cols="6">
           <v-select
-            v-model="formData.submissionType"
-            variant="solo"
-            rounded="lg"
-            label="Submission Type"
-            :items="submissionTypes"
-            :rules="[required]"
-          ></v-select>
-        </v-col>
-        <v-col :cols="12">
-          <v-select
             v-model="formData.schedulingType"
             variant="solo"
             rounded="lg"
@@ -220,6 +210,23 @@ onMounted(async () => {
             :rules="[required]"
           ></v-select>
         </v-col>
+        <v-col :cols="6">
+          <v-select
+            v-model="formData.submissionType"
+            variant="solo"
+            rounded="lg"
+            label="Submission Type"
+            :items="submissionTypes"
+            :rules="[required]"
+          ></v-select>
+        </v-col>
+        <v-col :cols="6">
+          <v-checkbox
+            v-model="formData.requiresEvent"
+            label="OC Event Registration Required for Completion?"
+          />
+        </v-col>
+
         <v-col size="6">
           <v-text-field
             v-model="formData.points"
