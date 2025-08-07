@@ -96,6 +96,15 @@ const hasInstructionsLink = computed(() => {
   }
 });
 
+  const requiresEvent = computed(() => {
+    if (flightPlanItem.value.flightPlanItemType === 'Task')
+      return false
+    if (flightPlanItem.value.experience.requiresEvent)
+      return true
+    return false
+  })
+
+
 const hasInstructionsDescription = computed(() => {
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.instructionsLinkDescription;
