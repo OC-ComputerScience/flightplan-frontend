@@ -7,7 +7,7 @@ import badgeServices from "../services/badgeServices";
 import userServices from "../services/userServices";
 import studentServices from "../services/studentServices";
 import StrengthCard from "../components/cards/StrengthCard.vue";
-import BadgeCard from "../components/cards/BadgeCard.vue";
+import StudentBadgeCard from "../components/cards/StudentBadgeCard.vue";
 import { userStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
 import { viewBadgeAwardsStore } from "../stores/viewBadgeAwardsStore";
@@ -292,7 +292,7 @@ onMounted(async () => {
             >
           </div>
           <div v-if="!noBadges" class="badge-grid">
-            <BadgeCard
+            <StudentBadgeCard
               v-for="(item, index) in badges"
               :key="index"
               :badge="item"

@@ -31,12 +31,9 @@
         v-for="badge in badges"
         :key="badge.id"
         cols="12"
-        sm="6"
-        md="4"
-        lg="3"
         class="d-flex justify-center"
       >
-        <BadgeCard :badge="badge" :is-profile-page="true" />
+        <StudentBadgeCard :badge="badge" :is-profile-page="true" />
       </v-col>
       <v-col v-if="!loading && badges.length === 0" cols="12">
         <v-alert type="info" class="text-center">
@@ -55,7 +52,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import badgeServices from "../../services/badgeServices";
-import BadgeCard from "../../components/cards/BadgeCard.vue";
+import StudentBadgeCard from "../../components/cards/StudentBadgeCard.vue";
 import { userStore } from "../../stores/userStore"; // <-- import the store
 
 const badges = ref([]);
