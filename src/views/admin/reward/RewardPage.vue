@@ -112,6 +112,7 @@ watch([page, searchQuery, showFilters], getRewards, { immediate: true });
           :key="item.id"
           :reward="item"
           :is-view="false"
+          :maintenance-view="true"
           @shop="handleShop"
           @edit="handleEdit"
         ></RewardCard>

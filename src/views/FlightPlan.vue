@@ -25,6 +25,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import eventServices from "../services/eventServices";
+import { sortFlightPlanItems } from "../utils/flightPlanSorterHelper";
 
 const props = defineProps({
   isAdmin: {
@@ -179,7 +180,10 @@ const fetchFlightPlan = async () => {
   flightPlans.value = response.data.map((flightPlan) => ({
     label: formatFlightPlanLabel(flightPlan),
     value: flightPlan.id,
+    semestersFromGrad: flightPlan.semestersFromGrad,
   }));
+
+  flightPlans.value.sort((a, b) => a.semestersFromGrad - b.semestersFromGrad);
 
   // Use stored semester if available, otherwise use first one
   if (flightPlanStore.selectedSemester) {
@@ -193,10 +197,13 @@ const fetchFlightPlan = async () => {
   }
 };
 
+const allFlightPlanItems = ref([])
+
+
 const fetchFlightPlanAndItems = async () => {
   const params = {
-    page: page.value,
-    pageSize: pageSize.value,
+    page: 1, 
+    pageSize: 10000,
     searchQuery: searchQuery.value,
     filters: filters.value,
   };
@@ -206,9 +213,20 @@ const fetchFlightPlanAndItems = async () => {
       selectedFlightPlan.value.value,
       params,
     );
-  flightPlanItems.value = response.data.flightPlanItems;
-  count.value = response.data.count;
+  allFlightPlanItems.value = await sortFlightPlanItems(response.data.flightPlanItems);
+  count.value = Math.ceil(allFlightPlanItems.value.length / pageSize.value);
+  await updatePageItems();
+  
+  const pointsResponse = await studentServices.getPoints(student.id);
+  points.value = pointsResponse.data.points;
+  await fetchFlightPlanProgress()
 };
+
+function updatePageItems() {
+  const start = (page.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  flightPlanItems.value = allFlightPlanItems.value.slice(start, end);
+}
 
 const fetchFlightPlanProgress = async () => {
   const response = await flightPlanServices.getFlightPlanProgressForFlightPlan(
@@ -322,6 +340,8 @@ watch(selectedFlightPlan, (newFlightPlan) => {
       `${newFlightPlan.semester.term} ${newFlightPlan.semester.year}`;
   }
 });
+
+watch([page, pageSize], updatePageItems);
 
 const hasRegisteredEvents = computed(() =>
   flightPlanItems.value.some(

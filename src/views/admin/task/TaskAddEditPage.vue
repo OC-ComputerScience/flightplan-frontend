@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { required, positiveNumber } from "../../../utils/formValidators";
+import {
+  required,
+  positiveNumber,
+  isLink,
+} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
 import majorServices from "../../../services/majorServices";
@@ -221,6 +225,28 @@ onMounted(async () => {
       </v-row>
       <v-row no-gutters>
         <v-select
+          v-model="formData.semesterEnd"
+          variant="solo"
+          rounded="lg"
+          label="Semester End"
+          :items="[{ name: 'None', value: null }, ...semesterTypes]"
+          item-value="value"
+          item-title="name"
+        ></v-select>
+      </v-row>
+      <v-row no-gutters>
+        <v-col size="6">
+          <v-text-field
+            v-model="formData.sequenceNumber"
+            variant="solo"
+            rounded="lg"
+            label="Flight Plan Sequence Number"
+            :rules="[required, positiveNumber]"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-select
           v-model="formData.status"
           variant="solo"
           rounded="lg"
@@ -266,6 +292,25 @@ onMounted(async () => {
         label="Description"
         :rules="[required]"
       ></v-textarea>
+      <v-textarea
+        v-model="formData.instructions"
+        variant="solo"
+        rounded="lg"
+        label="Completion Instructions"
+      ></v-textarea>
+      <v-text-field
+        v-model="formData.instructionsLinkDescription"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link Description"
+      ></v-text-field>
+      <v-text-field
+        v-model="formData.instructionsLink"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link"
+        :rules="formData.instructionsLinkDescription ? [isLink] : []"
+      ></v-text-field>
       <v-text-field
         v-model="formData.rationale"
         variant="solo"

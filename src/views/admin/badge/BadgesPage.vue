@@ -75,12 +75,7 @@ onMounted(() => getBadges());
       :per-row-sm="2"
     >
       <template #item="{ item }">
-        <BadgeCard
-          :key="item.id"
-          :badge="item"
-          @edit="handleEdit"
-          @delete="handleDelete"
-        ></BadgeCard>
+        <BadgeCard :key="item.id" :badge="item" @edit="handleEdit"></BadgeCard>
       </template>
     </CardTable>
     <v-pagination

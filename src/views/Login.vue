@@ -33,47 +33,35 @@ const handleLoginSuccess = async (userData) => {
       !studentResponse.data?.graduationDate ||
       !studentResponse.data?.semestersFromGrad
     ) {
-      
       showOnboarding.value = true;
     } else {
       // Check if student has a flight plan for their current semester from graduation if they have not graduated
-      try {
-        // Initial check to see if there is a flight plan for current semester
+      const flightPlanForCurrentSemester = (
         await flightPlanServices.getFlightPlanForStudentAndSemester(
           studentResponse.data.id,
           studentResponse.data.semestersFromGrad,
-        );
-
-        // Checks if student needs an updated semesters from graduation
+        )
+      ).data;
+      if (!flightPlanForCurrentSemester.id) {
+        // If no flight plan, generate one
+        generateNewFlightPlan(studentResponse.data);
+      } else {
+        // Else check semester end
         await studentServices.checkStudentSemesterFromGraduation(
           studentResponse.data.id,
         );
-        const checkStudentResponse = await studentServices.getStudentForUserId(
-          userData.userId,
-        );
+        const checkStudentResponse = (
+          await studentServices.getStudentForUserId(userData.userId)
+        ).data;
 
-        // If semester from graduation was updated, check for flightplan
+        // If student's semester from graduation was updated
         if (
-          checkStudentResponse.data.semestersFromGrad &&
-          checkStudentResponse.data.semestersFromGrad !==
+          checkStudentResponse?.semestersFromGrad &&
+          checkStudentResponse.semestersFromGrad !==
             studentResponse.data.semestersFromGrad
         ) {
-          studentResponse = checkStudentResponse;
-          await flightPlanServices.getFlightPlanForStudentAndSemester(
-            studentResponse.data.id,
-            studentResponse.data.semestersFromGrad,
-          );
-        }
-      } catch {
-        if (studentResponse.data?.semestersFromGrad > 0) {
-          // If no flight plan exists, generate one
-          try {
-            await flightPlanServices.generateFlightPlan(
-              studentResponse.data.id,
-            );
-          } catch (error) {
-            console.error("Error generating flight plan: ", error);
-          }
+          // Generate a new flight plan
+          generateNewFlightPlan(checkStudentResponse);
         }
       }
 
@@ -83,6 +71,16 @@ const handleLoginSuccess = async (userData) => {
   } catch {
     // If student doesn't exist, show onboarding
     showOnboarding.value = true;
+  }
+};
+
+const generateNewFlightPlan = async (student) => {
+  if (student.semestersFromGrad > 0) {
+    try {
+      await flightPlanServices.generateFlightPlan(student.id);
+    } catch (error) {
+      console.error("Error generating flight plan: ", error);
+    }
   }
 };
 

@@ -10,6 +10,7 @@ import strengthServices from "../../services/strengthServices";
 import studentServices from "../../services/studentServices";
 import Utils from "../../config/utils.js";
 import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
+import { createEventCancelNotification } from "../../utils/notificationHandler";
 
 dayjs.extend(advancedFormat);
 
@@ -20,6 +21,7 @@ const emit = defineEmits([
   "show-info",
   "register",
   "unregister",
+  "click",
 ]);
 const store = userStore();
 const localStudentStore = studentStore();
@@ -110,7 +112,9 @@ const eventTime = computed(() => {
   return `${startTime} - ${endTime}`;
 });
 
-const viewCard = () => {};
+const viewCard = () => {
+  emit("click", props.event);
+};
 
 const editEvent = () => {
   emit("edit", props.event.id);
@@ -153,11 +157,12 @@ const confirmCancel = async () => {
             new Date(eventToCancelObject.endTime),
           );
 
-          createEventNotification(
+          createEventCancelNotification(
             eventToCancelObject,
             student.user.id,
             true,
-            true,
+            null, 
+            student.user.email
           );
         });
         canCancel.value = false;
@@ -196,7 +201,7 @@ const resolvedStatusLabel = computed(() => {
         return "Upcoming";
       case "canceled":
         return "Cancelled";
-      case "passed":
+      case "past":
         return "Passed";
       case "registered":
         return "Upcoming"
@@ -211,7 +216,7 @@ const resolvedStatusLabel = computed(() => {
         return "Checked In";
       case "canceled":
         return "Cancelled";
-      case "passed":
+      case "past":
         return "registered";
       case "registered":
         return "Registered"
@@ -341,16 +346,20 @@ const handleRegistration = () => {
             Event Status: {{ resolvedStatusLabel }}
           </p>
         </v-card-text>
-        <v-row v-if="props.adminView && !props.noActions" class="ma-2 float-left">
+        <v-row v-if="props.adminView && !props.noActions && props.event.status !== 'Cancelled' && props.event.status !== 'Past'" class="ma-2 float-left">
           <v-btn
             color="warning"
             class="mr-2 cardButton elevation-0"
             @click.stop="editEvent"
           >
-            <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+            <v-icon 
+            color="text" 
+            size="x-large"
+            :icon='props.event.status !== "Cancelled" && props.event.status !== "Past" ? "mdi-pencil" : "mdi-eye"'>
+            </v-icon>
           </v-btn>
           <v-btn
-            v-if="props.status !== 'grey'"
+            v-if="props.event.status !== 'Cancelled' && props.event.status !== 'Past'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop="cancelEvent"

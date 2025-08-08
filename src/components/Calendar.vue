@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import EventCard from "./cards/EventCard.vue";
-import EventDialog from "./dialogs/EventDialog.vue";
+import SelectEventExperience from "./dialogs/SelectEventExperience.vue";
 import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
 import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
@@ -9,13 +9,28 @@ import strengthServices from "../services/strengthServices";
 import studentServices from "../services/studentServices";
 import { userStore } from "../stores/userStore";
 import { studentStore } from "../stores/studentStore";
+import { viewSelectEventExperienceStore } from "../stores/viewSelectEventExperienceStore";
 import { getEventCardColor } from "../utils/eventStatus";
 import { createEventCancelNotification } from "../utils/notificationHandler";
 import { formatTime } from "../utils/dateTimeHelpers";
 
+import flightPlanServices from "../services/flightPlanServices";
+import flightPlanItemServices from "../services/flightPlanItemServices";
+import experienceServices from "../services/experienceServices";
+import { createOptionalFlightPlanExperience } from "../utils/flightPlanExperienceItemHelper";
+
+import EventRegistrationConfirmation from "../components/dialogs/EventRegistrationConfirmation.vue";
+import { eventRegistrationConfirmationStore } from "../stores/eventRegistrationConfirmationStore";
+const registrationUpdateMessage = ref("")
+const useEventRegistrationConfirmationStore = eventRegistrationConfirmationStore();
+
+
 const store = userStore();
 const localStudentStore = studentStore();
+const viewSelectExperienceStore = viewSelectEventExperienceStore();
+const flightPlanItems = ref([]);
 const studentId = ref(null);
+const student = ref(null);
 
 const router = useRouter();
 const props = defineProps({
@@ -29,8 +44,7 @@ const props = defineProps({
   },
 });
 
-const dialogVisible = ref(false);
-const selectedEvent = ref(null);
+const selectedEvent = ref({});
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
 const cancelledEvents = ref([]);
@@ -47,11 +61,6 @@ const getEvents = async () => {
   } catch (error) {
     console.error("Failed to refresh events:", error);
   }
-};
-
-const openDialog = (event) => {
-  selectedEvent.value = event;
-  dialogVisible.value = true;
 };
 
 const handleEdit = (eventId) =>
@@ -76,6 +85,7 @@ const confirmCancel = async () => {
     await eventServices
       .getRegisteredStudents(eventToCancel.value)
       .then((res) => {
+        if (res.data !== null) {
         res.data.forEach((student) => {
           registeredStudents.push(student.studentId);
 
@@ -89,17 +99,28 @@ const confirmCancel = async () => {
             new Date(eventToCancelObject.value.endTime),
           );
 
-          createEventCancelNotification(eventToCancelObject.value, student.user.id, true, 1, student.user.email);
+          createEventCancelNotification(
+            eventToCancelObject.value,
+            student.user.id,
+            true,
+            null,
+            student.user.email,
+          );
         });
+      }
+
+
       })
       .catch((err) => {
         console.error("Error creating notifcation: ", err);
       });
 
+      if (registeredStudents.length > 0) {
     await eventServices.unregisterStudents(
       eventToCancel.value,
       registeredStudents,
     );
+      }
 
     cancelledEvents.value.push(eventToCancel.value);
     await getEvents();
@@ -112,6 +133,7 @@ const confirmCancel = async () => {
     console.error("Error cancelling event:", err);
   }
 };
+
 const handleAdd = () => {
   router.push({
     name: "addEvent",
@@ -121,38 +143,124 @@ const handleAdd = () => {
   });
 };
 
-const handleRecordAttendance = (event) => {
-  router.push({
-    name: "attendanceEvent",
-    params: { id: event.id, eventName: event.name },
-  });
-};
-
-const handleGenerateQRCode = (event) => {
-  console.log("Generating QR for:", event.name);
-};
-
-const handleRegister = async (event) => {
+const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
   if (!studentId.value) return;
   try {
     await eventServices.registerStudents(event.id, [studentId.value]);
+
+    if (flightPlanItem) {
+      const updatedItem = {
+        ...flightPlanItem,
+        eventId: event.id,
+        status: "Registered",
+      };
+      await flightPlanItemServices.updateFlightPlanItem(updatedItem);
+    }
+
     await fetchStudentStatus();
     const updatedEvent = await eventServices.getEvent(event.id);
+    registrationUpdateMessage.value = "Successfully registered for the event! You will receive email notifications as the event approaches"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(true)
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Registration error:", err);
   }
 };
 
-const handleUnregister = async (event) => {
+const handleRegister = async (event) => {
+  if (!studentId.value) return;
+  const eventExperiences = (
+    await experienceServices.getAllExperiencesForEvent(event.id)
+  ).data;
+
+  if (eventExperiences.length > 0) {
+    const currentFlightPlan = (
+      await flightPlanServices.getFlightPlanForStudentAndSemester(
+        studentId.value,
+        student.value.semestersFromGrad,
+      )
+    ).data;
+    flightPlanItems.value = (
+      await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+        currentFlightPlan.id,
+        { page: 1, pageSize: 1000 },
+      )
+    ).data.flightPlanItems.filter((item) =>
+      eventExperiences.some(
+        (experience) =>
+          experience.id == item.experienceId && item.status === "Incomplete",
+      ),
+    );
+
+    if (flightPlanItems.value.length === 0) {
+      const optionalFlightPlanItem = await createOptionalFlightPlanExperience(
+        event,
+        eventExperiences[0],
+        currentFlightPlan,
+      );
+      handleRegisterEventExperience(event, optionalFlightPlanItem);
+    } else if (flightPlanItems.value.length === 1) {
+      handleRegisterEventExperience(event, flightPlanItems.value[0]);
+    } else {
+      selectedEvent.value = event;
+      viewSelectExperienceStore.toggleVisibility();
+    }
+  } else {
+    handleRegisterEventExperience(event);
+  }
+};
+
+const handleUnregisterEventExperience = async (
+  event,
+  flightPlanItems = null,
+) => {
   if (!studentId.value) return;
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
+
+    if (flightPlanItems[0]?.optional) {
+      flightPlanItemServices.deleteFlightPlanItem(flightPlanItems[0].id);
+    } else if (flightPlanItems && flightPlanItems.length == 1) {
+      const updatedItem = {
+        ...flightPlanItems[0],
+        eventId: null,
+        status: "Incomplete",
+      };
+      await flightPlanItemServices.updateFlightPlanItem(updatedItem);
+    }
     await fetchStudentStatus();
     const updatedEvent = await eventServices.getEvent(event.id);
+    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(false);
     selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
   } catch (err) {
     console.error("Unregistration error:", err);
+  }
+};
+
+const handleUnregister = async (event) => {
+  if (!studentId.value) return;
+  const eventExperiences = (
+    await experienceServices.getAllExperiencesForEvent(event.id)
+  ).data;
+  if (eventExperiences.length > 0) {
+    const currentFlightPlan = (
+      await flightPlanServices.getFlightPlanForStudentAndSemester(
+        studentId.value,
+        student.value.semestersFromGrad,
+      )
+    ).data;
+    flightPlanItems.value = (
+      await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+        currentFlightPlan.id,
+        { page: 1, pageSize: 1000 },
+      )
+    ).data.flightPlanItems.filter((item) => item.eventId === event.id);
+    handleUnregisterEventExperience(event, flightPlanItems.value);
+  } else {
+    handleUnregisterEventExperience(event);
   }
 };
 
@@ -162,6 +270,7 @@ const fetchStudentId = async () => {
     if (!userId) return;
     const res = await studentServices.getStudentForUserId(userId);
     studentId.value = res.data.id;
+    student.value = res.data;
   } catch (err) {
     console.error("Failed to fetch student ID:", err);
   }
@@ -455,8 +564,10 @@ function selectThisMonth() {
               >
             </template>
             <span>
-              To view more than one day at a time, click on the first date and shift+click on another date to select
-              a range of date, or ctrl+click on several dates to select a specific group of dates.</span
+              To view more than one day at a time, click on the first date and
+              shift+click on another date to select a range of date, or
+              ctrl+click on several dates to select a specific group of
+              dates.</span
             >
           </v-tooltip>
         </div>
@@ -481,21 +592,39 @@ function selectThisMonth() {
           <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
           <p class="timeline-range" style="padding: 5px">
             What do these colors mean?
-          <v-tooltip location="right">
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" size="24" class="ml-2"
-                >mdi-information-outline</v-icon
-              >
-            </template>
-            <span>
-              <div class="pb-1"><v-icon color="upcoming">mdi-circle</v-icon>: <strong>Upcoming</strong></div>
-              <div class="pb-1"><v-icon color="registered">mdi-circle</v-icon>: <strong>Registered</strong></div>
-              <div class="pb-1"><v-icon color="checkedin">mdi-circle</v-icon>: <strong>Completed</strong></div>
-              <div class="pb-1"><v-icon color="recommended">mdi-circle</v-icon>: <strong>Recommended</strong></div>
-              <div class="pb-1"><v-icon color="cancelled">mdi-circle</v-icon>: <strong>Cancelled</strong></div>
-              <div class="pb-1"><v-icon color="past">mdi-circle</v-icon>: <strong>Past</strong></div>
+            <v-tooltip location="right">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" size="24" class="ml-2"
+                  >mdi-information-outline</v-icon
+                >
+              </template>
+              <span>
+                <div class="pb-1">
+                  <v-icon color="upcoming">mdi-circle</v-icon>:
+                  <strong>Upcoming</strong>
+                </div>
+                <div class="pb-1">
+                  <v-icon color="registered">mdi-circle</v-icon>:
+                  <strong>Registered</strong>
+                </div>
+                <div class="pb-1">
+                  <v-icon color="checkedin">mdi-circle</v-icon>:
+                  <strong>Completed</strong>
+                </div>
+                <div class="pb-1">
+                  <v-icon color="recommended">mdi-circle</v-icon>:
+                  <strong>Recommended</strong>
+                </div>
+                <div class="pb-1">
+                  <v-icon color="cancelled">mdi-circle</v-icon>:
+                  <strong>Cancelled</strong>
+                </div>
+                <div class="pb-1">
+                  <v-icon color="past">mdi-circle</v-icon>:
+                  <strong>Past</strong>
+                </div>
               </span>
-          </v-tooltip>
+            </v-tooltip>
           </p>
           <v-btn
             v-if="props.isAdmin"
@@ -527,7 +656,6 @@ function selectThisMonth() {
                     :key="idx"
                     :event="event"
                     :view-only="true"
-                    color="background"
                     :status="
                       getEventCardColor(
                         event,
@@ -536,9 +664,7 @@ function selectThisMonth() {
                         cancelledEvents,
                       )
                     "
-                    :is-event-viewing="false"
                     :admin-view="props.isAdmin"
-                    @click="openDialog(event)"
                     @edit="handleEdit"
                     @cancel="handleCancel"
                     @register="handleRegister"
@@ -553,16 +679,6 @@ function selectThisMonth() {
             </div>
           </div>
 
-          <EventDialog
-            v-model="dialogVisible"
-            :event="selectedEvent"
-            :is-admin="props.isAdmin"
-            @record-attendance="handleRecordAttendance"
-            @generate-qr="handleGenerateQRCode"
-            @register="handleRegister"
-            @unregister="handleUnregister"
-          />
-
           <ConfirmDialog
             v-model="confirmCancelDialog"
             title="Cancel Event?"
@@ -570,6 +686,12 @@ function selectThisMonth() {
             cancel-text="No, Close"
             confirm-color="error"
             @confirm="confirmCancel"
+          />
+
+          <SelectEventExperience
+            :event="selectedEvent"
+            :flight-plan-items="flightPlanItems"
+            @register="handleRegisterEventExperience"
           />
         </div>
 
@@ -579,6 +701,10 @@ function selectThisMonth() {
       </v-card>
     </div>
   </div>
+    <EventRegistrationConfirmation
+    v-model="useEventRegistrationConfirmationStore.visible"
+    :message="registrationUpdateMessage"
+  />
 </template>
 
 <style scoped>

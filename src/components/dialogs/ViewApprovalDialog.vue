@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore";
 import { storeToRefs } from "pinia";
 import flightPlanItemServices from "../../services/flightPlanItemServices";
@@ -7,6 +7,8 @@ import studentServices from "../../services/studentServices";
 import submissionServices from "../../services/submissionServices";
 import { VueFilesPreview } from "vue-files-preview";
 import { createNotification } from "../../utils/notificationHandler";
+
+
 const emit = defineEmits(["reject", "approve"]);
 
 const dialogStore = adminApprovalDialogStore();
@@ -54,7 +56,9 @@ const handleReject = async () => {
         description: rejectReason.value ?? "No reason provided",
         read: false,
         userId: student.user.id,
-        sentBy: 1, // Sent by the system
+        sentBy: null,
+        email: false,
+        emailAddress: null
       });
     }
     rejectMessage.value = "Flight plan item rejected";
@@ -96,6 +100,8 @@ const getSubmission = () => {
   } else if (selectedSubmission.submissionType === "file") {
     selectedSubmissionType.value = "file";
     getFile();
+  } else if (selectedSubmission.submissionType === "manual") {
+    selectedSubmissionType.value = "manual";
   }
 };
 
@@ -180,14 +186,26 @@ watch(selectedSubmissionIndex, () => {
                 ></VueFilesPreview>
               </v-col>
               <v-col
-                v-if="selectedSubmissionType === 'text' && !selectedSubmissionType === 'manual'"
+                v-if="selectedSubmissionType === 'text' && selectedSubmissionType !== 'manual'"
                 :cols="12"
                 class="pa-4 bg-background rounded-lg"
                 style="white-space: pre-wrap"
               >
                 {{ submissions[selectedSubmissionIndex].value }}
               </v-col>
-              <v-col v-if="!selectedSubmissionType === 'manual'":cols="12" class="d-flex justify-center align-center">
+
+              <v-col
+                v-if="selectedSubmissionType === 'manual'"
+                :cols="12"
+                class="pa-4 bg-background rounded-lg"
+                style="white-space: pre-wrap"
+              >
+                {{ student?.user ? student.user.fName + " " + student.user.lName : "A student" }} has indicated that they have completed {{ flightPlanItem.name }}.
+              </v-col>
+
+              <v-col v-if="selectedSubmissionType != 'manual'"
+                :cols="12" 
+                class="d-flex justify-center align-center">
                 <v-btn
                   class="rounded-xl mr-6"
                   color="text"

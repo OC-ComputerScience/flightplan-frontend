@@ -13,6 +13,9 @@ const emit = defineEmits(["edit", "delete"]);
       <p class="text-h5 mb-2">
         {{ props.experience.name }}
       </p>
+           <p class="text-subtitle-1 font-weight-regular">
+        Sequence: {{ props.experience.sequenceNumber }}
+      </p>
       <p class="text-subtitle-1 font-weight-regular">
         Type: {{ props.experience.submissionType }}
       </p>

@@ -30,6 +30,7 @@ export const userStore = defineStore("user", {
     },
     async isAuthenticated() {
       if (!this.user) this.$patch({ user: Utils.getStore("user") });
+      if (!this.user) return false;
       try {
         const { data } = await authServices.validateToken(this.user);
         return data.isValid;

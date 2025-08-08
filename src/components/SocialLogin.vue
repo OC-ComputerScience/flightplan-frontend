@@ -52,7 +52,7 @@ const handleCredentialResponse = async (response) => {
     const student = (
       await StudentServices.getStudentForUserId(user.value.userId)
     ).data;
-    if (student) {
+    if (student?.id) {
       Utils.setStore("student", student);
       const strengths = (
         await StrengthServices.getStrengthsForStudent(student.id)

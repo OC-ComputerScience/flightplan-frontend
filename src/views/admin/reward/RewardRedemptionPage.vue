@@ -80,7 +80,7 @@ const showDialogMessage = (isSuccess) => {
 // Data Fetching
 const fetchRewards = async () => {
   try {
-    const response = await rewardServices.getAllRewards(
+    const response = await rewardServices.getAllActiveRewards(
       page.value,
       pageSize.value,
       searchQuery.value,
@@ -180,6 +180,7 @@ watch([searchQuery], fetchRewards);
           :is-view="false"
           variant="redeem"
           :student-points="studentPoints"
+          :student="student"
           @redeem="handleRedeem"
         ></RewardCard>
       </template>

@@ -18,10 +18,26 @@ import { studentApprovalDialogStore } from "../../stores/studentApprovalDialogSt
 import ViewSubmissionDialog from "../../components/dialogs/ViewSubmissionDialog.vue";
 import { studentViewSubmissionDialogStore }from "../../stores/studentViewSubmissionDialogStore";
 
+import flightPlanItemServices from "../../services/flightPlanItemServices";
+import experienceServices from "../../services/experienceServices";
+import SelectEventExperience from "../../components/dialogs/SelectEventExperience.vue";
+import { viewSelectEventExperienceStore } from "../../stores/viewSelectEventExperienceStore";
+import { createOptionalFlightPlanExperience } from "../../utils/flightPlanExperienceItemHelper";
+
+
+import EventRegistrationConfirmation from "../../components/dialogs/EventRegistrationConfirmation.vue";
+import { eventRegistrationConfirmationStore } from "../../stores/eventRegistrationConfirmationStore";
+
+import { sortFlightPlanItems } from "../../utils/flightPlanSorterHelper";
+
+
+
 const studentId = ref(null);
+const student = ref(null);
 const registeredEvents = ref([]);
 const checkedInEvents = ref([]);
 const cancelledEvents = ref([]);
+const selectedEvent = ref({});
 const notifications = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(14);
@@ -35,12 +51,19 @@ const selectedFlightPlan = ref(null);
 const flightPlans = ref([]);
 const allFlightPlanItems = ref([]);
 const flightPlanItems = ref([]);
+const dialogFlightPlanItems = ref([]);
 const events = ref([]);
 const isLoaded = ref(false);
+const registrationUpdateMessage = ref("")
 const router = useRouter();
 
 const useStudentApprovalDialogStore = studentApprovalDialogStore();
 const useStudentViewSubmissionDialogStore = studentViewSubmissionDialogStore();
+
+const viewSelectExperienceStore = viewSelectEventExperienceStore();
+
+const useEventRegistrationConfirmationStore = eventRegistrationConfirmationStore();
+
 
 const getNotifications = async (page = 1) => {
   try {
@@ -63,6 +86,7 @@ const fetchStudent = async () => {
     const studentResponse = await studentServices.getStudentForUserId(
       store.user.userId,
     );
+    student.value = studentResponse.data;
     const pointsResponse = await studentServices.getPoints(
       studentResponse.data.id,
     );
@@ -119,8 +143,14 @@ const fetchFlightPlan = async () => {
       return {
         label: `${flightPlan.semester.term.charAt(0).toUpperCase() + flightPlan.semester.term.slice(1)} ${flightPlan.semester.year}`,
         value: flightPlan.id,
+        semestersFromGrad: flightPlan.semestersFromGrad,
       };
     });
+
+    flightPlans.value.sort(
+    (a, b) =>
+      (a.semestersFromGrad ?? Infinity) - (b.semestersFromGrad ?? Infinity),
+    );
 
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
@@ -156,6 +186,7 @@ const fetchFlightPlanProgress = async () => {
       flightPlanItems.value = selectedFlightPlanData.flightPlanItems.filter(
         (item) => item.status !== "Complete",
       );
+      flightPlanItems.value = await sortFlightPlanItems(flightPlanItems.value);
     }
 
     // Store the selected semester in the flight plan store
@@ -197,13 +228,6 @@ const openNotification = (x) => {
   notifStore.setActiveNotification(x);
 };
 
-const openFlightPlanItem = (item) => {
-  flightPlanStore.setActiveFlightPlanItem(item);
-  // console.log(item)
-  useStudentViewSubmissionDialogStore.setFlightPlanItem(item);
-  useStudentViewSubmissionDialogStore.toggleVisibility();
-};
-
 // getting cookie - w3 schools
 const getCookie = (cname) => {
   let name = cname + "=";
@@ -230,13 +254,23 @@ const handlePendingButtonClick = (flightPlanItem) => {
   useStudentViewSubmissionDialogStore.toggleVisibility();
 };
 
-const handleAddItems = () => {
-  fetchFlightPlanAndItems();
-};
-
-const handleDelete = async (flightPlanItem) => {
-  await flightPlanItemServices.deleteFlightPlanItem(flightPlanItem.id);
-  await fetchFlightPlanAndItems();
+const fetchFlightPlanAndItems = async () => {
+    const params = {
+    page: 1,
+    pageSize: 1,
+    searchQuery: "",
+    filters: null,
+  };
+  const response =
+    await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+      selectedFlightPlan.value.value,
+      params
+    );
+  flightPlanItems.value = response.data.flightPlanItems;
+  
+  const pointsResponse = await studentServices.getPoints(studentId.value);
+  points.value = pointsResponse.data.points;
+  await fetchFlightPlanProgress()
 };
 
 const showFlightPlanItem = ref(false);
@@ -247,27 +281,120 @@ const handleShow = (flightPlanItem) => {
   showFlightPlanItem.value = true;
 };
 
-const handleRegister = async (event) => {
+const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
   if (!studentId.value) return;
   try {
     await eventServices.registerStudents(event.id, [studentId.value]);
+
+    if (flightPlanItem) {
+      const updatedItem = {
+        ...flightPlanItem,
+        eventId: event.id,
+        status: "Registered",
+      };
+      await flightPlanItemServices.updateFlightPlanItem(updatedItem);
+    }
+
     await fetchStudentStatus();
-    const updatedEvent = await eventServices.getEvent(event.id);
-    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+    registrationUpdateMessage.value = "Successfully registered for the event! You will receive email notifications as the event approaches"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(true);
   } catch (err) {
     console.error("Registration error:", err);
   }
 };
 
-const handleUnregister = async (event) => {
+const handleRegister = async (event) => {
+  if (!studentId.value) return;
+  const eventExperiences = (
+    await experienceServices.getAllExperiencesForEvent(event.id)
+  ).data;
+
+  if (eventExperiences.length > 0) {
+    const currentFlightPlan = (
+      await flightPlanServices.getFlightPlanForStudentAndSemester(
+        studentId.value,
+        student.value.semestersFromGrad,
+      )
+    ).data;
+    dialogFlightPlanItems.value = (
+      await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+        currentFlightPlan.id,
+        { page: 1, pageSize: 1000 },
+      )
+    ).data.flightPlanItems.filter((item) =>
+      eventExperiences.some(
+        (experience) =>
+          experience.id == item.experienceId && item.status === "Incomplete",
+      ),
+    );
+
+    if (dialogFlightPlanItems.value.length === 0) {
+      const optionalFlightPlanItem = await createOptionalFlightPlanExperience(
+        event,
+        eventExperiences[0],
+        currentFlightPlan,
+      );
+      handleRegisterEventExperience(event, optionalFlightPlanItem);
+    } else if (dialogFlightPlanItems.value.length == 1) {
+      handleRegisterEventExperience(event, dialogFlightPlanItems.value[0]);
+    } else {
+      selectedEvent.value = event;
+      viewSelectExperienceStore.toggleVisibility();
+    }
+  } else {
+    handleRegisterEventExperience(event);
+  }
+};
+
+const handleUnregisterEventExperience = async (
+  event,
+  flightPlanItems = null,
+) => {
   if (!studentId.value) return;
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
+
+    if (flightPlanItems[0]?.optional) {
+      flightPlanItemServices.deleteFlightPlanItem(flightPlanItems[0].id);
+    } else if (flightPlanItems && flightPlanItems.length == 1) {
+      const updatedItem = {
+        ...flightPlanItems[0],
+        eventId: null,
+        status: "Incomplete",
+      };
+      await flightPlanItemServices.updateFlightPlanItem(updatedItem);
+    }
     await fetchStudentStatus();
-    const updatedEvent = await eventServices.getEvent(event.id);
-    selectedEvent.value = updatedEvent.data; // <-- Force refresh of event
+    registrationUpdateMessage.value = "Successfully unregistered from the event"
+    useEventRegistrationConfirmationStore.toggleVisibility(true);
+    useEventRegistrationConfirmationStore.toggleRegistration(false);
   } catch (err) {
     console.error("Unregistration error:", err);
+  }
+};
+
+const handleUnregister = async (event) => {
+  if (!studentId.value) return;
+  const eventExperiences = (
+    await experienceServices.getAllExperiencesForEvent(event.id)
+  ).data;
+  if (eventExperiences.length > 0) {
+    const currentFlightPlan = (
+      await flightPlanServices.getFlightPlanForStudentAndSemester(
+        studentId.value,
+        student.value.semestersFromGrad,
+      )
+    ).data;
+    dialogFlightPlanItems.value = (
+      await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
+        currentFlightPlan.id,
+        { page: 1, pageSize: 1000 },
+      )
+    ).data.flightPlanItems.filter((item) => item.eventId === event.id);
+    handleUnregisterEventExperience(event, dialogFlightPlanItems.value);
+  } else {
+    handleUnregisterEventExperience(event);
   }
 };
 
@@ -287,7 +414,7 @@ onMounted(async () => {
   <div v-if="getCookie('showFirstTimeInstructions') === 'true'">  <FirstTimeInstructions /></div>
 
   <div class="dashboard-container">
-    <h1 class="mt-1">Welcome, {{ store.user.fullName }}!</h1>
+    <h1 class="mt-1">Welcome, {{ store.user ? store.user.fullName : 'Student' }}!</h1>
     <v-row justify="center" class="mr-2">
       <v-col cols="12">
         <v-card color="backgroundDarken" style="border-radius: 25px">
@@ -368,7 +495,6 @@ onMounted(async () => {
           @incomplete="handleIncompleteButtonClick"
           @register="handleRegister"
           @view="handlePendingButtonClick"
-          @delete="handleDelete"
           @click="handleShow"
         ></FlightPlanItemCard>
           </template>
@@ -383,7 +509,7 @@ onMounted(async () => {
           variant="text"
           :to="{ name: 'student-flightPlan' }"
         >
-          See More Flight Plan Items
+          See Full Flight Plan
         </v-btn>
       </v-card>
       <v-card color="backgroundDarken" class="dashboard-cell">
@@ -436,7 +562,6 @@ onMounted(async () => {
           <EventCard
             v-for="(event, index) in events"
             :key="index"
-            color="background"
             :view-only="true"
             :no-actions="true"
             :register-only="true"
@@ -449,7 +574,6 @@ onMounted(async () => {
               )
             "
             :event="event"
-            class="event"
             @register="handleRegister(event)"
             @unregister="handleUnregister(event)"
           />
@@ -471,6 +595,17 @@ onMounted(async () => {
   <ViewSubmissionDialog
     @discard="fetchFlightPlanAndItems"
   ></ViewSubmissionDialog>
+
+  <SelectEventExperience
+    :event="selectedEvent"
+    :flight-plan-items="dialogFlightPlanItems"
+    @register="handleRegisterEventExperience"
+
+  <EventRegistrationConfirmation
+    v-model="useEventRegistrationConfirmationStore.visible"
+    :message="registrationUpdateMessage"
+
+  />
 </template>
 
 <style>

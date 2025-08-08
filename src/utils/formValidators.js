@@ -29,9 +29,11 @@ export const fromWebsite = (value, websiteRoot) => {
   const urlPattern = /^(https?:\/\/)([\w.-]+)\.([a-z]{2,})(:[0-9]{2,5})?(\/[^\s]*)?\s*$/i;
   if (!websiteRoot) {
     return `Invalid Website`;
-  } else if (urlPattern.test(value) === false) {
+  } else if (urlPattern.test(value) === false && websiteRoot !== "None") {
     return `Link must be a valid URL starting with ${websiteRoot}`;
-  } else if (!value.startsWith(websiteRoot)) {
+  } else if (urlPattern.test(value) === false) {
+    return `Link must be a valid URL starting with http(s)://`
+  } else if (!value.startsWith(websiteRoot) && websiteRoot !== "None") {
     return `Link must start with ${websiteRoot}`;
   } else if (!(value.length > websiteRoot.length)) {
     return `Please finish the link with a valid path`;
@@ -51,3 +53,31 @@ const getFileExtension = (fileName) => {
   const parts = fileName.split(".");
   return parts.length > 1 ? "image/" + parts.pop().toLowerCase() : null;
 };
+
+export const characterLimit = (value, min) => {
+  if (value.length < min) {
+    return `Submission must be at least ${min} characters`;
+   } else {
+    return true;
+  }
+}
+
+export const isBetween = (value, min, max) => {
+  if (value < min) {
+    return `Value must be greater than ${min}`
+  }
+  else if (value > max) {
+    return `Value must be less than ${max}`
+  }
+  else {
+    return true;
+  }
+}
+
+export const isLink = (value) => {
+  const webPattern = /^https?:\/\/w?w?w?\.?[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$/;
+  if (!webPattern.test(value))
+    return "Link must start with http(s)://www. and end with a valid domain";
+  else
+    return true
+}
