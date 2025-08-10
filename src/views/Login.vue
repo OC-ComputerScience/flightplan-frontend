@@ -3,18 +3,17 @@ import { ref, onMounted, computed } from "vue";
 import eagle from "/Birb.png";
 import { useDisplay } from "vuetify";
 import SocialLogin from "../components/SocialLogin.vue";
-import StudentOnboarding from "../components/StudentOnboarding.vue";
 import { useRouter } from "vue-router";
 import { userStore } from "../stores/userStore";
 import studentServices from "../services/studentServices";
 import { loginRedirect } from "../router/router.js";
 import flightPlanServices from "../services/flightPlanServices.js";
+import colleagueServices from "../services/colleagueServices.js";
 
 const router = useRouter();
 const store = userStore();
 
 const eagleSrc = ref("");
-const showOnboarding = ref(false);
 
 const handleLoginSuccess = async (userData) => {
   try {
@@ -33,7 +32,10 @@ const handleLoginSuccess = async (userData) => {
       !studentResponse.data?.graduationDate ||
       !studentResponse.data?.semestersFromGrad
     ) {
-      showOnboarding.value = true;
+      const student = (
+        await colleagueServices.createNewStudentForUserId(userData.userId)
+      ).data;
+      await generateNewFlightPlan(student);
     } else {
       // Check if student has a flight plan for their current semester from graduation if they have not graduated
       const flightPlanForCurrentSemester = (
@@ -44,7 +46,7 @@ const handleLoginSuccess = async (userData) => {
       ).data;
       if (!flightPlanForCurrentSemester.id) {
         // If no flight plan, generate one
-        generateNewFlightPlan(studentResponse.data);
+        await generateNewFlightPlan(studentResponse.data);
       } else {
         // Else check semester end
         await studentServices.checkStudentSemesterFromGraduation(
@@ -61,17 +63,18 @@ const handleLoginSuccess = async (userData) => {
             studentResponse.data.semestersFromGrad
         ) {
           // Generate a new flight plan
-          generateNewFlightPlan(checkStudentResponse);
+          await generateNewFlightPlan(checkStudentResponse);
         }
       }
-
-      const redirect = await loginRedirect();
-      router.push(redirect);
     }
   } catch {
-    // If student doesn't exist, show onboarding
-    showOnboarding.value = true;
+    const student = (
+      await colleagueServices.createNewStudentForUserId(userData.userId)
+    ).data;
+    await generateNewFlightPlan(student);
   }
+  const redirect = await loginRedirect();
+  router.push(redirect);
 };
 
 const generateNewFlightPlan = async (student) => {
@@ -105,7 +108,6 @@ const isMobile = computed(() => smAndDown.value);
       <!-- Second Column -->
       <v-col class="d-flex flex-column" cols="12" sm="10" md="4" xl="3">
         <v-card
-          v-if="!showOnboarding"
           class="elevation-0 flex-grow-1 rounded-xl h-50 pa-3"
           style="background-color: rgba(var(--v-theme-backgroundDarken), 0.8)"
         >
@@ -121,7 +123,6 @@ const isMobile = computed(() => smAndDown.value);
           </v-col>
         </v-card>
         <v-card
-          v-if="!showOnboarding"
           class="elevation-0 flex-grow-1 mt-5 rounded-xl"
           style="background-color: rgba(var(--v-theme-backgroundDarken), 0.8)"
         >
@@ -140,9 +141,6 @@ const isMobile = computed(() => smAndDown.value);
             <v-spacer />
           </v-col>
         </v-card>
-        <transition name="slide-fade" mode="out-in">
-          <StudentOnboarding v-if="showOnboarding" />
-        </transition>
       </v-col>
     </v-row>
   </v-container>
