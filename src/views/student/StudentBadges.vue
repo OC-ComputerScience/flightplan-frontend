@@ -1,3 +1,34 @@
+<script setup>
+import { ref, onMounted } from "vue";
+import badgeServices from "../../services/badgeServices";
+import StudentBadgeCard from "../../components/cards/StudentBadgeCard.vue";
+import { userStore } from "../../stores/userStore"; // <-- import the store
+
+const PAGE_SIZE = 6; // Number of badges per page
+const page = ref(1);
+const count = ref(0);
+
+const badges = ref([]);
+const loading = ref(true);
+const store = userStore(); // <-- use the store
+
+// Fetch badges
+const getBadges = async (pageNumber = page.value) => {
+  try {
+    const result = await badgeServices.getAllActiveBadges(
+      pageNumber,
+      PAGE_SIZE,
+    );
+    badges.value = result.data.badges || [];
+    count.value = result.data.count || 0;
+  } catch (error) {
+    console.error("Error fetching badges:", error);
+  }
+};
+
+onMounted(getBadges);
+</script>
+
 <template>
   <v-container>
     <v-row class="align-center mb-4">
@@ -41,39 +72,18 @@
         </v-alert>
       </v-col>
     </v-row>
-    <v-row v-if="loading">
-      <v-col cols="12" class="text-center">
-        <v-progress-circular indeterminate color="primary" />
-      </v-col>
-    </v-row>
+    <v-pagination
+      v-model="page"
+      :length="count"
+      :total-visible="$vuetify.display.smAndDown ? 3 : 5"
+      class="m-2"
+      @next="getBadges"
+      @prev="getBadges"
+      @update:model-value="getBadges"
+    >
+    </v-pagination>
   </v-container>
 </template>
-
-<script setup>
-import { ref, onMounted } from "vue";
-import badgeServices from "../../services/badgeServices";
-import StudentBadgeCard from "../../components/cards/StudentBadgeCard.vue";
-import { userStore } from "../../stores/userStore"; // <-- import the store
-
-const badges = ref([]);
-const loading = ref(true);
-const store = userStore(); // <-- use the store
-
-const fetchBadges = async () => {
-  loading.value = true;
-  try {
-    const response = await badgeServices.getAllActiveBadges();
-    badges.value = response.data.badges || [];
-  } catch (error) {
-    console.error("Error fetching badges:", error);
-    badges.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(fetchBadges);
-</script>
 
 <style scoped>
 .profile-card {

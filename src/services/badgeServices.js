@@ -36,8 +36,13 @@ export default {
   getUnviewedBadges(studentId) {
     return apiClient.get(`/badge/student/${studentId}/unviewed`);
   },
-  getAllActiveBadges() {
-    return apiClient.get("/badge/active");
+  getAllActiveBadges(page, pageSize) {
+    return apiClient.get("/badge/active", {
+      params: {
+        page: page,
+        pageSize: pageSize,
+      },
+    });
   },
   getAllInactiveBadges() {
     return apiClient.get("/badge/inactive");
