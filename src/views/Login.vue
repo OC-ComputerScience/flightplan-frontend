@@ -15,7 +15,11 @@ const store = userStore();
 
 const eagleSrc = ref("");
 
+const isLoading = ref(false);
+const loadingMessage = ref("Loading...");
+
 const handleLoginSuccess = async (userData) => {
+  isLoading.value = true;
   try {
     // Skip onboarding for admin users
     if (await store.isAdmin()) {
@@ -32,9 +36,7 @@ const handleLoginSuccess = async (userData) => {
       !studentResponse.data?.graduationDate ||
       !studentResponse.data?.semestersFromGrad
     ) {
-      const student = (
-        await colleagueServices.createNewStudentForUserId(userData.userId)
-      ).data;
+      const student = await createNewStudentWithColleague(userData.userId);
       await generateNewFlightPlan(student);
     } else {
       // Check if student has a flight plan for their current semester from graduation if they have not graduated
@@ -68,18 +70,23 @@ const handleLoginSuccess = async (userData) => {
       }
     }
   } catch {
-    const student = (
-      await colleagueServices.createNewStudentForUserId(userData.userId)
-    ).data;
+    const student = await createNewStudentWithColleague(userData.userId);
     await generateNewFlightPlan(student);
   }
+  isLoading.value = false;
   const redirect = await loginRedirect();
   router.push(redirect);
+};
+
+const createNewStudentWithColleague = async (userId) => {
+  loadingMessage.value = "Creating Student";
+  return (await colleagueServices.createNewStudentForUserId(userId)).data;
 };
 
 const generateNewFlightPlan = async (student) => {
   if (student.semestersFromGrad > 0) {
     try {
+      loadingMessage.value = "Creating Flight Plan For Student";
       await flightPlanServices.generateFlightPlan(student.id);
     } catch (error) {
       console.error("Error generating flight plan: ", error);
@@ -143,6 +150,27 @@ const isMobile = computed(() => smAndDown.value);
         </v-card>
       </v-col>
     </v-row>
+    <v-overlay
+      v-model="isLoading"
+      persistent
+      opacity="0.75"
+      scrim="background"
+      class="d-flex flex-column align-center justify-center"
+    >
+      <div class="d-flex flex-column align-center text-center">
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+          width="6"
+        ></v-progress-circular>
+        <transition name="fade-slide" mode="out-in">
+          <div :key="loadingMessage" class="mt-4 text-h6 font-weight-bold">
+            {{ loadingMessage }}
+          </div>
+        </transition>
+      </div>
+    </v-overlay>
   </v-container>
 </template>
 
