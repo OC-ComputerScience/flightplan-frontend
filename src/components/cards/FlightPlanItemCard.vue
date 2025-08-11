@@ -18,6 +18,10 @@ const props = defineProps({
   },
   isAdmin: Boolean,
   isFlightPlanView: Boolean,
+  isViewOnly: {
+    type: Boolean,
+    default: false,
+  },
   flightPlanItems: {
     type: Array,
     default: () => [],
@@ -318,7 +322,7 @@ const handleViewRegisteredEvent = async () => {
             </p>
           </v-card-text>
 
-          <div v-if="!isAdmin && !isFlightPlanView">
+          <div v-if="!isAdmin && !isFlightPlanView && !isViewOnly">
             <v-row justify="end">
               <!-- Submission logic for Task and Experience -->
               <v-btn
