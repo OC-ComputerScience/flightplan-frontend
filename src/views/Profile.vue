@@ -291,7 +291,7 @@ onMounted(async () => {
               >View All</v-btn
             >
           </div>
-          <div v-if="!noBadges" class="badge-grid">
+          <div v-if="!noBadges" class="badge-grid" id="badgeList">
             <StudentBadgeCard
               v-for="(item, index) in badges"
               :key="index"
