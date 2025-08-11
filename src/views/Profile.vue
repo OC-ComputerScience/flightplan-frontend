@@ -114,7 +114,11 @@ const canEditProfile = () => {
 
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editProfile", params: { id: userId } });
+  router.push(
+    props.isAdmin
+      ? { name: "adminEditProfile", params: { id: userId } }
+      : { name: "studentEditProfile", params: { id: userId } },
+  );
 
 const handleViewBadge = (badge) => {
   selectedBadge.value = badge;
