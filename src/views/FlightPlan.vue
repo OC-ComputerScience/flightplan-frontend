@@ -37,13 +37,6 @@ const props = defineProps({
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const currentFlightPlanLabel = computed(() => {
-  const term =
-    flightPlan.value.semester?.term?.charAt(0).toUpperCase() +
-    flightPlan.value.semester?.term?.slice(1);
-  return `${term} ${flightPlan.value.semester?.year}`;
-});
-
 const selectedFlightPlanIsCurrent = computed(() => {
   return (
     selectedFlightPlan.value.semestersFromGrad === student.semestersFromGrad
@@ -341,9 +334,6 @@ watch(selectedFlightPlan, (newFlightPlan) => {
   if (newFlightPlan) {
     fetchFlightPlanAndItems();
     fetchFlightPlanProgress();
-    currentFlightPlanLabel.value =
-      newFlightPlan.label ||
-      `${newFlightPlan.semester.term} ${newFlightPlan.semester.year}`;
   }
 });
 
