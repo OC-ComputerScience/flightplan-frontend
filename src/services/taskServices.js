@@ -1,17 +1,19 @@
 import apiClient from "./services.js";
 export default {
-  getAllTasks(page, pageSize, searchQuery, filters) {
+  getAllTasks(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/task", {
       params: {
         page: page,
         pageSize: pageSize,
         searchQuery: searchQuery,
         category: filters?.category,
-        taskType: filters?.taskType,
         schedulingType: filters?.schedulingType,
-        completionType: filters?.completionType,
-        semestersFromGraduation: filters?.semestersFromGraduation,
-        strengths: filters?.strengths,
+        submissionType: filters?.submissionType,
+        semestersFromGrad: filters?.semestersFromGrad,
+        strengths: Array.isArray(filters?.strengths)
+          ? filters.strengths
+          : undefined,
+        status: filters?.status, // Add this line
         sortAttribute: filters?.sortAttribute,
         sortDirection: filters?.sortDirection,
       },
