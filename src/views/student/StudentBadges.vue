@@ -1,32 +1,39 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import badgeServices from "../../services/badgeServices";
 import StudentBadgeCard from "../../components/cards/StudentBadgeCard.vue";
-import { userStore } from "../../stores/userStore"; // <-- import the store
+import { userStore } from "../../stores/userStore";
 
-const PAGE_SIZE = 6; // Number of badges per page
+const PAGE_SIZE = 6;
 const page = ref(1);
 const count = ref(0);
-
 const badges = ref([]);
 const loading = ref(true);
-const store = userStore(); // <-- use the store
+const store = userStore();
 
-// Fetch badges
 const getBadges = async (pageNumber = page.value) => {
+  loading.value = true;
   try {
+    // Ensure pageNumber is a valid number
+    const currentPage = parseInt(pageNumber, 10) || 1;
     const result = await badgeServices.getAllActiveBadges(
-      pageNumber,
+      currentPage,
       PAGE_SIZE,
     );
     badges.value = result.data.badges || [];
     count.value = result.data.count || 0;
   } catch (error) {
     console.error("Error fetching badges:", error);
+    badges.value = [];
+    count.value = 0;
+  } finally {
+    loading.value = false;
   }
 };
 
-onMounted(getBadges);
+// Add watch to handle page changes
+watch(page, (newPage) => getBadges(newPage));
+onMounted(() => getBadges());
 </script>
 
 <template>
@@ -62,6 +69,7 @@ onMounted(getBadges);
         v-for="badge in badges"
         :key="badge.id"
         cols="12"
+        sm="6"
         class="d-flex justify-center"
       >
         <StudentBadgeCard :badge="badge" :is-profile-page="true" />
