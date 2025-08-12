@@ -222,7 +222,7 @@ onMounted(async () => {
         </v-col>
         <v-col :cols="6">
           <v-checkbox
-            v-model="formData.requiresEvent"
+            v-model="formData.eventRequired"
             label="OC Event Registration Required for Completion?"
           />
         </v-col>

@@ -38,8 +38,7 @@ watch(
 
     if (
       item.task ||
-      (!item.experience.submissionType === "Attendance - Reflection" &&
-        !item.experience.submissionType === "Attendance - Auto Approve")
+      item.experience?.eventRequired === false
     ) {
       avaliableToSubmit.value = true;
       return;
@@ -96,13 +95,13 @@ const hasInstructionsLink = computed(() => {
   }
 });
 
-  const requiresEvent = computed(() => {
-    if (flightPlanItem.value.flightPlanItemType === 'Task')
-      return false
-    if (flightPlanItem.value.experience.requiresEvent)
-      return true
+const eventRequired = computed(() => {
+  if (flightPlanItem.value.flightPlanItemType === 'Task')
     return false
-  })
+  if (flightPlanItem.value.experience.eventRequired)
+    return true
+  return false
+});
 
 
 const hasInstructionsDescription = computed(() => {
@@ -188,6 +187,11 @@ const handleSubmit = async () => {
         }
 
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -201,6 +205,11 @@ const handleSubmit = async () => {
           return;
         }
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -209,7 +218,7 @@ const handleSubmit = async () => {
         break;
 
       case "Upload Document & Reflection - Review":
-      case "Upload Document & Reflection - Auto Approve": {
+      case "Upload Document & Reflection - Auto Approve": 
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
@@ -227,6 +236,11 @@ const handleSubmit = async () => {
         }
 
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -234,9 +248,10 @@ const handleSubmit = async () => {
         await submitFiles(automaticSubmission);
         await submitReflection(automaticSubmission);
         break;
-      }
 
-      case "Attendance - Reflection":
+      // TODO
+      case "Attendance - Reflection - Review":
+      case "Attendance - Reflection - Auto Approve":
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
@@ -248,7 +263,41 @@ const handleSubmit = async () => {
           return;
         }
 
+        if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
+
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        }
         await submitAttendanceReflection();
+        
+
+        break;
+      
+      // TODO
+      case "Attendance - Document - Review":
+      case "Attendance - Document - Auto Approve":
+        if (noFiles) {
+          errorMessage.value = "Please upload a file";
+          return;
+        }
+
+        if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
+
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        }
+
+        await submitAttendanceDocument();
         if (didStudentAttend.value) {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
@@ -260,9 +309,10 @@ const handleSubmit = async () => {
             ...flightPlanItem.value,
             status: "Pending Attendance",
           });
+
+          debounceSubmit()
           return;
         }
-
         break;
 
       default:
@@ -417,6 +467,26 @@ const submitAttendanceReflection = async () => {
   ).data.id;
 };
 
+const submitAttendanceDocument = async () => {
+  const submissionData = {
+    flightPlanItemId: flightPlanItem.value.id,
+    submissionType: "file",
+  };
+
+  let result = await Promise.all(
+    files.value.map(async (file) => {
+      const { data } = await fileServices.uploadFile({ file }, "submissions");
+      return submissionServices.createSubmission({
+        ...submissionData,
+        value: data.fileName,
+        isAutomatic: true,
+      });
+    }),
+  );
+
+  submissionId.value = result[0].data.id;
+};
+
 const generateNotification = async () => {
   let response = await userServices.getAllAdmins();
   let admins = response.data;
@@ -563,7 +633,8 @@ onMounted(() => {
               v-if="
                 submissionType === 'Reflection - Review' ||
                 submissionType === 'Reflection - Auto Approve' ||
-                submissionType === 'Attendance - Reflection'
+                submissionType === 'Attendance - Reflection - Review' ||
+                submissionType === 'Attendance - Reflection - Auto Approve'
               "
               v-model="reflectionText"
               label="Reflection"
@@ -576,7 +647,9 @@ onMounted(() => {
             <v-file-upload
               v-else-if="
                 submissionType === 'Upload Document - Review' ||
-                submissionType === 'Upload Document - Auto Approve'
+                submissionType === 'Upload Document - Auto Approve' ||
+                submissionType === 'Attendance - Document - Review' ||
+                submissionType === 'Attendance - Document - Auto Approve'
               "
               v-model="files"
               label="Upload Files"

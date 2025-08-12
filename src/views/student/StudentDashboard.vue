@@ -281,6 +281,12 @@ const handleShow = (flightPlanItem) => {
   showFlightPlanItem.value = true;
 };
 
+const handleRefresh = async () => {
+  await fetchFlightPlanAndItems();
+  await getEvents();
+  await getNotifications();
+}
+
 const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
   if (!studentId.value) return;
   try {
@@ -496,6 +502,7 @@ onMounted(async () => {
           @register="handleRegister"
           @view="handlePendingButtonClick"
           @click="handleShow"
+          @refresh="handleRefresh"
         ></FlightPlanItemCard>
           </template>
           <div v-else class="text-center pa-4">
