@@ -275,7 +275,7 @@ onMounted(async () => {
         >
       </v-tooltip>
       <div v-if="selectedRule === 'Experiences and Tasks'">
-        <v-expansion-panels class="mb-4 rounded-lg">
+        <v-expansion-panels class="mb-4 rounded-lg" model-value="0">
           <v-expansion-panel class="mb-2">
             <v-expansion-panel-title>Tasks</v-expansion-panel-title>
             <v-expansion-panel-text>
@@ -308,13 +308,13 @@ onMounted(async () => {
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
                   @click="addTaskStore.addRuleTask()"
-                  >Add Task</v-btn
+                  >{{ props.isAdd ? "Add Task" : "Update Task" }}</v-btn
                 ></v-row
               >
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
-        <v-expansion-panels class="mb-4 rounded-lg">
+        <v-expansion-panels class="mb-4 rounded-lg" model-value="0">
           <v-expansion-panel class="mb-2">
             <v-expansion-panel-title>Experiences</v-expansion-panel-title>
             <v-expansion-panel-text>
@@ -352,7 +352,9 @@ onMounted(async () => {
                   block
                   class="rounded-lg bg-backgroundDarken mb-2 mt-4"
                   @click="addExperienceStore.addRuleExperience()"
-                  >Add Experience</v-btn
+                  >{{
+                    props.isAdd ? "Add Experience" : "Update Experience"
+                  }}</v-btn
                 ></v-row
               >
             </v-expansion-panel-text>
