@@ -15,7 +15,7 @@ const label = "Tasks";
 const sortProperties = [
   {
     title: "Semesters from Graduation",
-    value: "semestersFromGraduation",
+    value: "semestersFromGrad", // Changed from semestersFromGraduation
   },
   {
     title: "Name",
@@ -23,7 +23,7 @@ const sortProperties = [
   },
   {
     title: "Points Earned",
-    value: "pointsEarned",
+    value: "points", // Changed from pointsEarned to match DB column
   },
 ];
 
@@ -43,9 +43,10 @@ const showFilters = ref(false);
 const filters = ref({
   category: null,
   schedulingType: null,
-  completionType: null,
-  semestersFromGraduation: null,
+  submissionType: null,
+  semestersFromGrad: null,
   strengths: null,
+  status: null, // Add this line
 });
 
 const sortOptions = ref({
@@ -107,9 +108,12 @@ const handleChangeFilters = () => {
 };
 const handleClearFilters = () => {
   filters.value = {
-    startDate: null,
-    endDate: null,
-    location: null,
+    category: null,
+    schedulingType: null,
+    submissionType: null,
+    semestersFromGrad: null,
+    strengths: null,
+    status: null, // Add this line
   };
   getTasks();
 };
@@ -185,10 +189,16 @@ onMounted(async () => {
           :items="submissionTypes"
         ></v-select>
         <v-text-field
-          v-model="filters.semestersFromGraduation"
+          v-model="filters.semestersFromGrad"
           type="number"
           label="Semesters from Graduation"
         ></v-text-field>
+        <v-select
+          v-model="filters.status"
+          label="Status"
+          :items="['active', 'inactive']"
+          clearable
+        ></v-select>
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
