@@ -211,10 +211,7 @@ const handleRegister = async (event) => {
   }
 };
 
-const handleUnregisterEventExperience = async (
-  event,
-  flightPlanItems = null,
-) => {
+const handleUnregisterEventExperience = async (event, flightPlanItems = []) => {
   if (!studentId.value) return;
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);

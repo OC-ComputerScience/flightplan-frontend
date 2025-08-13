@@ -16,6 +16,13 @@ import { viewAwardedBadgeStore } from "../stores/viewAwardedBadgeStore";
 import ViewAwardedBadge from "../components/dialogs/ViewAwardedBadge.vue";
 import StudentMaintainCliftonStrengths from "../components/dialogs/StudentMaintainCliftonStrengths.vue";
 
+const props = defineProps({
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const store = userStore();
 const route = useRoute();
 const router = useRouter();
@@ -33,7 +40,6 @@ const selectedBadge = ref({});
 const selectedUser = ref([]);
 const selectedStudent = ref([]);
 const selectedMajor = ref([]);
-const isAdmin = ref(false);
 
 const showStrengthsDialog = ref(false);
 
@@ -103,12 +109,16 @@ const getBadges = async (id, page = 1) => {
 };
 
 const canEditProfile = () => {
-  return store.user.userId == route.params.userId || isAdmin.value;
+  return store.user.userId == route.params.userId || props.isAdmin;
 };
 
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editProfile", params: { id: userId } });
+  router.push(
+    props.isAdmin
+      ? { name: "adminEditProfile", params: { id: userId } }
+      : { name: "studentEditProfile", params: { id: userId } },
+  );
 
 const handleViewBadge = (badge) => {
   selectedBadge.value = badge;
@@ -124,7 +134,10 @@ const fetchUnviewedBadges = async () => {
 };
 
 const toFlightPlan = () => {
-  router.push({ name: "student-flightPlan" });
+  router.push({
+    name: "adminStudentFlightPlan",
+    params: { id: selectedStudent.value.id },
+  });
 };
 
 const getStudent = async (userId) => {
@@ -153,7 +166,6 @@ watch(currentPage, (newPage) => {
 
 onMounted(async () => {
   const passedId = route.params.userId;
-  isAdmin.value = await store.isAdmin();
 
   if (store.user.userId == route.params.userId) {
     await fetchUnviewedBadges();
@@ -205,7 +217,7 @@ onMounted(async () => {
                   Edit Profile
                 </v-btn>
                 <v-btn
-                  v-if="isAdmin"
+                  v-if="props.isAdmin"
                   color="primary"
                   class="ml-2 cardButton elevation-0"
                   rounded="xl"

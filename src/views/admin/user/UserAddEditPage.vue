@@ -14,7 +14,13 @@ import { linkOptions } from "../../../utils/linkOptions";
 import { addLinkToUserStore } from "../../../stores/addLinkToUserStore";
 import AddLinkToUser from "../../../components/dialogs/AddLinkToUser.vue";
 
-const props = defineProps({ isAdd: Boolean });
+const props = defineProps({
+  isAdd: Boolean,
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+});
 const store = userStore();
 
 const form = ref(null);
@@ -369,7 +375,7 @@ onMounted(async () => {
       </v-expansion-panels>
 
       <v-row no-gutters>
-        <v-col v-if="store.isAdmin" cols="1" class="mr-11">
+        <v-col v-if="props.isAdmin" cols="1" class="mr-11">
           <v-tooltip location="top">
             <template #activator="{ props }">
               <v-checkbox

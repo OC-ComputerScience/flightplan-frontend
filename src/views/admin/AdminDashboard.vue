@@ -287,9 +287,6 @@ onMounted(() => {
               :view-only="true"
               :no-actions="true"
               :status-label="getEventCardColor(item, [], [], [])"
-              color="background"
-              :is-event-viewing="false"
-              :to="{ name: 'admin-calendar' }"
             ></EventCard>
           </div>
           <v-btn
