@@ -1,11 +1,15 @@
 import apiClient from "./services.js";
 export default {
-  getAllBadges(page, pageSize, searchQuery) {
+  getAllBadges(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/badge", {
       params: {
         page: page,
         pageSize: pageSize,
         searchQuery: searchQuery,
+        status: filters?.status,
+        ruleType: filters?.ruleType,
+        sortAttribute: filters?.sortAttribute,
+        sortDirection: filters?.sortDirection,
       },
     });
   },
