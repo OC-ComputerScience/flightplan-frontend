@@ -44,6 +44,12 @@ const currentFlightPlanLabel = computed(() => {
   return `${term} ${flightPlan.value.semester?.year}`;
 });
 
+const selectedFlightPlanIsCurrent = computed(() => {
+  return (
+    selectedFlightPlan.value.semestersFromGrad === student.semestersFromGrad
+  );
+});
+
 const downloadFlightPlanICS = async () => {
   const eventRes = await eventServices.getAllEvents(1, 1000);
   const allEvents = eventRes.data.events;
@@ -450,6 +456,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
           :flight-plan-item="item"
           :is-admin="props.isAdmin"
           :is-flight-plan-view="props.isAdmin"
+          :is-view-only="!selectedFlightPlanIsCurrent"
           :flight-plan-items="flightPlanItems"
           @incomplete="handleIncompleteButtonClick"
           @register="handleRegister"
