@@ -118,7 +118,7 @@ const handleApprove = async () => {
       }, 2000);
     }
   } else if (
-    !flightPlanItem.value.experience?.eventRequired
+    !flightPlanItem.value.experience?.eventRequired || !flightPlanItem.value.experience?.submissionType.includes("Attendance")
   ) {
     console.log("In else if")
     try {
