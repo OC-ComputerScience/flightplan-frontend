@@ -173,7 +173,6 @@ const handleRegister = async (event) => {
     };
     await flightPlanItemServices.updateFlightPlanItem(updatedItem);
     await fetchStudentStatus();
-    console.log("Emmitting refresh")
     emit("refresh");
 
     handleRefresh();
@@ -400,7 +399,7 @@ const handleViewRegisteredEvent = async () => {
                     !flightPlanItem.status.includes('Pending')) ||
                   (flightPlanItem.flightPlanItemType === 'Experience' &&
                     flightPlanItem.experience?.eventRequired &&
-                    flightPlanItem.status === 'Incomplete' ||
+                    flightPlanItem.status === 'Incomplete' &&
                     !flightPlanItem.status.includes('Pending'))
                 "
                 class="mr-4 mb-3"

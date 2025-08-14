@@ -263,9 +263,10 @@ const fetchFlightPlanAndItems = async () => {
   };
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
-      selectedFlightPlan.value.value,
+      selectedFlightPlan.value.id,
       params
     );
+
   flightPlanItems.value = response.data.flightPlanItems;
   
   const pointsResponse = await studentServices.getPoints(studentId.value);
@@ -283,9 +284,9 @@ const handleShow = (flightPlanItem) => {
 
 const handleRefresh = async () => {
   await fetchFlightPlanAndItems();
-    await fetchStudentStatus();
-
-  await getEvents();  await getNotifications();
+  await fetchStudentStatus();
+  await getEvents();  
+  await getNotifications();
 }
 
 const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
