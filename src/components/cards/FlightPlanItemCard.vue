@@ -173,8 +173,7 @@ const handleRegister = async (event) => {
     };
     await flightPlanItemServices.updateFlightPlanItem(updatedItem);
     await fetchStudentStatus();
-    emit("refresh");
-
+    
     handleRefresh();
   } catch (err) {
     console.error("Registration error:", err);
@@ -335,7 +334,7 @@ const handleViewRegisteredEvent = async () => {
               </v-tooltip>
             </v-row>
             <p>{{ flightPlanItem.flightPlanItemType }}</p>
-            <p>
+            <p><strong>
               {{
                 flightPlanItem.status === "Complete"
                   ? "Complete"
@@ -343,6 +342,7 @@ const handleViewRegisteredEvent = async () => {
                     ? "Registered"
                     : flightPlanItem.status
               }}
+              </strong>
             </p>
             <p
               :class="[

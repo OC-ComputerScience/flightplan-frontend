@@ -313,6 +313,7 @@ const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
 };
 
 const handleRegister = async (event) => {
+  console.log("Handling register")
   if (!studentId.value) return;
   const eventExperiences = (
     await experienceServices.getAllExperiencesForEvent(event.id)
