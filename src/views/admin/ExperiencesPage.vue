@@ -5,10 +5,17 @@ import experienceServices from "../../services/experienceServices";
 import ExperienceCard from "../../components/cards/ExperienceCard.vue";
 import CardTable from "../../components/CardTable.vue";
 import CardHeader from "../../components/CardHeader.vue";
+import SortSelect from "../../components/SortSelect.vue";
 
 // Constants
 const PAGE_SIZE = 8;
 const label = "Experiences";
+
+const sortProperties = [
+  { title: "Name", value: "name" },
+  { title: "Category", value: "category" },
+  { title: "Points", value: "points" },
+];
 
 // Reactive states
 const router = useRouter();
@@ -16,6 +23,23 @@ const experiences = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
 const count = ref(0);
+const showFilters = ref(false);
+const filters = ref({
+  category: null,
+  schedulingType: null,
+  submissionType: null,
+  status: null,
+});
+const sortOptions = ref({
+  sortAttribute: sortProperties[0].value,
+  sortDirection: "asc",
+});
+
+// Add these refs for filter options
+const categories = ref([]);
+const schedulingTypes = ref([]);
+const submissionTypes = ref([]);
+const statusTypes = ref(["active", "inactive"]);
 
 // Fetch experiences
 const getExperiences = async (pageNumber = page.value) => {
@@ -24,12 +48,54 @@ const getExperiences = async (pageNumber = page.value) => {
       pageNumber,
       PAGE_SIZE,
       searchQuery.value,
+      {
+        ...filters.value,
+        ...sortOptions.value,
+      },
     );
-   
-    experiences.value = result.data.experiences.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
+
+    experiences.value = result.data.experiences;
     count.value = result.data.count;
   } catch (error) {
     console.error("Error fetching experiences:", error);
+  }
+};
+
+// Add filter handlers
+const handleChangeFilters = () => {
+  page.value = 1;
+  getExperiences();
+};
+
+const handleClearFilters = () => {
+  filters.value = {
+    category: null,
+    schedulingType: null,
+    submissionType: null,
+    status: null,
+  };
+  sortOptions.value = {
+    sortAttribute: sortProperties[0].value,
+    sortDirection: "asc",
+  };
+  getExperiences();
+};
+
+// Add fetchFilterOptions function
+const fetchFilterOptions = async () => {
+  try {
+    const [categoriesData, schedulingTypesData, submissionTypesData] =
+      await Promise.all([
+        experienceServices.getCategories(),
+        experienceServices.getSchedulingTypes(),
+        experienceServices.getSubmissionTypes(),
+      ]);
+
+    categories.value = categoriesData.data;
+    schedulingTypes.value = schedulingTypesData.data;
+    submissionTypes.value = submissionTypesData.data;
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
   }
 };
 
@@ -44,28 +110,77 @@ const handleSearchChange = (input) => {
   getExperiences(page.value);
 };
 
+// Add this handler
+const handleCloseFilters = () => {
+  showFilters.value = false;
+};
+
 // Initial fetch
-onMounted(() => getExperiences());
+onMounted(async () => {
+  await fetchFilterOptions();
+  getExperiences();
+});
 </script>
 <template>
   <v-container fluid>
     <CardHeader
       :label="label"
+      :filter-button="true"
       @changed="handleSearchChange"
       @add="handleAdd"
+      @toggle-filters="showFilters = !showFilters"
     ></CardHeader>
-    <v-row v-if="experiences.length === 0" class="justify-center">
-      <v-col>
-        <v-alert color="danger" class="text-center"> No results found </v-alert>
-      </v-col>
-    </v-row>
+
     <CardTable
-      v-else
       :items="experiences"
-      :per-row-lg="4"
-      :per-row-md="3"
-      :per-row-sm="2"
+      :per-row-lg="showFilters ? 3 : 4"
+      :per-row-md="showFilters ? 2 : 3"
+      :per-row-sm="showFilters ? 1 : 2"
+      :show-filters="showFilters"
+      @update-filters="handleChangeFilters"
+      @clear-filters="handleClearFilters"
+      @close-filter-menu="handleCloseFilters"
     >
+      <template #filters>
+        <v-select
+          v-model="filters.category"
+          :items="categories"
+          label="Category"
+          clearable
+          @update:model-value="handleChangeFilters"
+        ></v-select>
+
+        <v-select
+          v-model="filters.schedulingType"
+          :items="schedulingTypes"
+          label="Scheduling Type"
+          clearable
+          @update:model-value="handleChangeFilters"
+        ></v-select>
+
+        <v-select
+          v-model="filters.submissionType"
+          :items="submissionTypes"
+          label="Submission Type"
+          clearable
+          @update:model-value="handleChangeFilters"
+        ></v-select>
+
+        <v-select
+          v-model="filters.status"
+          :items="statusTypes"
+          label="Status"
+          clearable
+          @update:model-value="handleChangeFilters"
+        ></v-select>
+
+        <SortSelect
+          v-model="sortOptions"
+          :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
+        ></SortSelect>
+      </template>
+
       <template #item="{ item }">
         <ExperienceCard
           :experience="item"
@@ -74,6 +189,7 @@ onMounted(() => getExperiences());
         ></ExperienceCard>
       </template>
     </CardTable>
+
     <v-pagination
       v-model="page"
       :length="count"
@@ -82,7 +198,6 @@ onMounted(() => getExperiences());
       @next="getExperiences"
       @prev="getExperiences"
       @update:model-value="getExperiences"
-    >
-    </v-pagination>
+    ></v-pagination>
   </v-container>
 </template>

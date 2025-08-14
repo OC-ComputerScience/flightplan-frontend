@@ -1,11 +1,17 @@
 import apiClient from "./services.js";
 export default {
-  getAllExperiences(page, pageSize, searchQuery) {
+  getAllExperiences(page, pageSize, searchQuery, filters = {}) {
     return apiClient.get("/experience", {
       params: {
-        page: page,
-        pageSize: pageSize,
-        searchQuery: searchQuery,
+        page,
+        pageSize,
+        searchQuery,
+        category: filters?.category,
+        schedulingType: filters?.schedulingType,
+        submissionType: filters?.submissionType,
+        status: filters?.status,
+        sortAttribute: filters?.sortAttribute,
+        sortDirection: filters?.sortDirection,
       },
     });
   },
