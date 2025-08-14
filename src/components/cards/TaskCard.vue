@@ -4,42 +4,41 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  approval: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(["edit", "delete"]);
 </script>
 <template>
-  <v-card
-    color="backgroundDarken"
-    class="h-100 cardContainer d-flex flex-column"
-  >
-    <v-card-text class="flex-grow-1">
+  <v-card color="backgroundDarken" class="cardContainer">
+    <v-card-text>
       <p class="text-h5 mb-2">
         {{ props.task.name }}
       </p>
-      <p class="text-subtitle-1 font-weight-regular">
+            <p class="text-subtitle-1 font-weight-regular">
         Sequence: {{ props.task.sequenceNumber }}
       </p>
       <p class="text-subtitle-1 font-weight-regular">
         Category: {{ props.task.category }}
       </p>
-      <p class="text-subtitle-1 font-weight-regular">
+      <p v-if="!props.approval" class="text-subtitle-1 font-weight-regular">
         Completion Type: {{ props.task.submissionType }}
       </p>
-      <p class="text-subtitle-1 font-weight-regular">
+      <p v-if="!props.approval" class="text-subtitle-1 font-weight-regular">
         Status: {{ props.task.status }}
       </p>
     </v-card-text>
-    <v-card-subtitle class="mt-auto pa-0">
-      <div class="ma-2 float-end">
-        <v-btn
-          color="warning"
-          class="mr-2 cardButton"
-          @click="emit('edit', props.task.id)"
-        >
-          <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
-        </v-btn>
-      </div>
-    </v-card-subtitle>
+    <v-row v-if="!props.approval" class="ma-2 float-right">
+      <v-btn
+        color="warning"
+        class="mr-2 cardButton"
+        @click="emit('edit', props.task.id)"
+      >
+        <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+      </v-btn>
+    </v-row>
   </v-card>
 </template>
 
