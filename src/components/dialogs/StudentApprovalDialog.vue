@@ -273,9 +273,23 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
-        await submitAttendanceReflection();
-        
 
+        await submitAttendanceReflection();
+        if (didStudentAttend.value) {
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        } else {
+          errorMessage.value =
+            "Attendance for this event has not yet been posted. You will receive a notification once it has been posted.";
+
+          await flightPlanItemServices.updateFlightPlanItem({
+            ...flightPlanItem.value,
+            status: "Pending Attendance",
+          });
+
+          debounceSubmit()
+          return;
+        }
         break;
       
       // TODO
@@ -394,10 +408,7 @@ const handleSubmit = async () => {
         }
         break;
     }
-    if (
-      !automaticSubmission &&
-      submissionType.value !== "Attendance - Reflection"
-    ) {
+    if (!automaticSubmission) {
       generateNotification();
       successMessage.value = "Submission successful!";
       debounceSubmit();
