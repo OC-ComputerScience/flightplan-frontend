@@ -131,6 +131,7 @@ const loadExperienceEvents = async () => {
     const response = await eventServices.getEventsForExperience(
       props.flightPlanItem.experience.id,
     );
+
     eventOptions.value = response.data;
   } catch (err) {
     console.error("Failed to fetch fulfilling events:", err);
@@ -172,6 +173,7 @@ const handleRegister = async (event) => {
     };
     await flightPlanItemServices.updateFlightPlanItem(updatedItem);
     await fetchStudentStatus();
+    console.log("Emmitting refresh")
     emit("refresh");
 
     handleRefresh();
@@ -270,12 +272,6 @@ const checkCompletionAbility = () => {
     return true;
 
   return false;
-
-    // (flightPlanItem.flightPlanItemType === "Experience" &&
-    //   flightPlanItem.experience?.submissionType !== "Attendance - Auto" &&
-    //   flightPlanItem.experience?.submissionType &&
-    //   flightPlanItem.eventId !== null) ||
-    // flightPlanItem.experience?.submissionType !== "Attendance - Reflection";
 };
 
 const handleViewRegisteredEvent = async () => {
@@ -404,7 +400,7 @@ const handleViewRegisteredEvent = async () => {
                     !flightPlanItem.status.includes('Pending')) ||
                   (flightPlanItem.flightPlanItemType === 'Experience' &&
                     flightPlanItem.experience?.eventRequired &&
-                    flightPlanItem.status === 'Incomplete' &&
+                    flightPlanItem.status === 'Incomplete' ||
                     !flightPlanItem.status.includes('Pending'))
                 "
                 class="mr-4 mb-3"

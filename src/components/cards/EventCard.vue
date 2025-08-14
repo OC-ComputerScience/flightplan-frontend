@@ -369,7 +369,7 @@ const handleRegistration = () => {
         </v-row>
         <v-row v-else-if="!props.noActions || props.registerOnly" class="ma-2 float-left">
           <v-btn
-            v-if="isRegistered && props.event.status === 'Upcoming' && resolvedStatusLabel !== 'Checked In'"
+            v-if="isRegistered && props.event.status === 'Upcoming' && resolvedStatusLabel !== 'Checked In' || resolvedStatusLabel === 'Registered'"
             color="error"
             class="mr-2 cardButton elevation-0"
             @click.stop.prevent="handleRegistration"

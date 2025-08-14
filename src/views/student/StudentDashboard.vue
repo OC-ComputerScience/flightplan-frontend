@@ -119,7 +119,7 @@ const fetchStudentStatus = async () => {
     cancelledEvents.value = events.value.filter(
       (event) => event.status === "Cancelled",
     );
-  } catch (err) {
+    } catch (err) {
     console.error("Error fetching student status:", err);
   }
 };
@@ -283,8 +283,9 @@ const handleShow = (flightPlanItem) => {
 
 const handleRefresh = async () => {
   await fetchFlightPlanAndItems();
-  await getEvents();
-  await getNotifications();
+    await fetchStudentStatus();
+
+  await getEvents();  await getNotifications();
 }
 
 const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
@@ -606,12 +607,11 @@ onMounted(async () => {
   <SelectEventExperience
     :event="selectedEvent"
     :flight-plan-items="dialogFlightPlanItems"
-    @register="handleRegisterEventExperience"
+    @register="handleRegisterEventExperience"/>
 
   <EventRegistrationConfirmation
     v-model="useEventRegistrationConfirmationStore.visible"
     :message="registrationUpdateMessage"
-
   />
 </template>
 
