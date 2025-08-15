@@ -31,7 +31,7 @@ const badges = ref([]);
 const unviewedBadges = ref([]);
 const selectedBadge = ref({});
 const selectedUser = ref([]);
-const selectedStudent = ref([]);
+const selectedStudent = ref(null);
 const selectedMajor = ref([]);
 const isAdmin = ref(false);
 
@@ -39,7 +39,7 @@ const showStrengthsDialog = ref(false);
 
 // Add pagination variables
 const currentPage = ref(1);
-const pageSize = ref(6);
+const pageSize = ref(50);
 const totalPages = ref(1);
 
 const getUser = async (id) => {
@@ -60,9 +60,11 @@ const getLinks = async (id) => {
   }
 };
 
-const getStrengths = async (id) => {
+const getStrengths = async () => {
   try {
-    const res = await strengthServices.getStrengthsForStudent(id); // API call
+    const res = await strengthServices.getStrengthsForStudent(
+      selectedStudent.value.id,
+    ); // API call
     strengths.value = res.data; // Update strengths
 
     if (!res.data || res.data.length === 0) {
@@ -79,10 +81,10 @@ const getStrengths = async (id) => {
   }
 };
 
-const getBadges = async (id, page = 1) => {
+const getBadges = async (studentId, page = 1) => {
   try {
     const res = await badgeServices.getBadgesForStudent(
-      id,
+      studentId,
       page,
       pageSize.value,
     ); // API call
@@ -146,8 +148,6 @@ const openStrengthsDialog = () => {
   showStrengthsDialog.value = true;
 };
 
-
-
 onMounted(async () => {
   const passedId = route.params.userId;
   isAdmin.value = await store.isAdmin();
@@ -158,9 +158,8 @@ onMounted(async () => {
   await getUser(passedId);
   await getStudent(passedId);
   getLinks(passedId);
-  getStrengths(passedId);
+  getStrengths();
   getBadges(selectedStudent.value.id);
-
 });
 </script>
 
@@ -367,7 +366,7 @@ onMounted(async () => {
     :id="route.params.userId"
     @close="showStrengthsDialog = false"
     @submit="
-      getStrengths(route.params.userId);
+      getStrengths();
       showStrengthsDialog = false;
     "
   />

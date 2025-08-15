@@ -9,6 +9,7 @@ const strengths = ref([]);
 const initialStrengths = ref([]);
 const strengthOptions = ref([]);
 const maximumNumberOfStrengths = 5;
+const student = ref(null);
 
 const emit = defineEmits(["submit"]);
 
@@ -25,7 +26,7 @@ const closeDialogue = () => {
 };
 
 const handleSubmit = async () => {
-  await updateStrengths(props.id);
+  await updateStrengths(student.value.id);
   emit("submit");
   visible.value = false;
 };
@@ -61,9 +62,9 @@ onMounted(async () => {
       ...strength,
     }));
 
-    const student = (await studentServices.getStudentForUserId(props.id)).data;
+    student.value = (await studentServices.getStudentForUserId(props.id)).data;
     const studentStrengths = (
-      await strengthServices.getStrengthsForStudent(student.id)
+      await strengthServices.getStrengthsForStudent(student.value.id)
     ).data;
 
     strengths.value = studentStrengths.map((studentStrengths) => ({
