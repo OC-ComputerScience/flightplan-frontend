@@ -115,7 +115,7 @@ watch(file, () => {
         ].join("\n");
       },
     });
-  } else if (!file.value || !file.value?.type === "text/csv") {
+  } else if (file.value?.type !== "text/csv") {
     filePreview.value = "Please upload a CSV file to see a preview";
   }
 });
