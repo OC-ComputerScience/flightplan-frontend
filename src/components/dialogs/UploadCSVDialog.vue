@@ -78,46 +78,55 @@ watch(visible, () => {
 
 watch(file, () => {
   filePreview.value = "";
-  if (
-    props.showPreview &&
-    file.value?.type === "text/csv" &&
-    !props.previewHeader
-  ) {
-    Papa.parse(file.value, {
-      skipEmptyLines: true,
-      complete: (results) => {
-        filePreview.value = [
-          ...results.data.map((line) => line[0].replace(/['"<>`\\;, \t]/g, "")),
-        ].join("\n");
-      },
-    });
-  } else if (
-    props.showPreview &&
-    file.value?.type === "text/csv" &&
-    props.previewHeader
-  ) {
-    Papa.parse(file.value, {
-      skipEmptyLines: true,
-      complete: (results) => {
-        const header = results.data[0];
-        const emailColIndex = header.findIndex(
-          (col) => col.trim().toLowerCase() === "email",
-        );
-        if (emailColIndex === -1) {
-          filePreview.value = `Ensure there is a column with the title '${props.previewHeader}'`;
-          return;
-        }
 
-        filePreview.value = [
-          ...results.data
-            .slice(1)
-            .map((line) => line[emailColIndex].replace(/['"<>`\\;, \t]/g, "")),
-        ].join("\n");
-      },
-    });
-  } else if (file.value?.type !== "text/csv") {
-    filePreview.value = "Please upload a CSV file to see a preview";
-  }
+  if (!file.value) return;
+
+  setTimeout(() => {
+    if (
+      props.showPreview &&
+      file.value?.type === "text/csv" &&
+      !props.previewHeader
+    ) {
+      Papa.parse(file.value, {
+        skipEmptyLines: true,
+        complete: (results) => {
+          filePreview.value = [
+            ...results.data.map((line) =>
+              line[0].replace(/['"<>`\\;, \t]/g, ""),
+            ),
+          ].join("\n");
+        },
+      });
+    } else if (
+      props.showPreview &&
+      file.value?.type === "text/csv" &&
+      props.previewHeader
+    ) {
+      Papa.parse(file.value, {
+        skipEmptyLines: true,
+        complete: (results) => {
+          const header = results.data[0];
+          const emailColIndex = header.findIndex(
+            (col) => col.trim().toLowerCase() === "email",
+          );
+          if (emailColIndex === -1) {
+            filePreview.value = `Ensure there is a column with the title '${props.previewHeader}'`;
+            return;
+          }
+
+          filePreview.value = [
+            ...results.data
+              .slice(1)
+              .map((line) =>
+                line[emailColIndex].replace(/['"<>`\\;, \t]/g, ""),
+              ),
+          ].join("\n");
+        },
+      });
+    } else if (file.value?.type !== "text/csv") {
+      filePreview.value = "Please upload a CSV file to see a preview";
+    }
+  });
 });
 </script>
 
