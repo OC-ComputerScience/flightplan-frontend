@@ -43,15 +43,10 @@ export default {
       },
     });
   },
-  approveFlightPlanItemsForTaskInSemesterForStudents(
-    studentEmails,
-    taskId,
-    semestersFromGrad,
-  ) {
-    return apiClient.put(
-      `/flightPlanItem/task/${taskId}/semestersFromGrad/${semestersFromGrad}/approve`,
-      { studentEmails },
-    );
+  approveFlightPlanItemsForTaskForStudents(studentEmails, taskId) {
+    return apiClient.put(`/flightPlanItem/task/${taskId}/approve`, {
+      studentEmails,
+    });
   },
   approveFlightPlanItem(flightPlanItemId) {
     return apiClient.put(`/flightPlanItem/${flightPlanItemId}/approve`);

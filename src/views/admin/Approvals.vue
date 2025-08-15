@@ -12,7 +12,6 @@ import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore"
 import { uploadCSVDialogStore } from "../../stores/uploadCSVDialogStore";
 import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
-import { semesters } from "../../utils/semesterFormatter";
 
 const route = useRoute();
 const specificIdParam = !!route.query.id;
@@ -27,7 +26,6 @@ const searchQuery = ref("");
 
 const display = useDisplay();
 
-const selectedSemester = ref(null);
 const taskSearchQuery = ref("");
 const tasks = ref([]);
 const selectedTask = ref(null);
@@ -73,26 +71,16 @@ const handleApprove = (flightPlanItem) => {
   dialogStore.toggleVisibility();
 };
 
-const selectSemester = (semester) => {
-  selectedSemester.value = semester;
-  loadTasksForSemester();
-};
-
-const loadTasksForSemester = async () => {
-  const semester = selectedSemester.value.value;
+const loadTasks = async () => {
   tasks.value = (
     await taskServices.getAllTasks(1, 1000, taskSearchQuery.value, {
-      semestersFromGraduation: semester,
       completionType: "Admin CSV Upload",
     })
   ).data.tasks;
   //As of adding CSV uploading funcionality, getAllTasks does not filter out correctly, this filter can be removed in the future if it is fixed
   tasks.value = tasks.value.filter((task) => {
     return (
-      task.semestersFromGrad >= semester &&
-      task.submissionType === "Admin CSV Upload" &&
-      (task?.semesterEnd === null || task.semesterEnd <= semester) &&
-      task.status === "active"
+      task.submissionType === "Admin CSV Upload" && task.status === "active"
     );
   });
 };
@@ -105,16 +93,29 @@ const selectTask = (task) => {
 
 const handleSubmitCSV = async (csv) => {
   loadingApproveStudents.value = true;
+
+  const header = csv[0];
+  const emailColIndex = header.findIndex(
+    (col) => col.trim().toLowerCase() === "email",
+  );
+  if (emailColIndex === -1) {
+    csvDialogStore.setError(true);
+    csvDialogStore.setErrorMessage("CSV must contain an 'Email' column");
+    loadingApproveStudents.value = false;
+    return;
+  }
+
   const studentEmails = {
     studentEmails: [
-      ...csv.map((line) => line[0].replace(/['"<>`\\;, \t]/g, "")),
+      ...csv
+        .slice(1)
+        .map((line) => line[emailColIndex].replace(/['"<>`\\;, \t]/g, "")),
     ],
   };
   try {
-    await flightPlanItemServices.approveFlightPlanItemsForTaskInSemesterForStudents(
+    await flightPlanItemServices.approveFlightPlanItemsForTaskForStudents(
       studentEmails,
       selectedTask.value.id,
-      selectedSemester.value.value,
     );
     csvSuccessMessage.value = "All Students Approved Successfully";
   } catch (error) {
@@ -128,10 +129,11 @@ const handleSubmitCSV = async (csv) => {
 
 watch([page, searchQuery], fetchPendingApprovals);
 
-watch([taskSearchQuery], loadTasksForSemester);
+watch([taskSearchQuery], loadTasks);
 
 onMounted(async () => {
   let allSubmissions = (await flightPlanItemServices.getPendingApprovals()).data.flightPlanItems;
+  await loadTasks();
   await fetchPendingApprovals();
   if (specificIdParam) {
     let foundItem = null;
@@ -189,32 +191,8 @@ onMounted(async () => {
       @reject="fetchPendingApprovals"
     />
   </v-container>
-  <v-container>
-    <h2 class="text-h4">Approval by CSV</h2>
-    <h2 class="text-h5">Select Semester</h2>
-    <CardTable
-      :items="semesters"
-      :per-row-lg="4"
-      :per-row-md="4"
-      :per-row-sm="4"
-    >
-      <template #item="{ item }">
-        <v-card
-          class="pa-10 rounded-xl"
-          color="backgroundDarken"
-          :class="
-            item.value == selectedSemester?.value ? 'thick-border' : 'no-border'
-          "
-          @click="selectSemester(item)"
-        >
-          <v-card-text color="text" class="text-center text-h5">{{
-            item.name
-          }}</v-card-text>
-        </v-card>
-      </template>
-    </CardTable>
-  </v-container>
   <v-container style="min-height: 600px">
+    <h2 class="text-h4">Approval by CSV</h2>
     <CardHeader
       label="Select Task"
       :add-button="false"
@@ -235,9 +213,10 @@ onMounted(async () => {
       :close-dialog-after-data-sent="false"
       :show-preview="true"
       :success-message="csvSuccessMessage"
-      :upload-message="`Upload CSV File for ${selectedTask?.name} in ${selectedSemester?.name}`"
+      :upload-message="`Upload CSV File for ${selectedTask?.name}\nEnsure there is a column with the title 'Email'`"
       :wait-for-loading="true"
       :loading="loadingApproveStudents"
+      preview-header="email"
       preview-name="StudentEmails"
       @submit="handleSubmitCSV"
     />

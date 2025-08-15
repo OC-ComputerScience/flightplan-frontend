@@ -17,6 +17,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  previewHeader: {
+    type: String,
+    default: "",
+  },
   previewName: {
     type: String,
     default: "",
@@ -65,7 +69,6 @@ const handleCancel = () => {
 
 watch(visible, () => {
   if (!visible.value) {
-    console.log("Something about visablility");
     dialogStore.setErrorMessage("");
     dialogStore.setError(false);
     file.value = null;
@@ -74,7 +77,12 @@ watch(visible, () => {
 });
 
 watch(file, () => {
-  if (props.showPreview && file.value?.type === "text/csv") {
+  filePreview.value = "";
+  if (
+    props.showPreview &&
+    file.value?.type === "text/csv" &&
+    !props.previewHeader
+  ) {
     Papa.parse(file.value, {
       skipEmptyLines: true,
       complete: (results) => {
@@ -83,6 +91,32 @@ watch(file, () => {
         ].join("\n");
       },
     });
+  } else if (
+    props.showPreview &&
+    file.value?.type === "text/csv" &&
+    props.previewHeader
+  ) {
+    Papa.parse(file.value, {
+      skipEmptyLines: true,
+      complete: (results) => {
+        const header = results.data[0];
+        const emailColIndex = header.findIndex(
+          (col) => col.trim().toLowerCase() === "email",
+        );
+        if (emailColIndex === -1) {
+          filePreview.value = `Ensure there is a column with the title '${props.previewHeader}'`;
+          return;
+        }
+
+        filePreview.value = [
+          ...results.data
+            .slice(1)
+            .map((line) => line[emailColIndex].replace(/['"<>`\\;, \t]/g, "")),
+        ].join("\n");
+      },
+    });
+  } else if (!file.value || !file.value?.type === "text/csv") {
+    filePreview.value = "Please upload a CSV file to see a preview";
   }
 });
 </script>
@@ -99,7 +133,7 @@ watch(file, () => {
           class="flex-grow-1 text-center"
           style="
             overflow-wrap: break-word;
-            white-space: normal;
+            white-space: pre-line;
             word-break: break-word;
           "
         >
