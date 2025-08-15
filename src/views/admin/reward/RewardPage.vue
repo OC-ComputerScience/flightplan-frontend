@@ -13,6 +13,14 @@ const label = "Rewards";
 
 const sortProperties = [
   {
+    title: "Name",
+    value: "name",
+  },
+  {
+    title: "Points",
+    value: "points",
+  },
+  {
     title: "Redemption Type",
     value: "redemptionType",
   },
@@ -39,7 +47,7 @@ const sortOptions = ref({
   sortDirection: "asc",
 });
 
-const redemptionTypes = ref([]);
+const redemptionTypes = ref(["In-Person", "Digital"]);
 
 const display = useDisplay();
 
