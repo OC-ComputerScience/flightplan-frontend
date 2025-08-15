@@ -146,10 +146,7 @@ const openStrengthsDialog = () => {
   showStrengthsDialog.value = true;
 };
 
-// Add watcher for pagination
-watch(currentPage, (newPage) => {
-  getBadges(route.params.userId, newPage);
-});
+
 
 onMounted(async () => {
   const passedId = route.params.userId;
@@ -158,12 +155,12 @@ onMounted(async () => {
   if (store.user.userId == route.params.userId) {
     await fetchUnviewedBadges();
   }
-
+  await getUser(passedId);
+  await getStudent(passedId);
   getLinks(passedId);
   getStrengths(passedId);
-  getBadges(passedId);
-  getUser(passedId);
-  getStudent(passedId);
+  getBadges(selectedStudent.value.id);
+
 });
 </script>
 
