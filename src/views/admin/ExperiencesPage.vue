@@ -15,6 +15,19 @@ const sortProperties = [
   { title: "Name", value: "name" },
   { title: "Category", value: "category" },
   { title: "Points", value: "points" },
+  { title: "Semesters from Graduation", value: "semestersFromGrad" }, // Added sort option
+];
+
+// Semester label → value mapping
+const semesterOptions = [
+  { label: "Freshman 1", value: 8 },
+  { label: "Freshman 2", value: 7 },
+  { label: "Sophomore 1", value: 6 },
+  { label: "Sophomore 2", value: 5 },
+  { label: "Junior 1", value: 4 },
+  { label: "Junior 2", value: 3 },
+  { label: "Senior 1", value: 2 },
+  { label: "Senior 2", value: 1 },
 ];
 
 // Reactive states
@@ -29,10 +42,11 @@ const filters = ref({
   schedulingType: null,
   submissionType: null,
   status: null,
+  semestersFromGrad: null, // Added semester filter
 });
 const sortOptions = ref({
   sortAttribute: sortProperties[0].value,
-  sortDirection: "asc",
+  sortDirection: "asc", // Default ascending
 });
 
 // Add these refs for filter options
@@ -73,6 +87,7 @@ const handleClearFilters = () => {
     schedulingType: null,
     submissionType: null,
     status: null,
+    semestersFromGrad: null, // Reset semester filter
   };
   sortOptions.value = {
     sortAttribute: sortProperties[0].value,
@@ -121,6 +136,7 @@ onMounted(async () => {
   getExperiences();
 });
 </script>
+
 <template>
   <v-container fluid>
     <CardHeader
@@ -162,6 +178,16 @@ onMounted(async () => {
           v-model="filters.submissionType"
           :items="submissionTypes"
           label="Submission Type"
+          clearable
+          @update:model-value="handleChangeFilters"
+        ></v-select>
+
+        <v-select
+          v-model="filters.semestersFromGrad"
+          :items="semesterOptions"
+          item-title="label"
+          item-value="value"
+          label="Semester from Graduation"
           clearable
           @update:model-value="handleChangeFilters"
         ></v-select>
