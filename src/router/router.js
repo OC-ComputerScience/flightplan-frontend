@@ -30,6 +30,7 @@ import StudentDashboard from "../views/student/StudentDashboard.vue";
 import StudentCalendar from "../views/student/StudentCalendar.vue";
 import StudentEventCheckIn from "../views/student/StudentEventCheckIn.vue";
 import StudentShop from "../views/student/StudentShop.vue";
+import StudentBadges from "../views/student/StudentBadges.vue";
 
 import FacultyLanding from "../views/faculty/FacultyLanding.vue";
 import FacultyCalendar from "../views/faculty/FacultyCalendar.vue";
@@ -317,6 +318,11 @@ const studentRoutes = [
     path: "shop",
     name: "student-shop",
     component: StudentShop,
+  },
+  {
+    path: "badges",
+    name: "studentBadges",
+    component: StudentBadges,
   },
 ];
 const router = createRouter({
