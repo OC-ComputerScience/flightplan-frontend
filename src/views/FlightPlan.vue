@@ -37,11 +37,10 @@ const props = defineProps({
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const currentFlightPlanLabel = computed(() => {
-  const term =
-    flightPlan.value.semester?.term?.charAt(0).toUpperCase() +
-    flightPlan.value.semester?.term?.slice(1);
-  return `${term} ${flightPlan.value.semester?.year}`;
+const selectedFlightPlanIsCurrent = computed(() => {
+  return (
+    selectedFlightPlan.value.semestersFromGrad === student.semestersFromGrad
+  );
 });
 
 const downloadFlightPlanICS = async () => {
@@ -335,9 +334,6 @@ watch(selectedFlightPlan, (newFlightPlan) => {
   if (newFlightPlan) {
     fetchFlightPlanAndItems();
     fetchFlightPlanProgress();
-    currentFlightPlanLabel.value =
-      newFlightPlan.label ||
-      `${newFlightPlan.semester.term} ${newFlightPlan.semester.year}`;
   }
 });
 
@@ -450,6 +446,7 @@ watch([page, searchQuery], fetchFlightPlanAndItems);
           :flight-plan-item="item"
           :is-admin="props.isAdmin"
           :is-flight-plan-view="props.isAdmin"
+          :is-view-only="!selectedFlightPlanIsCurrent"
           :flight-plan-items="flightPlanItems"
           @incomplete="handleIncompleteButtonClick"
           @register="handleRegister"

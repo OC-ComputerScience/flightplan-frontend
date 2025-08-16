@@ -30,7 +30,6 @@ const cardClass = computed(() => {
 </script>
 
 <template>
-  <!--Need to add a filter for Active and Inactive badges-->
   <v-card
     :class="['rounded-xl', cardClass, 'bg-backgroundDarken']"
     v-bind="

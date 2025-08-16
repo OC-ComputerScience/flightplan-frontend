@@ -7,7 +7,7 @@ import badgeServices from "../services/badgeServices";
 import userServices from "../services/userServices";
 import studentServices from "../services/studentServices";
 import StrengthCard from "../components/cards/StrengthCard.vue";
-import BadgeCard from "../components/cards/BadgeCard.vue";
+import StudentBadgeCard from "../components/cards/StudentBadgeCard.vue";
 import { userStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
 import { viewBadgeAwardsStore } from "../stores/viewBadgeAwardsStore";
@@ -15,6 +15,13 @@ import ViewBadgeAwards from "../components/dialogs/ViewBadgeAwards.vue";
 import { viewAwardedBadgeStore } from "../stores/viewAwardedBadgeStore";
 import ViewAwardedBadge from "../components/dialogs/ViewAwardedBadge.vue";
 import StudentMaintainCliftonStrengths from "../components/dialogs/StudentMaintainCliftonStrengths.vue";
+
+const props = defineProps({
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const store = userStore();
 const route = useRoute();
@@ -31,15 +38,14 @@ const badges = ref([]);
 const unviewedBadges = ref([]);
 const selectedBadge = ref({});
 const selectedUser = ref([]);
-const selectedStudent = ref([]);
+const selectedStudent = ref(null);
 const selectedMajor = ref([]);
-const isAdmin = ref(false);
 
 const showStrengthsDialog = ref(false);
 
 // Add pagination variables
 const currentPage = ref(1);
-const pageSize = ref(6);
+const pageSize = ref(50);
 const totalPages = ref(1);
 
 const getUser = async (id) => {
@@ -60,9 +66,11 @@ const getLinks = async (id) => {
   }
 };
 
-const getStrengths = async (id) => {
+const getStrengths = async () => {
   try {
-    const res = await strengthServices.getStrengthsForStudent(id); // API call
+    const res = await strengthServices.getStrengthsForStudent(
+      selectedStudent.value.id,
+    ); // API call
     strengths.value = res.data; // Update strengths
 
     if (!res.data || res.data.length === 0) {
@@ -79,10 +87,10 @@ const getStrengths = async (id) => {
   }
 };
 
-const getBadges = async (id, page = 1) => {
+const getBadges = async (studentId, page = 1) => {
   try {
     const res = await badgeServices.getBadgesForStudent(
-      id,
+      studentId,
       page,
       pageSize.value,
     ); // API call
@@ -103,12 +111,16 @@ const getBadges = async (id, page = 1) => {
 };
 
 const canEditProfile = () => {
-  return store.user.userId == route.params.userId || isAdmin.value;
+  return store.user.userId == route.params.userId || props.isAdmin;
 };
 
 // Handlers
 const handleEdit = (userId) =>
-  router.push({ name: "editProfile", params: { id: userId } });
+  router.push(
+    props.isAdmin
+      ? { name: "adminEditProfile", params: { id: userId } }
+      : { name: "studentEditProfile", params: { id: userId } },
+  );
 
 const handleViewBadge = (badge) => {
   selectedBadge.value = badge;
@@ -124,7 +136,10 @@ const fetchUnviewedBadges = async () => {
 };
 
 const toFlightPlan = () => {
-  router.push({ name: "student-flightPlan" });
+  router.push({
+    name: "adminStudentFlightPlan",
+    params: { id: selectedStudent.value.id },
+  });
 };
 
 const getStudent = async (userId) => {
@@ -146,24 +161,17 @@ const openStrengthsDialog = () => {
   showStrengthsDialog.value = true;
 };
 
-// Add watcher for pagination
-watch(currentPage, (newPage) => {
-  getBadges(route.params.userId, newPage);
-});
-
 onMounted(async () => {
   const passedId = route.params.userId;
-  isAdmin.value = await store.isAdmin();
 
   if (store.user.userId == route.params.userId) {
     await fetchUnviewedBadges();
   }
-
+  await getUser(passedId);
+  await getStudent(passedId);
   getLinks(passedId);
-  getStrengths(passedId);
-  getBadges(passedId);
-  getUser(passedId);
-  getStudent(passedId);
+  getStrengths();
+  getBadges(selectedStudent.value.id);
 });
 </script>
 
@@ -205,7 +213,7 @@ onMounted(async () => {
                   Edit Profile
                 </v-btn>
                 <v-btn
-                  v-if="isAdmin"
+                  v-if="props.isAdmin"
                   color="primary"
                   class="ml-2 cardButton elevation-0"
                   rounded="xl"
@@ -283,9 +291,16 @@ onMounted(async () => {
                 flight plans to earn more!</span
               >
             </v-tooltip>
+            <v-btn
+              rounded="xl"
+              class="ml-auto mr-4 elevation-0"
+              color="primary"
+              :to="{ name: 'studentBadges' }"
+              >View All</v-btn
+            >
           </div>
-          <div v-if="!noBadges" class="badge-grid">
-            <BadgeCard
+          <div v-if="!noBadges" class="badge-grid" id="badgeList">
+            <StudentBadgeCard
               v-for="(item, index) in badges"
               :key="index"
               :badge="item"
@@ -322,7 +337,7 @@ onMounted(async () => {
             </v-tooltip>
             <v-btn
               rounded="xl"
-              class="ml-auto"
+              class="ml-auto mr-4 elevation-0"
               color="primary"
               @click="openStrengthsDialog"
               >Update Strengths</v-btn
@@ -363,7 +378,7 @@ onMounted(async () => {
     :id="route.params.userId"
     @close="showStrengthsDialog = false"
     @submit="
-      getStrengths(route.params.userId);
+      getStrengths();
       showStrengthsDialog = false;
     "
   />
