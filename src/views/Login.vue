@@ -34,7 +34,7 @@ const handleLoginSuccess = async (userData) => {
     );
     if (
       !studentResponse.data?.graduationDate ||
-      !studentResponse.data?.semestersFromGrad
+      studentResponse.data?.semestersFromGrad === null
     ) {
       const student = await createNewStudentWithColleague(userData.userId);
       await generateNewFlightPlan(student);
