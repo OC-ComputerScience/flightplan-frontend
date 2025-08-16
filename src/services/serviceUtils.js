@@ -24,7 +24,7 @@ function getBaseURL() {
   if (import.meta.env.DEV) {
     return "http://localhost:3031/flight-plan-t1";
   } else {
-    return "/flight-plan";
+    return "/flightplan";
   }
 }
 
