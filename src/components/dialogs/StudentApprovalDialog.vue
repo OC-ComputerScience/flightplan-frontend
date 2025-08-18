@@ -514,7 +514,7 @@ onMounted(() => {
               >
             </div>
             <div v-if="errorMessage">
-              <v-alert type="danger" variant="tonal" closable>{{
+              <v-alert type="error" variant="tonal" closable>{{
                 errorMessage
               }}</v-alert>
             </div>
