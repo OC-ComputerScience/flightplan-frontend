@@ -253,7 +253,7 @@ const checkCompletionAbility = () => {
     return false;
 
     if (
-    !["Incomplete", "Awaiting Reflection", "Registered"].includes(
+    !["Incomplete", "Awaiting Reflection", "Registered", "Awaiting Document", "Awaiting Completion"].includes(
       props.flightPlanItem.status,
     )
   )

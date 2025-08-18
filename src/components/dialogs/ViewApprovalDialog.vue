@@ -96,12 +96,16 @@ const handleReject = async () => {
 };
 
 const handleApprove = async () => {
+  // case - task
   if (flightPlanItem.value.flightPlanItemType !== "Experience") {
     try {
       approveDisabled.value = true;
+      await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
+
       await flightPlanItemServices.approveFlightPlanItem(
         flightPlanItem.value.id,
       );
+
 
       approveMessage.value = "Flight plan item approved";
       setTimeout(() => {
@@ -117,12 +121,15 @@ const handleApprove = async () => {
         errorMessage.value = "";
       }, 2000);
     }
-  } else if (
+  } 
+  // case - event is not required & experience is not an attendance one
+  else if (
     !flightPlanItem.value.experience?.eventRequired || !flightPlanItem.value.experience?.submissionType.includes("Attendance")
   ) {
-    console.log("In else if")
     try {
       approveDisabled.value = true;
+      await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
+
       await flightPlanItemServices.approveFlightPlanItem(
         flightPlanItem.value.id,
       );
@@ -141,14 +148,18 @@ const handleApprove = async () => {
         errorMessage.value = "";
       }, 2000);
     }
-  } else {
-    console.log("In else")
+  } 
+  // case - experience is attendance based and has an event tied
+  else {
     if (didStudentAttend.value) {
       try {
         approveDisabled.value = true;
+        await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
+
         await flightPlanItemServices.approveFlightPlanItem(
           flightPlanItem.value.id,
         );
+
 
         approveMessage.value = "Flight plan item approved";
         setTimeout(() => {
@@ -171,7 +182,14 @@ const handleApprove = async () => {
       await flightPlanItemServices.updateFlightPlanItem({
         ...flightPlanItem.value,
         status: "Pending Attendance",
+        reviewed: true,
       });
+      setTimeout(() => {
+          approveMessage.value = "";
+          visible.value = false;
+          approveDisabled.value = false;
+          emit("approve");
+        }, 2000);
     }
   }
 };
