@@ -4,6 +4,7 @@ import { useRouter, useRoute } from "vue-router";
 import {
   required,
   positiveNumber,
+  isLink
 } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
