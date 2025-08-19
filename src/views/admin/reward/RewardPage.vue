@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import rewardServices from "../../../services/rewardServices";
 import RewardCard from "../../../components/cards/RewardCard.vue";
@@ -13,6 +13,14 @@ const label = "Rewards";
 
 const sortProperties = [
   {
+    title: "Name",
+    value: "name",
+  },
+  {
+    title: "Points",
+    value: "points",
+  },
+  {
     title: "Redemption Type",
     value: "redemptionType",
   },
@@ -24,16 +32,22 @@ const rewards = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
 const count = ref(0);
+const loading = ref(false);
 
 const showFilters = ref(false);
 const filters = ref({
   redemptionType: null,
+  status: null,
+  minPoints: null,
+  maxPoints: null,
 });
 
 const sortOptions = ref({
   sortAttribute: sortProperties[0].value,
   sortDirection: "asc",
 });
+
+const redemptionTypes = ref(["In-Person", "Digital"]);
 
 const display = useDisplay();
 
@@ -48,17 +62,32 @@ const pageSize = computed(() => numCardColumns.value * 3);
 
 // Fetch rewards
 const getRewards = async () => {
+  loading.value = true;
   try {
     const result = await rewardServices.getAllRewards(
       page.value,
       pageSize.value,
       searchQuery.value,
-      { ...filters.value, ...sortOptions.value },
+      {
+        ...filters.value,
+        ...sortOptions.value,
+      },
     );
     rewards.value = result.data.rewards || [];
     count.value = result.data.count || 0;
   } catch (error) {
     console.error("Error fetching rewards:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const getRedemptionTypes = async () => {
+  try {
+    const response = await rewardServices.getRedemptionTypes();
+    redemptionTypes.value = response.data;
+  } catch (error) {
+    console.error("Error fetching redemption types:", error);
   }
 };
 
@@ -78,16 +107,31 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
+  // Convert points to numbers
+  if (filters.value.minPoints) {
+    filters.value.minPoints = Number(filters.value.minPoints);
+  }
+  if (filters.value.maxPoints) {
+    filters.value.maxPoints = Number(filters.value.maxPoints);
+  }
   getRewards();
 };
 const handleClearFilters = () => {
   filters.value = {
     redemptionType: null,
+    status: null,
+    minPoints: null,
+    maxPoints: null,
   };
   getRewards();
 };
 
 watch([page, searchQuery, showFilters], getRewards, { immediate: true });
+
+onMounted(() => {
+  getRewards();
+  getRedemptionTypes();
+});
 </script>
 <template>
   <v-container fluid>
@@ -118,10 +162,40 @@ watch([page, searchQuery, showFilters], getRewards, { immediate: true });
         ></RewardCard>
       </template>
       <template #filters>
-        <v-text-field
+        <v-select
           v-model="filters.redemptionType"
+          :items="redemptionTypes"
           label="Redemption Type"
-        ></v-text-field>
+          clearable
+          @update:model-value="getRewards"
+        ></v-select>
+        <v-select
+          v-model="filters.status"
+          :items="['active', 'inactive']"
+          label="Status"
+          clearable
+          @update:model-value="getRewards"
+        ></v-select>
+        <v-row>
+          <v-col cols="6">
+            <v-text-field
+              v-model="filters.minPoints"
+              type="number"
+              label="Min Points"
+              clearable
+              @update:model-value="getRewards"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
+              v-model="filters.maxPoints"
+              type="number"
+              label="Max Points"
+              clearable
+              @update:model-value="getRewards"
+            ></v-text-field>
+          </v-col>
+        </v-row>
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
