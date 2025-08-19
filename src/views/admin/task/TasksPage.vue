@@ -132,6 +132,15 @@ const handleClearFilters = () => {
 
 // Initial fetch
 watch(showFilters, () => getTasks());
+
+watch(
+  filters,
+  () => {
+    handleChangeFilters();
+  },
+  { deep: true },
+);
+
 onMounted(async () => {
   getTasks();
   getStrengths();
@@ -219,6 +228,7 @@ onMounted(async () => {
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
       <template #pagination>
