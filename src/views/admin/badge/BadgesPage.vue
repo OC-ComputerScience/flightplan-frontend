@@ -43,6 +43,7 @@ const handleEdit = (badgeId) =>
 const handleSearchChange = (input) => {
   searchQuery.value = input;
   page.value = 1; // Reset to first page on search change
+  getBadges(page.value, searchQuery.value);
 };
 
 const handleChangeFilters = () => {
@@ -59,6 +60,7 @@ const handleClearFilters = () => {
     sortAttribute: sortProperties[0].value,
     sortDirection: "asc",
   };
+  page.value = 1; // Reset to first page on clear filters
   getBadges();
 };
 
