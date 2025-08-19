@@ -160,6 +160,7 @@ const handleSubmit = async () => {
   const automaticSubmission =
     submissionType.value.includes("Auto") ||
     submissionType.value.includes("Self-Approved");
+  const reviewRequired = submissionType.value.includes("Review")
 
   if (noFiles && noText && !manualSubmission && !automaticSubmission) {
     errorMessage.value = "Please upload a file or write a reflection";
@@ -267,8 +268,10 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
+
         await submitAttendanceReflection();
-        if (didStudentAttend.value && !flightPlanItem.value.reviewed) {
+
+        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
           successMessage.value = "Submission successful!";
           await flightPlanItemServices
             .updateFlightPlanItem({
@@ -279,6 +282,7 @@ const handleSubmit = async () => {
           await debounceSubmit();
           break;
         }
+
         if (didStudentAttend.value) {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
@@ -331,7 +335,7 @@ const handleSubmit = async () => {
         }
         await submitAttendanceDocument();
 
-        if (didStudentAttend.value && !flightPlanItem.value.reviewed) {
+        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
           successMessage.value = "Submission successful!";
           await flightPlanItemServices
             .updateFlightPlanItem({
