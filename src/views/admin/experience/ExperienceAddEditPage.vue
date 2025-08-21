@@ -4,6 +4,7 @@ import { useRouter, useRoute } from "vue-router";
 import {
   required,
   positiveNumber,
+  isLink
 } from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import experienceServices from "../../../services/experienceServices";
@@ -28,9 +29,6 @@ const majorOptions = ref([]);
 
 const route = useRoute();
 const router = useRouter();
-
-const requiredNumberOfStrengths = 1;
-const requiredNumberOfMajors = 1;
 
 const handleCancel = () => {
   router.push({ name: "experience" });
@@ -205,16 +203,6 @@ onMounted(async () => {
         </v-col>
         <v-col :cols="6">
           <v-select
-            v-model="formData.submissionType"
-            variant="solo"
-            rounded="lg"
-            label="Submission Type"
-            :items="submissionTypes"
-            :rules="[required]"
-          ></v-select>
-        </v-col>
-        <v-col :cols="12">
-          <v-select
             v-model="formData.schedulingType"
             variant="solo"
             rounded="lg"
@@ -223,6 +211,23 @@ onMounted(async () => {
             :rules="[required]"
           ></v-select>
         </v-col>
+        <v-col :cols="6">
+          <v-select
+            v-model="formData.submissionType"
+            variant="solo"
+            rounded="lg"
+            label="Submission Type"
+            :items="submissionTypes"
+            :rules="[required]"
+          ></v-select>
+        </v-col>
+        <v-col :cols="6">
+          <v-checkbox
+            v-model="formData.eventRequired"
+            label="OC Event Registration Required for Completion?"
+          />
+        </v-col>
+
         <v-col size="6">
           <v-text-field
             v-model="formData.points"
@@ -307,13 +312,6 @@ onMounted(async () => {
           ></v-autocomplete>
         </v-col>
       </v-row>
-      <v-text-field
-        v-model="formData.rationale"
-        variant="solo"
-        rounded="lg"
-        label="Rationale"
-        :rules="[required]"
-      ></v-text-field>
 
       <!-- Removed duplicate category select -->
 
@@ -324,6 +322,32 @@ onMounted(async () => {
         label="Description"
         :rules="[required]"
       ></v-textarea>
+      <v-textarea
+        v-model="formData.instructions"
+        variant="solo"
+        rounded="lg"
+        label="Completion Instructions"
+      ></v-textarea>
+      <v-text-field
+        v-model="formData.instructionsLinkDescription"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link Description"
+      ></v-text-field>
+      <v-text-field
+        v-model="formData.instructionsLink"
+        variant="solo"
+        rounded="lg"
+        label="Additional Instructions Link"
+        :rules="formData.instructionsLinkDescription ? [isLink] : []"
+      ></v-text-field>
+      <v-text-field
+        v-model="formData.rationale"
+        variant="solo"
+        rounded="lg"
+        label="Rationale"
+        :rules="[required]"
+      ></v-text-field>
 
       <v-row class="justify-center mb-1">
         <v-btn

@@ -10,6 +10,8 @@ import { required, characterLimit } from "../../utils/formValidators";
 import { automaticSubmissionHandler } from "../../utils/flightPlanItemSubmissionHelper";
 import { createNotification } from "../../utils/notificationHandler";
 import { userStore } from "../../stores/userStore";
+import eventServices from "../../services/eventServices";
+import studentServices from "../../services/studentServices";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -22,8 +24,47 @@ const reflectionText = ref("");
 const files = ref([]);
 const successMessage = ref(""); // Track success message
 const errorMessage = ref("");
+const waitMessage = ref("");
 
 const submissionId = ref(null);
+const cannotSubmitText = ref("");
+
+const avaliableToSubmit = ref(false);
+
+watch(
+  () => flightPlanItem.value,
+  async (item) => {
+    checkStudentAttendance();
+    avaliableToSubmit.value = false;
+
+    if (item.task || item.experience?.eventRequired === false) {
+      avaliableToSubmit.value = true;
+      return;
+    }
+
+    let eventId = item.eventId;
+    if (eventId) {
+      try {
+        const event = await eventServices.getEvent(eventId);
+        if (event.data.status === "Past") {
+          avaliableToSubmit.value = true;
+        } else {
+          cannotSubmitText.value = `Cannot complete ${flightPlanItem.value.name}. Please check back after the event, ${event.data.name}, has ended to complete this item.`;
+          avaliableToSubmit.value = false;
+        }
+      } catch {
+        cannotSubmitText.value =
+          "Cannot find the event for this experience. Please contact Career Services for assistance.";
+        avaliableToSubmit.value = false;
+      }
+    } else {
+      cannotSubmitText.value =
+        "You have not registered for an event for this experience. Please click the register button to find an upcoming event.";
+      avaliableToSubmit.value = false;
+    }
+  },
+  { immediate: true },
+);
 
 const submissionType = computed(() => {
   if (flightPlanItem.value.task) {
@@ -52,6 +93,12 @@ const hasInstructionsLink = computed(() => {
   }
 });
 
+const eventRequired = computed(() => {
+  if (flightPlanItem.value.flightPlanItemType === "Task") return false;
+  if (flightPlanItem.value.experience.eventRequired) return true;
+  return false;
+});
+
 const hasInstructionsDescription = computed(() => {
   if (flightPlanItem.value.task) {
     return flightPlanItem.value.task.instructionsLinkDescription;
@@ -59,6 +106,28 @@ const hasInstructionsDescription = computed(() => {
     return flightPlanItem.value.experience.instructionsLinkDescription;
   }
 });
+
+const didStudentAttend = ref(false);
+
+const checkStudentAttendance = async () => {
+  try {
+    const user = userStore().user;
+    if (!user?.userId || !flightPlanItem.value?.eventId) {
+      didStudentAttend.value = false;
+      return;
+    }
+    const studentRes = await studentServices.getStudentForUserId(user.userId);
+    const studentId = studentRes.data.id;
+    const attendedEventsRes =
+      await eventServices.getAttendingEventsForStudent(studentId);
+    didStudentAttend.value = attendedEventsRes.data.some(
+      (event) => event.id === flightPlanItem.value.eventId,
+    );
+  } catch (error) {
+    didStudentAttend.value = false;
+    console.error("Error checking attendance:", error);
+  }
+};
 
 const fetchOptionalReviewers = async () => {
   try {
@@ -91,6 +160,7 @@ const handleSubmit = async () => {
   const automaticSubmission =
     submissionType.value.includes("Auto") ||
     submissionType.value.includes("Self-Approved");
+  const reviewRequired = submissionType.value.includes("Review")
 
   if (noFiles && noText && !manualSubmission && !automaticSubmission) {
     errorMessage.value = "Please upload a file or write a reflection";
@@ -105,13 +175,19 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-        console.log(reflectionText.length)
+
         if (reflectionText.value.length < 400) {
-          errorMessage.value = "Your reflection must be at least 400 characters"
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
           return;
         }
 
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -125,6 +201,11 @@ const handleSubmit = async () => {
           return;
         }
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -133,14 +214,15 @@ const handleSubmit = async () => {
         break;
 
       case "Upload Document & Reflection - Review":
-      case "Upload Document & Reflection - Auto Approve": {
+      case "Upload Document & Reflection - Auto Approve":
         if (noText) {
           errorMessage.value = "Please write a reflection";
           return;
         }
 
         if (reflectionText.value.length < 400) {
-          errorMessage.value = "Your reflection must be at least 400 characters"
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
           return;
         }
 
@@ -150,6 +232,11 @@ const handleSubmit = async () => {
         }
 
         if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
@@ -157,7 +244,125 @@ const handleSubmit = async () => {
         await submitFiles(automaticSubmission);
         await submitReflection(automaticSubmission);
         break;
-      }
+
+      case "Attendance - Reflection - Review":
+      case "Attendance - Reflection - Auto Approve":
+        if (noText) {
+          errorMessage.value = "Please write a reflection";
+          return;
+        }
+
+        if (reflectionText.value.length < 400) {
+          errorMessage.value =
+            "Your reflection must be at least 400 characters";
+          return;
+        }
+
+        if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
+
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        }
+
+        await submitAttendanceReflection();
+
+        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
+          successMessage.value = "Submission successful!";
+          await flightPlanItemServices
+            .updateFlightPlanItem({
+              ...flightPlanItem.value,
+              status: "Pending Review",
+            })
+            .catch((err) => console.log(err));
+          await debounceSubmit();
+          break;
+        }
+
+        if (didStudentAttend.value) {
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        } else {
+          waitMessage.value =
+            "Attendance for this event has not yet been posted. You will receive a notification once it has been posted.";
+
+          await flightPlanItemServices.updateFlightPlanItem({
+            ...flightPlanItem.value,
+            status: "Pending Attendance",
+          });
+
+          debounceSubmit();
+          return;
+        }
+        break;
+      case "Attendance - Auto Approve":
+        if (didStudentAttend.value) {
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        } else {
+          waitMessage.value =
+            "Attendance for this event has not yet been posted. You will receive a notification once it has been posted.";
+
+          await flightPlanItemServices.updateFlightPlanItem({
+            ...flightPlanItem.value,
+            status: "Pending Attendance",
+          });
+
+          await debounceSubmit();
+          return;
+        }
+        break;
+      case "Attendance - Document - Review":
+      case "Attendance - Document - Auto Approve":
+        if (noFiles) {
+          errorMessage.value = "Please upload a file";
+          return;
+        }
+
+        if (automaticSubmission) {
+          if (!selfApprovedCheck.value) {
+            errorMessage.value =
+              "You must certify that you have completed this item.";
+            return;
+          }
+
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        }
+        await submitAttendanceDocument();
+
+        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
+          successMessage.value = "Submission successful!";
+          await flightPlanItemServices
+            .updateFlightPlanItem({
+              ...flightPlanItem.value,
+              status: "Pending Review",
+            })
+            .catch((err) => console.log(err));
+          await debounceSubmit();
+          break;
+        }
+
+        if (didStudentAttend.value) {
+          successMessage.value = "Submission successful!";
+          await handleAutoApproval();
+        } else {
+          waitMessage.value =
+            "Attendance for this event has not yet been posted. You will receive a notification once it has been posted.";
+
+          await flightPlanItemServices.updateFlightPlanItem({
+            ...flightPlanItem.value,
+            status: "Pending Attendance",
+          });
+
+          debounceSubmit();
+          return;
+        }
+        break;
 
       default:
         // Mixed or other types
@@ -293,6 +498,41 @@ const submitReflection = async (autoSubmission = false) => {
   ).data.id;
 };
 
+const submitAttendanceReflection = async () => {
+  const submissionData = {
+    flightPlanItemId: flightPlanItem.value.id,
+    submissionType: "text",
+  };
+
+  submissionId.value = (
+    await submissionServices.createSubmission({
+      ...submissionData,
+      value: reflectionText.value,
+      isAutomatic: true,
+    })
+  ).data.id;
+};
+
+const submitAttendanceDocument = async () => {
+  const submissionData = {
+    flightPlanItemId: flightPlanItem.value.id,
+    submissionType: "file",
+  };
+
+  let result = await Promise.all(
+    files.value.map(async (file) => {
+      const { data } = await fileServices.uploadFile({ file }, "submissions");
+      return submissionServices.createSubmission({
+        ...submissionData,
+        value: data.fileName,
+        isAutomatic: true,
+      });
+    }),
+  );
+
+  submissionId.value = result[0].data.id;
+};
+
 const generateNotification = async () => {
   let response = await userServices.getAllAdmins();
   let admins = response.data;
@@ -336,8 +576,33 @@ const handleAutoApproval = async () => {
   flightPlanItemServices
     .approveFlightPlanItem(flightPlanItem.value.id)
     .then(() => {
-      successMessage.value = "Flight plan item submission approved";
-      debounceSubmit();
+      if (
+        flightPlanItem.value.flightPlanItemType === "Experience" &&
+        flightPlanItem.value.experience.submissionType ===
+          "Attendance - Auto Approve"
+      ) {
+        let store = userStore();
+        let userId = store.user?.userId;
+        let header = `${String(flightPlanItem.value.name)} Flight Plan Item Completion`;
+        let body = `You have received ${flightPlanItem.value.task ? String(flightPlanItem.value.task.points) : String(flightPlanItem.value.experience.points)} points for completing ${String(flightPlanItem.value.name)}`;
+
+        createNotification(
+          header,
+          body,
+          false,
+          userId,
+          null,
+          true,
+          store.user?.email,
+        );
+        emit("submit");
+        successMessage.value = "Flight plan item submission approved";
+
+        debounceSubmit();
+      } else {
+        successMessage.value = "Flight plan item submission approved";
+        debounceSubmit();
+      }
     })
     .catch((error) => {
       errorMessage.value =
@@ -352,6 +617,7 @@ watch(visible, () => {
     selectedOptionalReviewer.value = null;
     successMessage.value = "";
     errorMessage.value = "";
+    waitMessage.value = "";
     selfApprovedCheck.value = false;
   }
 });
@@ -386,7 +652,7 @@ onMounted(() => {
           >mdi-close</v-icon
         >
       </v-card-title>
-      <v-card-text>
+      <v-card-text v-if="avaliableToSubmit">
         <v-fade-transition mode="out-in">
           <div v-if="successMessage">
             <v-alert type="success" variant="tonal" closable>{{
@@ -415,7 +681,9 @@ onMounted(() => {
             <v-textarea
               v-if="
                 submissionType === 'Reflection - Review' ||
-                submissionType === 'Reflection - Auto Approve'
+                submissionType === 'Reflection - Auto Approve' ||
+                submissionType === 'Attendance - Reflection - Review' ||
+                submissionType === 'Attendance - Reflection - Auto Approve'
               "
               v-model="reflectionText"
               label="Reflection"
@@ -428,7 +696,9 @@ onMounted(() => {
             <v-file-upload
               v-else-if="
                 submissionType === 'Upload Document - Review' ||
-                submissionType === 'Upload Document - Auto Approve'
+                submissionType === 'Upload Document - Auto Approve' ||
+                submissionType === 'Attendance - Document - Review' ||
+                submissionType === 'Attendance - Document - Auto Approve'
               "
               v-model="files"
               label="Upload Files"
@@ -519,6 +789,12 @@ onMounted(() => {
               }}</v-alert>
             </div>
 
+            <div v-if="waitMessage">
+              <v-alert type="warning" variant="tonal" closable>{{
+                waitMessage
+              }}</v-alert>
+            </div>
+
             <div class="d-flex justify-center mt-4">
               <v-btn
                 variant="outlined"
@@ -533,6 +809,14 @@ onMounted(() => {
             </div>
           </div>
         </v-fade-transition>
+      </v-card-text>
+      <v-card-text v-else>
+        <v-alert type="warning" variant="tonal" color="warning">
+          <v-alert-title
+            :style="{ color: $vuetify.theme.current.colors.text }"
+            >{{ cannotSubmitText }}</v-alert-title
+          >
+        </v-alert>
       </v-card-text>
     </v-card>
   </v-dialog>

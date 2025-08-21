@@ -119,7 +119,7 @@ const fetchStudentStatus = async () => {
     cancelledEvents.value = events.value.filter(
       (event) => event.status === "Cancelled",
     );
-  } catch (err) {
+    } catch (err) {
     console.error("Error fetching student status:", err);
   }
 };
@@ -263,9 +263,10 @@ const fetchFlightPlanAndItems = async () => {
   };
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
-      selectedFlightPlan.value.value,
+      selectedFlightPlan.value.id,
       params
     );
+
   flightPlanItems.value = response.data.flightPlanItems;
   
   const pointsResponse = await studentServices.getPoints(studentId.value);
@@ -280,6 +281,13 @@ const handleShow = (flightPlanItem) => {
   flightPlanItemToShow.value = flightPlanItem;
   showFlightPlanItem.value = true;
 };
+
+const handleRefresh = async () => {
+  await fetchFlightPlanAndItems();
+  await fetchStudentStatus();
+  await getEvents();  
+  await getNotifications();
+}
 
 const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
   if (!studentId.value) return;
@@ -305,6 +313,7 @@ const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
 };
 
 const handleRegister = async (event) => {
+  console.log("Handling register")
   if (!studentId.value) return;
   const eventExperiences = (
     await experienceServices.getAllExperiencesForEvent(event.id)
@@ -496,6 +505,7 @@ onMounted(async () => {
           @register="handleRegister"
           @view="handlePendingButtonClick"
           @click="handleShow"
+          @refresh="handleRefresh"
         ></FlightPlanItemCard>
           </template>
           <div v-else class="text-center pa-4">
@@ -599,12 +609,11 @@ onMounted(async () => {
   <SelectEventExperience
     :event="selectedEvent"
     :flight-plan-items="dialogFlightPlanItems"
-    @register="handleRegisterEventExperience"
+    @register="handleRegisterEventExperience"/>
 
   <EventRegistrationConfirmation
     v-model="useEventRegistrationConfirmationStore.visible"
     :message="registrationUpdateMessage"
-
   />
 </template>
 
