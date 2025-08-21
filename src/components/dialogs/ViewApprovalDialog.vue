@@ -38,15 +38,8 @@ const didStudentAttend = ref(false);
 
 const checkStudentAttendance = async () => {
   try {
-    const user = userStore().user;
-    if (!user?.userId || !flightPlanItem.value?.eventId) {
-      didStudentAttend.value = false;
-      return;
-    }
-    const studentRes = await studentServices.getStudentForUserId(user.userId);
-    const studentId = studentRes.data.id;
     const attendedEventsRes =
-      await eventServices.getAttendingEventsForStudent(studentId);
+      await eventServices.getAttendingEventsForStudent(student.value.id);
     didStudentAttend.value = attendedEventsRes.data.some(
       (event) => event.id === flightPlanItem.value.eventId,
     );
@@ -178,7 +171,6 @@ const handleApprove = async () => {
     } else {
       approveDisabled.value = true;
       approveMessage.value = "Submission approved, awaiting attendance";
-
       await flightPlanItemServices.updateFlightPlanItem({
         ...flightPlanItem.value,
         status: "Pending Attendance",
