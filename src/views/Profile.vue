@@ -177,13 +177,6 @@ onMounted(async () => {
 
 <template>
   <v-container fluid class="pa-6">
-    <!-- Page Header -->
-    <v-row>
-      <v-col cols="12">
-        <h1 class="font-weight-bold">Your Profile</h1>
-      </v-col>
-    </v-row>
-
     <!-- Profile Section -->
     <v-row class="mb-3">
       <v-col cols="12">

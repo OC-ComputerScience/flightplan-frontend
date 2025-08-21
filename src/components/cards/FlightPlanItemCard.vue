@@ -39,6 +39,7 @@ const emit = defineEmits([
   "sign-in",
   "delete",
   "click",
+  "refresh",
 ]);
 
 const store = userStore();
@@ -68,6 +69,12 @@ const isOptional = computed(() => {
   } else {
     return props.flightPlanItem.task?.schedulingType === "optional";
   }
+});
+
+const eventRequired = computed(() => {
+  if (flightPlanItem.value.flightPlanItemType === "Task") return false;
+  if (flightPlanItem.value.experience.eventRequired) return true;
+  return false;
 });
 
 const calculateRecommended = async () => {
@@ -124,6 +131,7 @@ const loadExperienceEvents = async () => {
     const response = await eventServices.getEventsForExperience(
       props.flightPlanItem.experience.id,
     );
+
     eventOptions.value = response.data;
   } catch (err) {
     console.error("Failed to fetch fulfilling events:", err);
@@ -165,7 +173,7 @@ const handleRegister = async (event) => {
     };
     await flightPlanItemServices.updateFlightPlanItem(updatedItem);
     await fetchStudentStatus();
-
+    
     handleRefresh();
   } catch (err) {
     console.error("Registration error:", err);
@@ -192,7 +200,7 @@ const handleUnregister = async (event) => {
 
 const handleRefresh = () => {
   showEventListDialog.value = false;
-  emit("register");
+  emit("refresh");
 };
 
 const isRegisteredForExperience = computed(() => {
@@ -204,6 +212,8 @@ const color = computed(() => {
 
   if (status === "Complete") return "primary";
   if (isRegisteredForExperience.value) return "warning";
+  if (status.includes("Pending") || status.includes("Awaiting"))
+    return "warning";
 
   return (
     {
@@ -236,6 +246,30 @@ const handleClick = () => {
 
 const handleDelete = () => {
   emit("delete", props.flightPlanItem);
+};
+
+const checkCompletionAbility = () => {
+  if (!["Task", "Experience"].includes(props.flightPlanItem.flightPlanItemType))
+    return false;
+
+    if (
+    !["Incomplete", "Awaiting Reflection", "Registered", "Awaiting Document", "Awaiting Completion"].includes(
+      props.flightPlanItem.status,
+    )
+  )
+  
+    return false;
+
+    if (props.flightPlanItem.flightPlanItemType === "Task")
+    return true;
+
+  if (!props.flightPlanItem.experience?.eventRequired) 
+    return true;
+
+  if (props.flightPlanItem.eventId !== null)
+    return true;
+
+  return false;
 };
 
 const handleViewRegisteredEvent = async () => {
@@ -300,7 +334,7 @@ const handleViewRegisteredEvent = async () => {
               </v-tooltip>
             </v-row>
             <p>{{ flightPlanItem.flightPlanItemType }}</p>
-            <p>
+            <p><strong>
               {{
                 flightPlanItem.status === "Complete"
                   ? "Complete"
@@ -308,6 +342,7 @@ const handleViewRegisteredEvent = async () => {
                     ? "Registered"
                     : flightPlanItem.status
               }}
+              </strong>
             </p>
             <p
               :class="[
@@ -326,14 +361,7 @@ const handleViewRegisteredEvent = async () => {
             <v-row justify="end">
               <!-- Submission logic for Task and Experience -->
               <v-btn
-                v-if="
-                  ['Task', 'Experience'].includes(
-                    flightPlanItem.flightPlanItemType,
-                  ) &&
-                  flightPlanItem.status === 'Incomplete' &&
-                  (flightPlanItem.flightPlanItemType === 'Task' ||
-                    isSubmissionExperience)
-                "
+                v-if="checkCompletionAbility()"
                 class="mr-4 mb-3"
                 variant="outlined"
                 rounded="xl"
@@ -363,9 +391,16 @@ const handleViewRegisteredEvent = async () => {
               <!-- Attendance-based Experience Registration -->
               <v-btn
                 v-if="
-                  flightPlanItem.flightPlanItemType === 'Experience' &&
-                  flightPlanItem.experience?.submissionType === 'attendance' &&
-                  flightPlanItem.status === 'Incomplete'
+                  (flightPlanItem.flightPlanItemType === 'Experience' &&
+                    flightPlanItem.experience?.submissionType.includes(
+                      'Attendance',
+                    ) &&
+                    flightPlanItem.status === 'Incomplete' &&
+                    !flightPlanItem.status.includes('Pending')) ||
+                  (flightPlanItem.flightPlanItemType === 'Experience' &&
+                    flightPlanItem.experience?.eventRequired &&
+                    flightPlanItem.status === 'Incomplete' &&
+                    !flightPlanItem.status.includes('Pending'))
                 "
                 class="mr-4 mb-3"
                 variant="outlined"
@@ -382,7 +417,7 @@ const handleViewRegisteredEvent = async () => {
                   ['Task', 'Experience'].includes(
                     flightPlanItem.flightPlanItemType,
                   ) &&
-                  flightPlanItem.status === 'Pending' &&
+                  flightPlanItem.status.includes ('Pending') &&
                   (flightPlanItem.flightPlanItemType === 'Task' ||
                     isSubmissionExperience)
                 "
@@ -397,7 +432,9 @@ const handleViewRegisteredEvent = async () => {
               <!-- Registered/Pending Attendance Event View -->
               <v-btn
                 v-if="
-                  ['Pending', 'Registered'].includes(flightPlanItem.status) &&
+                  ['Pending Review', 'Registered'].includes(
+                    flightPlanItem.status,
+                  ) &&
                   flightPlanItem.flightPlanItemType === 'Experience' &&
                   flightPlanItem.experience?.submissionType === 'attendance'
                 "

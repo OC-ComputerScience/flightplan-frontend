@@ -7,7 +7,8 @@ import studentServices from "../../services/studentServices";
 import submissionServices from "../../services/submissionServices";
 import { VueFilesPreview } from "vue-files-preview";
 import { createNotification } from "../../utils/notificationHandler";
-
+import { userStore } from "../../stores/userStore";
+import eventServices from "../../services/eventServices";
 
 const emit = defineEmits(["reject", "approve"]);
 
@@ -31,6 +32,21 @@ const getStudentForFlightPlanId = async () => {
     flightPlanItem.value.flightPlanId,
   );
   return student.data;
+};
+
+const didStudentAttend = ref(false);
+
+const checkStudentAttendance = async () => {
+  try {
+    const attendedEventsRes =
+      await eventServices.getAttendingEventsForStudent(student.value.id);
+    didStudentAttend.value = attendedEventsRes.data.some(
+      (event) => event.id === flightPlanItem.value.eventId,
+    );
+  } catch (error) {
+    didStudentAttend.value = false;
+    console.error("Error checking attendance:", error);
+  }
 };
 
 const getSubmissionsForFlightPlanItem = async () => {
@@ -58,7 +74,7 @@ const handleReject = async () => {
         userId: student.user.id,
         sentBy: null,
         email: false,
-        emailAddress: null
+        emailAddress: null,
       });
     }
     rejectMessage.value = "Flight plan item rejected";
@@ -73,23 +89,100 @@ const handleReject = async () => {
 };
 
 const handleApprove = async () => {
-  try {
-    approveDisabled.value = true;
-    await flightPlanItemServices.approveFlightPlanItem(flightPlanItem.value.id);
+  // case - task
+  if (flightPlanItem.value.flightPlanItemType !== "Experience") {
+    try {
+      approveDisabled.value = true;
+      await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
 
-    approveMessage.value = "Flight plan item approved";
-    setTimeout(() => {
-      approveMessage.value = "";
-      visible.value = false;
-      approveDisabled.value = false;
-      emit("approve");
-    }, 2000);
-  } catch (error) {
-    console.error("Error approving flight plan item:", error);
-    errorMessage.value = "Error approving flight plan item";
-    setTimeout(() => {
-      errorMessage.value = "";
-    }, 2000);
+      await flightPlanItemServices.approveFlightPlanItem(
+        flightPlanItem.value.id,
+      );
+
+
+      approveMessage.value = "Flight plan item approved";
+      setTimeout(() => {
+        approveMessage.value = "";
+        visible.value = false;
+        approveDisabled.value = false;
+        emit("approve");
+      }, 2000);
+    } catch (error) {
+      console.error("Error approving flight plan item:", error);
+      errorMessage.value = "Error approving flight plan item";
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 2000);
+    }
+  } 
+  // case - event is not required & experience is not an attendance one
+  else if (
+    !flightPlanItem.value.experience?.eventRequired || !flightPlanItem.value.experience?.submissionType.includes("Attendance")
+  ) {
+    try {
+      approveDisabled.value = true;
+      await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
+
+      await flightPlanItemServices.approveFlightPlanItem(
+        flightPlanItem.value.id,
+      );
+
+      approveMessage.value = "Flight plan item approved";
+      setTimeout(() => {
+        approveMessage.value = "";
+        visible.value = false;
+        approveDisabled.value = false;
+        emit("approve");
+      }, 2000);
+    } catch (error) {
+      console.error("Error approving flight plan item:", error);
+      errorMessage.value = "Error approving flight plan item";
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 2000);
+    }
+  } 
+  // case - experience is attendance based and has an event tied
+  else {
+    if (didStudentAttend.value) {
+      try {
+        approveDisabled.value = true;
+        await flightPlanItemServices.updateFlightPlanItem({...flightPlanItem.value, reviewed: true})
+
+        await flightPlanItemServices.approveFlightPlanItem(
+          flightPlanItem.value.id,
+        );
+
+
+        approveMessage.value = "Flight plan item approved";
+        setTimeout(() => {
+          approveMessage.value = "";
+          visible.value = false;
+          approveDisabled.value = false;
+          emit("approve");
+        }, 2000);
+      } catch (error) {
+        console.error("Error approving flight plan item:", error);
+        errorMessage.value = "Error approving flight plan item";
+        setTimeout(() => {
+          errorMessage.value = "";
+        }, 2000);
+      }
+    } else {
+      approveDisabled.value = true;
+      approveMessage.value = "Submission approved, awaiting attendance";
+      await flightPlanItemServices.updateFlightPlanItem({
+        ...flightPlanItem.value,
+        status: "Pending Attendance",
+        reviewed: true,
+      });
+      setTimeout(() => {
+          approveMessage.value = "";
+          visible.value = false;
+          approveDisabled.value = false;
+          emit("approve");
+        }, 2000);
+    }
   }
 };
 
@@ -126,6 +219,8 @@ watch(visible, async (newValue) => {
   } else {
     student.value = await getStudentForFlightPlanId();
     await getSubmissionsForFlightPlanItem();
+    if (flightPlanItem.value.flightPlanItemType === "Experience")
+      await checkStudentAttendance();
     getSubmission();
   }
 });
@@ -186,7 +281,10 @@ watch(selectedSubmissionIndex, () => {
                 ></VueFilesPreview>
               </v-col>
               <v-col
-                v-if="selectedSubmissionType === 'text' && selectedSubmissionType !== 'manual'"
+                v-if="
+                  selectedSubmissionType === 'text' &&
+                  selectedSubmissionType !== 'manual'
+                "
                 :cols="12"
                 class="pa-4 bg-background rounded-lg"
                 style="white-space: pre-wrap"
@@ -200,12 +298,20 @@ watch(selectedSubmissionIndex, () => {
                 class="pa-4 bg-background rounded-lg"
                 style="white-space: pre-wrap"
               >
-                {{ student?.user ? student.user.fName + " " + student.user.lName : "A student" }} has indicated that they have completed {{ flightPlanItem.name }}.
+                {{
+                  student?.user
+                    ? student.user.fName + " " + student.user.lName
+                    : "A student"
+                }}
+                has indicated that they have completed
+                {{ flightPlanItem.name }}.
               </v-col>
 
-              <v-col v-if="selectedSubmissionType != 'manual'"
-                :cols="12" 
-                class="d-flex justify-center align-center">
+              <v-col
+                v-if="selectedSubmissionType != 'manual'"
+                :cols="12"
+                class="d-flex justify-center align-center"
+              >
                 <v-btn
                   class="rounded-xl mr-6"
                   color="text"

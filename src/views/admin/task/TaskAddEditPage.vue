@@ -32,9 +32,6 @@ const strengthOptions = ref([]);
 const route = useRoute();
 const router = useRouter();
 
-const requiredNumberOfMajors = 1;
-const requiredNumberOfStrengths = 1;
-
 const getId = (item) =>
   typeof item === "object" && item !== null ? item.id : item;
 

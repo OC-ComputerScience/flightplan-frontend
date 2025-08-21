@@ -632,7 +632,7 @@ function selectThisMonth() {
           >
         </div>
 
-        <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0">
+        <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0" style="  overflow-y: auto;">
           <div
             v-for="(dayEvents, dateLabel) in filteredEventsGroupedByDate"
             :key="dateLabel"
@@ -744,7 +744,6 @@ function selectThisMonth() {
 .calendarDetails-card {
   flex-grow: 1;
   max-height: 610px;
-  overflow-y: auto;
   border-radius: 25px;
   display: flex;
   flex-direction: column;
