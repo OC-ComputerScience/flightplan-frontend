@@ -273,6 +273,7 @@ const fetchFlightPlanAndItems = async () => {
     searchQuery: "",
     filters: null,
   };
+  if (!selectedFlightPlan.value) return;
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
       selectedFlightPlan.value.id,
@@ -284,6 +285,7 @@ const fetchFlightPlanAndItems = async () => {
   const pointsResponse = await studentServices.getPoints(studentId.value);
   points.value = pointsResponse.data.points;
   await fetchFlightPlanProgress();
+  
 };
 
 const showFlightPlanItem = ref(false);
