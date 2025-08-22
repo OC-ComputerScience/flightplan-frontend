@@ -1,3 +1,4 @@
+<!-- This file not currently used -->
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
