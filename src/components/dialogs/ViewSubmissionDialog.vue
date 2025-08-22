@@ -22,6 +22,7 @@ const getSubmissionsForFlightPlanItem = async () => {
       flightPlanItem.value.id,
     );
     submissions.value = response.data.submissions;
+    selectedSubmissionIndex.value = submissions.value.length-1
   } catch (error) {
     console.error("Error fetching submissions:", error);
   }
