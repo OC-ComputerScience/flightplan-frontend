@@ -20,4 +20,9 @@ export default {
   deleteNotification(id) {
     return apiClient.delete(`/notification/${id}`);
   },
+  bulkDeleteNotifications(notificationIds) {
+    return apiClient.delete("/notification/bulk", {
+      data: { notificationIds },
+    });
+  },
 };
