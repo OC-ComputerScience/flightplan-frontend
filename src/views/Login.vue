@@ -3,20 +3,23 @@ import { ref, onMounted, computed } from "vue";
 import eagle from "/Birb.png";
 import { useDisplay } from "vuetify";
 import SocialLogin from "../components/SocialLogin.vue";
-import StudentOnboarding from "../components/StudentOnboarding.vue";
 import { useRouter } from "vue-router";
 import { userStore } from "../stores/userStore";
 import studentServices from "../services/studentServices";
 import { loginRedirect } from "../router/router.js";
 import flightPlanServices from "../services/flightPlanServices.js";
+import colleagueServices from "../services/colleagueServices.js";
 
 const router = useRouter();
 const store = userStore();
 
 const eagleSrc = ref("");
-const showOnboarding = ref(false);
+
+const isLoading = ref(false);
+const loadingMessage = ref("Loading...");
 
 const handleLoginSuccess = async (userData) => {
+  isLoading.value = true;
   try {
     // Skip onboarding for admin users
     if (await store.isAdmin()) {
@@ -31,9 +34,10 @@ const handleLoginSuccess = async (userData) => {
     );
     if (
       !studentResponse.data?.graduationDate ||
-      !studentResponse.data?.semestersFromGrad
+      studentResponse.data?.semestersFromGrad === null
     ) {
-      showOnboarding.value = true;
+      const student = await createNewStudentWithColleague(userData.userId);
+      await generateNewFlightPlan(student);
     } else {
       // Check if student has a flight plan for their current semester from graduation if they have not graduated
       const flightPlanForCurrentSemester = (
@@ -44,7 +48,7 @@ const handleLoginSuccess = async (userData) => {
       ).data;
       if (!flightPlanForCurrentSemester.id) {
         // If no flight plan, generate one
-        generateNewFlightPlan(studentResponse.data);
+        await generateNewFlightPlan(studentResponse.data);
       } else {
         // Else check semester end
         await studentServices.checkStudentSemesterFromGraduation(
@@ -61,22 +65,28 @@ const handleLoginSuccess = async (userData) => {
             studentResponse.data.semestersFromGrad
         ) {
           // Generate a new flight plan
-          generateNewFlightPlan(checkStudentResponse);
+          await generateNewFlightPlan(checkStudentResponse);
         }
       }
-
-      const redirect = await loginRedirect();
-      router.push(redirect);
     }
   } catch {
-    // If student doesn't exist, show onboarding
-    showOnboarding.value = true;
+    const student = await createNewStudentWithColleague(userData.userId);
+    await generateNewFlightPlan(student);
   }
+  isLoading.value = false;
+  const redirect = await loginRedirect();
+  router.push(redirect);
+};
+
+const createNewStudentWithColleague = async (userId) => {
+  loadingMessage.value = "Creating Student";
+  return (await colleagueServices.createNewStudentForUserId(userId)).data;
 };
 
 const generateNewFlightPlan = async (student) => {
   if (student.semestersFromGrad > 0) {
     try {
+      loadingMessage.value = "Creating Flight Plan For Student";
       await flightPlanServices.generateFlightPlan(student.id);
     } catch (error) {
       console.error("Error generating flight plan: ", error);
@@ -105,7 +115,6 @@ const isMobile = computed(() => smAndDown.value);
       <!-- Second Column -->
       <v-col class="d-flex flex-column" cols="12" sm="10" md="4" xl="3">
         <v-card
-          v-if="!showOnboarding"
           class="elevation-0 flex-grow-1 rounded-xl h-50 pa-3"
           style="background-color: rgba(var(--v-theme-backgroundDarken), 0.8)"
         >
@@ -121,7 +130,6 @@ const isMobile = computed(() => smAndDown.value);
           </v-col>
         </v-card>
         <v-card
-          v-if="!showOnboarding"
           class="elevation-0 flex-grow-1 mt-5 rounded-xl"
           style="background-color: rgba(var(--v-theme-backgroundDarken), 0.8)"
         >
@@ -140,11 +148,29 @@ const isMobile = computed(() => smAndDown.value);
             <v-spacer />
           </v-col>
         </v-card>
-        <transition name="slide-fade" mode="out-in">
-          <StudentOnboarding v-if="showOnboarding" />
-        </transition>
       </v-col>
     </v-row>
+    <v-overlay
+      v-model="isLoading"
+      persistent
+      opacity="0.75"
+      scrim="background"
+      class="d-flex flex-column align-center justify-center"
+    >
+      <div class="d-flex flex-column align-center text-center">
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+          width="6"
+        ></v-progress-circular>
+        <transition name="fade-slide" mode="out-in">
+          <div :key="loadingMessage" class="mt-4 text-h6 font-weight-bold">
+            {{ loadingMessage }}
+          </div>
+        </transition>
+      </div>
+    </v-overlay>
   </v-container>
 </template>
 
