@@ -57,6 +57,7 @@ export const automaticSubmissionHandler = async (autoType) => {
             if (!found) {
                 return "No valid Handshake link found on your profile"
             }
+            return;
         case "Auto-Complete - Strengths":
             response = await strengthServices.getStrengthsForStudent(studentId);
             const studentStrengths = response.data;
