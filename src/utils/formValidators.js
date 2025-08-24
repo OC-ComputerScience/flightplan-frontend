@@ -27,19 +27,25 @@ export const fileTypeRule = (value) => {
 
 export const fromWebsite = (value, websiteRoot) => {
   const urlPattern = /^(https?:\/\/)([\w.-]+)\.([a-z]{2,})(:[0-9]{2,5})?(\/[^\s]*)?\s*$/i;
+  
   if (!websiteRoot) {
     return `Invalid Website`;
-  } else if (urlPattern.test(value) === false && websiteRoot !== "None") {
+  }
+
+  const newValue = value.replace(/^(https?:\/\/)?(www\.)?/, '');
+  const newRoot = websiteRoot.replace(/^(https?:\/\/)?(www\.)?/, '');
+
+  if (urlPattern.test(value) === false && websiteRoot !== "None") {
     return `Link must be a valid URL starting with ${websiteRoot}`;
   } else if (urlPattern.test(value) === false) {
-    return `Link must be a valid URL starting with http(s)://`
-  } else if (!value.startsWith(websiteRoot) && websiteRoot !== "None") {
+    return `Link must be a valid URL starting with http(s)://`;
+  } else if (websiteRoot !== "None" && !newValue.startsWith(newRoot)) {
     return `Link must start with ${websiteRoot}`;
   } else if (!(value.length > websiteRoot.length)) {
     return `Please finish the link with a valid path`;
-  } else {
-    return true;
   }
+  
+  return true;
 };
 
 export const atLeast = (value, min) =>
