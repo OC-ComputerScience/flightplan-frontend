@@ -119,8 +119,10 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
-  if (filters.value.strengths?.length) {
-    filters.value.strengths = filters.value.strengths.map((s) => s.id);
+  if (filters.value.strengths && filters.value.strengths.length > 0) {
+    filters.value.strengths = filters.value.strengths.map(
+      (strength) => strength.id,
+    );
   }
   getEvents();
 };
@@ -175,7 +177,13 @@ onMounted(async () => {
 });
 
 // Refresh events on UI changes
-watch(showFilters, getEvents);
+watch(
+  filters,
+  () => {
+    handleChangeFilters();
+  },
+  { deep: true },
+);
 watch(showInfo, getEvents);
 </script>
 
@@ -247,6 +255,7 @@ watch(showInfo, getEvents);
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
       <template #info>
