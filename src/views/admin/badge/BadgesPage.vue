@@ -104,6 +104,8 @@ watch([page, searchQuery], () => getBadges(page.value, searchQuery.value), {
   immediate: true,
 });
 
+watch(filters, () => handleChangeFilters(), { deep: true });
+
 // Initial fetch
 onMounted(() => {
   fetchFilterOptions();
@@ -150,7 +152,7 @@ onMounted(() => {
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
-          @update:model-value="getBadges"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
 
