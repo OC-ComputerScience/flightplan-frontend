@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import experienceServices from "../../services/experienceServices";
 import ExperienceCard from "../../components/cards/ExperienceCard.vue";
@@ -56,20 +56,22 @@ const submissionTypes = ref([]);
 const statusTypes = ref(["active", "inactive"]);
 
 // Fetch experiences
-const getExperiences = async (pageNumber = page.value) => {
+const getExperiences = async (
+  pageNumber = page.value,
+  query = searchQuery.value,
+) => {
   try {
     const result = await experienceServices.getAllExperiences(
       pageNumber,
       PAGE_SIZE,
-      searchQuery.value,
+      query,
       {
         ...filters.value,
         ...sortOptions.value,
       },
     );
-
-    experiences.value = result.data.experiences;
-    count.value = result.data.count;
+    experiences.value = result.data.experiences || [];
+    count.value = result.data.count || 0;
   } catch (error) {
     console.error("Error fetching experiences:", error);
   }
@@ -77,6 +79,7 @@ const getExperiences = async (pageNumber = page.value) => {
 
 // Add filter handlers
 const handleChangeFilters = () => {
+  console.log("Filters changed:", filters.value);
   page.value = 1;
   getExperiences();
 };
@@ -86,13 +89,14 @@ const handleClearFilters = () => {
     category: null,
     schedulingType: null,
     submissionType: null,
-    status: null,
     semestersFromGrad: null, // Reset semester filter
+    status: null,
   };
   sortOptions.value = {
     sortAttribute: sortProperties[0].value,
     sortDirection: "asc",
   };
+  page.value = 1;
   getExperiences();
 };
 
@@ -122,13 +126,24 @@ const handleEdit = (experienceId) =>
 const handleSearchChange = (input) => {
   searchQuery.value = input;
   page.value = 1; // Reset to first page on search change
-  getExperiences(page.value);
+  getExperiences(page.value, searchQuery.value);
 };
 
 // Add this handler
 const handleCloseFilters = () => {
   showFilters.value = false;
 };
+
+// Watch for changes in page and search query
+watch(
+  [page, searchQuery],
+  () => getExperiences(page.value, searchQuery.value),
+  {
+    immediate: true,
+  },
+);
+
+watch(filters, () => handleChangeFilters(), { deep: true });
 
 // Initial fetch
 onMounted(async () => {
@@ -208,11 +223,7 @@ onMounted(async () => {
       </template>
 
       <template #item="{ item }">
-        <ExperienceCard
-          :experience="item"
-          @edit="handleEdit"
-          @delete="handleDelete"
-        ></ExperienceCard>
+        <ExperienceCard :experience="item" @edit="handleEdit"></ExperienceCard>
       </template>
     </CardTable>
 

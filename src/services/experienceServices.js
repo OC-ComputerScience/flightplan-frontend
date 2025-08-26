@@ -9,6 +9,7 @@ export default {
         category: filters?.category,
         schedulingType: filters?.schedulingType,
         submissionType: filters?.submissionType,
+        semestersFromGrad: filters?.semestersFromGrad,
         status: filters?.status,
         sortAttribute: filters?.sortAttribute,
         sortDirection: filters?.sortDirection,
