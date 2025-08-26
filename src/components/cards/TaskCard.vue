@@ -30,7 +30,7 @@ const emit = defineEmits(["edit", "delete"]);
       </p>
     </v-card-text>
     <v-card-subtitle class="mt-auto pa-0">
-      <div class="ma-2 float-right">
+      <div class="ma-2 float-end">
         <v-btn
           color="warning"
           class="mr-2 cardButton"

@@ -8,12 +8,15 @@ const props = defineProps({
 const emit = defineEmits(["edit", "delete"]);
 </script>
 <template>
-  <v-card color="backgroundDarken" class="cardContainer">
-    <v-card-text>
+  <v-card
+    color="backgroundDarken"
+    class="h-100 cardContainer d-flex flex-column"
+  >
+    <v-card-text class="flex-grow-1">
       <p class="text-h5 mb-2">
         {{ props.experience.name }}
       </p>
-           <p class="text-subtitle-1 font-weight-regular">
+      <p class="text-subtitle-1 font-weight-regular">
         Sequence: {{ props.experience.sequenceNumber }}
       </p>
       <p class="text-subtitle-1 font-weight-regular">
@@ -29,15 +32,17 @@ const emit = defineEmits(["edit", "delete"]);
         Status: {{ props.experience.status }}
       </p>
     </v-card-text>
-    <v-row class="ma-2 float-right">
-      <v-btn
-        color="warning"
-        class="mr-2 cardButton"
-        @click="emit('edit', props.experience.id)"
-      >
-        <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
-      </v-btn>
-    </v-row>
+    <v-card-subtitle class="mt-auto">
+      <div class="ma-2 float-end">
+        <v-btn
+          color="warning"
+          class="mr-2 cardButton"
+          @click="emit('edit', props.experience.id)"
+        >
+          <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
+        </v-btn>
+      </div>
+    </v-card-subtitle>
   </v-card>
 </template>
 
