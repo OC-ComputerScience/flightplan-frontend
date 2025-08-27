@@ -153,6 +153,7 @@ const fetchFlightPlan = async () => {
     );
 
     if (flightPlans.value.length > 0) {
+      console.log("Flight plans: ", flightPlans.value)
       selectedFlightPlan.value = flightPlans.value[0];
       flightPlanItems.value = response.data[0].flightPlanItems.filter(
         (item) => item.status !== "Complete",
@@ -257,18 +258,19 @@ const handlePendingButtonClick = (flightPlanItem) => {
 const fetchFlightPlanAndItems = async () => {
     const params = {
     page: 1,
-    pageSize: 1,
+    pageSize: 1000,
     searchQuery: "",
     filters: null,
   };
+  console.log("Flight plan: ", selectedFlightPlan.value)
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
-      selectedFlightPlan.value.id,
+      selectedFlightPlan.value.value,
       params
     );
-
+console.log("Response: ", response)
   flightPlanItems.value = response.data.flightPlanItems;
-  
+  console.log("New items: ", flightPlanItems.value)
   const pointsResponse = await studentServices.getPoints(studentId.value);
   points.value = pointsResponse.data.points;
   await fetchFlightPlanProgress()
@@ -283,6 +285,7 @@ const handleShow = (flightPlanItem) => {
 };
 
 const handleRefresh = async () => {
+  console.log("Handling that refresh")
   await fetchFlightPlanAndItems();
   await fetchStudentStatus();
   await getEvents();  
@@ -361,6 +364,7 @@ const handleUnregisterEventExperience = async (
   flightPlanItems = null,
 ) => {
   if (!studentId.value) return;
+  console.log("Handling unregister")
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
 
@@ -586,6 +590,7 @@ onMounted(async () => {
             :event="event"
             @register="handleRegister(event)"
             @unregister="handleUnregister(event)"
+            @refresh="handleRefresh"
           />
         </div>
         <v-btn
@@ -600,10 +605,10 @@ onMounted(async () => {
   </div>
 
   <StudentApprovalDialog
-    @submit="fetchFlightPlanAndItems"
+    @submit="handleRefresh"
   ></StudentApprovalDialog>
   <ViewSubmissionDialog
-    @discard="fetchFlightPlanAndItems"
+    @discard="handleRefresh"
   ></ViewSubmissionDialog>
 
   <SelectEventExperience
