@@ -15,7 +15,9 @@ const label = "Tasks";
 const sortProperties = [
   {
     title: "Semesters from Graduation",
+
     value: "semestersFromGrad",
+
   },
   {
     title: "Name",
@@ -23,8 +25,19 @@ const sortProperties = [
   },
   {
     title: "Points Earned",
-    value: "pointsEarned",
+    value: "points", // Changed from pointsEarned to match DB column
   },
+];
+
+const semesterOptions = [
+  { label: "Freshman 1", value: 8 },
+  { label: "Freshman 2", value: 7 },
+  { label: "Sophomore 1", value: 6 },
+  { label: "Sophomore 2", value: 5 },
+  { label: "Junior 1", value: 4 },
+  { label: "Junior 2", value: 3 },
+  { label: "Senior 1", value: 2 },
+  { label: "Senior 2", value: 1 },
 ];
 
 // Reactive states
@@ -43,9 +56,10 @@ const showFilters = ref(false);
 const filters = ref({
   category: null,
   schedulingType: null,
-  completionType: null,
-  semestersFromGraduation: null,
+  submissionType: null,
+  semestersFromGrad: null,
   strengths: null,
+  status: null,
 });
 
 const sortOptions = ref({
@@ -105,17 +119,30 @@ const handleChangeFilters = () => {
   }
   getTasks();
 };
+
 const handleClearFilters = () => {
   filters.value = {
-    startDate: null,
-    endDate: null,
-    location: null,
+    category: null,
+    schedulingType: null,
+    submissionType: null,
+    semestersFromGrad: null,
+    strengths: null,
+    status: null,
   };
   getTasks();
 };
 
 // Initial fetch
 watch(showFilters, () => getTasks());
+
+watch(
+  filters,
+  () => {
+    handleChangeFilters();
+  },
+  { deep: true },
+);
+
 onMounted(async () => {
   getTasks();
   getStrengths();
@@ -133,6 +160,7 @@ onMounted(async () => {
   taskStatuses.value = taskStatusRes.data;
 });
 </script>
+
 <template>
   <v-container fluid>
     <CardHeader
@@ -184,14 +212,25 @@ onMounted(async () => {
           label="Submission Type"
           :items="submissionTypes"
         ></v-select>
-        <v-text-field
-          v-model="filters.semestersFromGraduation"
-          type="number"
-          label="Semesters from Graduation"
-        ></v-text-field>
+        <v-select
+          v-model="filters.semestersFromGrad"
+          :items="semesterOptions"
+          item-title="label"
+          item-value="value"
+          label="Semester from Graduation"
+          clearable
+        ></v-select>
+
+        <v-select
+          v-model="filters.status"
+          label="Status"
+          :items="['active', 'inactive']"
+          clearable
+        ></v-select>
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
       <template #pagination>
