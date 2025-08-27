@@ -15,7 +15,9 @@ const label = "Tasks";
 const sortProperties = [
   {
     title: "Semesters from Graduation",
-    value: "semestersFromGrad", // Changed from semestersFromGraduation
+
+    value: "semestersFromGrad",
+
   },
   {
     title: "Name",
