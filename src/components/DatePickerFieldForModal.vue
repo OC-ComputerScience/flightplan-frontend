@@ -7,21 +7,38 @@ const props = defineProps({
     type: String,
     default: "Select Date",
   },
-  modelValue: { type: [String, Date], default: null },
+  modelValue: {
+    type: [String, Date],
+    default: null,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["update:modelValue"]);
-
+const emit = defineEmits(["update:modelValue", "update:disabled"]);
 const menu = ref(false);
 const selectedDate = ref(
   props.modelValue ? dayjs(props.modelValue).toDate() : null,
 );
+
+// console.log("Should this be disabled?: ", props.disabled);
 
 // Watch for changes in the prop modelValue
 watch(
   () => props.modelValue,
   (newValue) => {
     selectedDate.value = newValue ? dayjs(newValue).toDate() : null;
+  },
+);
+
+// Add this watch to ensure the disabled state is reactive
+watch(
+  () => props.disabled,
+  (newDisabled) => {
+    console.log("Received disabled prop:", newDisabled);
+    menu.value = !newDisabled;
   },
 );
 
@@ -47,24 +64,29 @@ const clearDate = () => {
 <template>
   <v-menu
     v-model="menu"
+    :disabled="props.disabled"
     transition="scale-transition"
     offset-y
     :close-on-content-click="false"
   >
-    <!-- eslint-disable-next-line -->
     <template #activator="{ props }">
       <v-text-field
         v-model="formattedDate"
+        :disabled="props.disabled"
         variant="solo"
         v-bind="props"
         :label="fieldLabel"
         prepend-inner-icon="mdi-calendar"
         readonly
-        clearable
+        :clearable="!props.disabled"
         @click:clear="clearDate"
-      />
+      ></v-text-field>
     </template>
-    <v-date-picker v-model="selectedDate" @update:model-value="menu = false">
+    <v-date-picker
+      v-model="selectedDate"
+      :disabled="props.disabled"
+      @update:model-value="menu = false"
+    >
       <template #actions>
         <v-btn text="OK" @click="menu = false"></v-btn>
       </template>
