@@ -153,7 +153,6 @@ const fetchFlightPlan = async () => {
     );
 
     if (flightPlans.value.length > 0) {
-      console.log("Flight plans: ", flightPlans.value)
       selectedFlightPlan.value = flightPlans.value[0];
       flightPlanItems.value = response.data[0].flightPlanItems.filter(
         (item) => item.status !== "Complete",
@@ -262,15 +261,12 @@ const fetchFlightPlanAndItems = async () => {
     searchQuery: "",
     filters: null,
   };
-  console.log("Flight plan: ", selectedFlightPlan.value)
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
       selectedFlightPlan.value.value,
       params
     );
-console.log("Response: ", response)
   flightPlanItems.value = response.data.flightPlanItems;
-  console.log("New items: ", flightPlanItems.value)
   const pointsResponse = await studentServices.getPoints(studentId.value);
   points.value = pointsResponse.data.points;
   await fetchFlightPlanProgress()
@@ -285,8 +281,8 @@ const handleShow = (flightPlanItem) => {
 };
 
 const handleRefresh = async () => {
-  console.log("Handling that refresh")
   await fetchFlightPlanAndItems();
+  await fetchFlightPlan();
   await fetchStudentStatus();
   await getEvents();  
   await getNotifications();
@@ -316,7 +312,6 @@ const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
 };
 
 const handleRegister = async (event) => {
-  console.log("Handling register")
   if (!studentId.value) return;
   const eventExperiences = (
     await experienceServices.getAllExperiencesForEvent(event.id)
@@ -357,6 +352,7 @@ const handleRegister = async (event) => {
   } else {
     handleRegisterEventExperience(event);
   }
+  handleRefresh();
 };
 
 const handleUnregisterEventExperience = async (
@@ -364,7 +360,6 @@ const handleUnregisterEventExperience = async (
   flightPlanItems = null,
 ) => {
   if (!studentId.value) return;
-  console.log("Handling unregister")
   try {
     await eventServices.unregisterStudents(event.id, [studentId.value]);
 
@@ -409,6 +404,8 @@ const handleUnregister = async (event) => {
   } else {
     handleUnregisterEventExperience(event);
   }
+    handleRefresh();
+
 };
 
 onMounted(async () => {
