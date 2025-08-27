@@ -33,6 +33,9 @@ const filters = ref({
   endDate: null,
   location: null,
   strengths: null,
+  status: null,
+  attendanceType: null,
+  registrationType: null,
 });
 const sortOptions = ref({
   sortAttribute: sortProperties[0].value,
@@ -41,6 +44,8 @@ const sortOptions = ref({
 const strengths = ref([]);
 const events = ref([]);
 const showQRCodeModal = ref(false);
+const attendanceTypes = ref([]);
+const registrationTypes = ref([]);
 
 // Info sidebar
 const showInfo = ref(false);
@@ -114,8 +119,10 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
-  if (filters.value.strengths?.length) {
-    filters.value.strengths = filters.value.strengths.map((s) => s.id);
+  if (filters.value.strengths && filters.value.strengths.length > 0) {
+    filters.value.strengths = filters.value.strengths.map(
+      (strength) => strength.id,
+    );
   }
   getEvents();
 };
@@ -125,6 +132,10 @@ const handleClearFilters = () => {
     startDate: null,
     endDate: null,
     location: null,
+    strengths: null,
+    status: null,
+    attendanceType: null,
+    registrationType: null,
   };
   getEvents();
 };
@@ -144,13 +155,35 @@ const handleAttendance = (eventId, eventName) => {
 };
 
 // Initial load
-onMounted(() => {
-  getEvents();
-  getStrengths();
+onMounted(async () => {
+  try {
+    const [
+      eventsData,
+      strengthsData,
+      attendanceTypesData,
+      registrationTypesData,
+    ] = await Promise.all([
+      getEvents(),
+      getStrengths(),
+      EventServices.getAttendanceTypes(),
+      EventServices.getRegistrationTypes(),
+    ]);
+
+    attendanceTypes.value = attendanceTypesData.data;
+    registrationTypes.value = registrationTypesData.data;
+  } catch (error) {
+    console.error("Error loading event data:", error);
+  }
 });
 
 // Refresh events on UI changes
-watch(showFilters, getEvents);
+watch(
+  filters,
+  () => {
+    handleChangeFilters();
+  },
+  { deep: true },
+);
 watch(showInfo, getEvents);
 </script>
 
@@ -186,6 +219,24 @@ watch(showInfo, getEvents);
       <template #filters>
         <DatePickerField v-model="filters.startDate" label="Start Date" />
         <DatePickerField v-model="filters.endDate" label="End Date" />
+        <v-select
+          v-model="filters.status"
+          :items="['Upcoming', 'Cancelled', 'Past']"
+          label="Status"
+          clearable
+        ></v-select>
+        <v-select
+          v-model="filters.attendanceType"
+          :items="attendanceTypes"
+          label="Attendance Type"
+          clearable
+        ></v-select>
+        <v-select
+          v-model="filters.registrationType"
+          :items="registrationTypes"
+          label="Registration Type"
+          clearable
+        ></v-select>
         <v-combobox
           v-model="filters.strengths"
           :items="strengths"
@@ -199,10 +250,12 @@ watch(showInfo, getEvents);
         <v-text-field
           v-model="filters.location"
           label="Location"
+          clearable
         ></v-text-field>
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
       <template #info>
