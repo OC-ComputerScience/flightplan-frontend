@@ -23,7 +23,7 @@ const selectedDate = ref(
   props.modelValue ? dayjs(props.modelValue).toDate() : null,
 );
 
-// console.log("Should this be disabled?: ", props.disabled);
+console.log("Should this be disabled?: ", props.disabled);
 
 // Watch for changes in the prop modelValue
 watch(
@@ -33,7 +33,6 @@ watch(
   },
 );
 
-// Add this watch to ensure the disabled state is reactive
 watch(
   () => props.disabled,
   (newDisabled) => {
@@ -64,7 +63,7 @@ const clearDate = () => {
 <template>
   <v-menu
     v-model="menu"
-    :disabled="props.disabled"
+    :disabled="disabled"
     transition="scale-transition"
     offset-y
     :close-on-content-click="false"
@@ -72,19 +71,19 @@ const clearDate = () => {
     <template #activator="{ props }">
       <v-text-field
         v-model="formattedDate"
-        :disabled="props.disabled"
+        :disabled="disabled"
         variant="solo"
         v-bind="props"
         :label="fieldLabel"
         prepend-inner-icon="mdi-calendar"
         readonly
-        :clearable="!props.disabled"
+        :clearable="!disabled"
         @click:clear="clearDate"
       ></v-text-field>
     </template>
     <v-date-picker
       v-model="selectedDate"
-      :disabled="props.disabled"
+      :disabled="disabled"
       @update:model-value="menu = false"
     >
       <template #actions>
