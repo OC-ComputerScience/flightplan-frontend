@@ -15,7 +15,7 @@ const label = "Tasks";
 const sortProperties = [
   {
     title: "Semesters from Graduation",
-    value: "semestersFromGraduation",
+    value: "semestersFromGrad",
   },
   {
     title: "Name",
