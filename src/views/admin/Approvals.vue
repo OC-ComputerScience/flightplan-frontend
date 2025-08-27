@@ -1,11 +1,15 @@
 <script setup>
 import CardHeader from "../../components/CardHeader.vue";
 import CardTable from "../../components/CardTable.vue";
+import taskServices from "../../services/taskServices";
 import flightPlanItemServices from "../../services/flightPlanItemServices";
 import FlightPlanItemApprovalCard from "../../components/cards/FlightPlanItemApprovalCard.vue";
+import TaskCard from "../../components/cards/TaskCard.vue";
 import ViewApprovalDialog from "../../components/dialogs/ViewApprovalDialog.vue";
+import UploadCSVDialog from "../../components/dialogs/UploadCSVDialog.vue";
 import { ref, onMounted, computed, watch } from "vue";
 import { adminApprovalDialogStore } from "../../stores/adminApprovalDialogStore";
+import { uploadCSVDialogStore } from "../../stores/uploadCSVDialogStore";
 import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
 
@@ -13,6 +17,7 @@ const route = useRoute();
 const specificIdParam = !!route.query.id;
 
 const dialogStore = adminApprovalDialogStore();
+const csvDialogStore = uploadCSVDialogStore();
 
 const pendingApprovals = ref([]);
 const page = ref(1);
@@ -20,6 +25,12 @@ const count = ref(1);
 const searchQuery = ref("");
 
 const display = useDisplay();
+
+const taskSearchQuery = ref("");
+const tasks = ref([]);
+const selectedTask = ref(null);
+const csvSuccessMessage = ref("");
+const loadingApproveStudents = ref(false);
 
 const numCardColumns = computed(() => {
   if (display.xxl.value) return 4;
@@ -51,15 +62,78 @@ const handleSearchChange = (input) => {
   page.value = 1; // Reset to first page on search change
 };
 
+const handleTaskSearchChange = (input) => {
+  taskSearchQuery.value = input;
+};
+
 const handleApprove = (flightPlanItem) => {
   dialogStore.setFlightPlanItem(flightPlanItem);
   dialogStore.toggleVisibility();
 };
 
+const loadTasks = async () => {
+  tasks.value = (
+    await taskServices.getAllTasks(1, 1000, taskSearchQuery.value, {
+      completionType: "Admin CSV Upload",
+    })
+  ).data.tasks;
+  //As of adding CSV uploading funcionality, getAllTasks does not filter out correctly, this filter can be removed in the future if it is fixed
+  tasks.value = tasks.value.filter((task) => {
+    return (
+      task.submissionType === "Admin CSV Upload" && task.status === "active"
+    );
+  });
+};
+
+const selectTask = (task) => {
+  selectedTask.value = task;
+  csvDialogStore.task = task;
+  csvDialogStore.toggleVisibility();
+};
+
+const handleSubmitCSV = async (csv) => {
+  loadingApproveStudents.value = true;
+
+  const header = csv[0];
+  const emailColIndex = header.findIndex(
+    (col) => col.trim().toLowerCase() === "email",
+  );
+  if (emailColIndex === -1) {
+    csvDialogStore.setError(true);
+    csvDialogStore.setErrorMessage("CSV must contain an 'Email' column");
+    loadingApproveStudents.value = false;
+    return;
+  }
+
+  const studentEmails = {
+    studentEmails: [
+      ...csv
+        .slice(1)
+        .map((line) => line[emailColIndex].replace(/['"<>`\\;, \t]/g, "")),
+    ],
+  };
+  try {
+    await flightPlanItemServices.approveFlightPlanItemsForTaskForStudents(
+      studentEmails,
+      selectedTask.value.id,
+    );
+    csvSuccessMessage.value = "All Students Approved Successfully";
+  } catch (error) {
+    csvDialogStore.setError(true);
+    csvDialogStore.setErrorMessage(
+      error?.response?.data?.message || "Error Approving Students",
+    );
+  }
+  loadingApproveStudents.value = false;
+};
+
 watch([page, searchQuery], fetchPendingApprovals);
+
+watch([taskSearchQuery], loadTasks);
 
 onMounted(async () => {
   let allSubmissions = (await flightPlanItemServices.getPendingApprovals()).data.flightPlanItems;
+  await loadTasks();
   await fetchPendingApprovals();
   if (specificIdParam) {
     let foundItem = null;
@@ -117,4 +191,42 @@ onMounted(async () => {
       @reject="fetchPendingApprovals"
     />
   </v-container>
+  <v-container style="min-height: 600px">
+    <h2 class="text-h4">Approval by CSV</h2>
+    <CardHeader
+      label="Select Task"
+      :add-button="false"
+      :filter-button="false"
+      @changed="handleTaskSearchChange"
+    />
+    <CardTable :items="tasks" :per-row-lg="4" :per-row-md="4" :per-row-sm="4">
+      <template #item="{ item }">
+        <TaskCard
+          :task="item"
+          :approval="true"
+          :class="item.id == selectedTask?.id ? 'thick-border' : 'no-border'"
+          @click="selectTask(item)"
+        ></TaskCard>
+      </template>
+    </CardTable>
+    <UploadCSVDialog
+      :close-dialog-after-data-sent="false"
+      :show-preview="true"
+      :success-message="csvSuccessMessage"
+      :upload-message="`Upload CSV File for ${selectedTask?.name}\nEnsure there is a column with the title 'Email'`"
+      :wait-for-loading="true"
+      :loading="loadingApproveStudents"
+      preview-header="email"
+      preview-name="StudentEmails"
+      @submit="handleSubmitCSV"
+    />
+  </v-container>
 </template>
+<style scoped>
+.no-border {
+  border: 2px solid transparent;
+}
+.thick-border {
+  border: 2px solid rgb(var(--v-theme-primary));
+}
+</style>
