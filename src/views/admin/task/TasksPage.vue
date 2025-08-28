@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useRouter } from "vue-router";
 import taskServices from "../../../services/taskServices";
 import TaskCard from "../../../components/cards/TaskCard.vue";
 import CardTable from "../../../components/CardTable.vue";
@@ -8,6 +7,7 @@ import CardHeader from "../../../components/CardHeader.vue";
 import { useDisplay } from "vuetify";
 import strengthServices from "../../../services/strengthServices";
 import SortSelect from "../../../components/SortSelect.vue";
+import TaskAddEditDialog from "./TaskAddEditDialog.vue"; // Import dialog
 
 // Constants
 const label = "Tasks";
@@ -17,7 +17,6 @@ const sortProperties = [
     title: "Semesters from Graduation",
 
     value: "semestersFromGrad",
-
   },
   {
     title: "Name",
@@ -41,11 +40,14 @@ const semesterOptions = [
 ];
 
 // Reactive states
-const router = useRouter();
 const tasks = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
 const count = ref(0);
+
+const showTaskDialog = ref(false);
+const isAddMode = ref(true);
+const selectedTaskId = ref(null);
 
 const strengths = ref([]);
 const categories = ref([]);
@@ -101,9 +103,21 @@ const getStrengths = () => {
 };
 
 // Handlers
-const handleAdd = () => router.push({ name: "addTask" });
-const handleEdit = (taskId) =>
-  router.push({ name: "editTask", params: { id: taskId } });
+const handleAdd = () => {
+  isAddMode.value = true;
+  selectedTaskId.value = null;
+  showTaskDialog.value = true;
+};
+const handleEdit = (taskId) => {
+  isAddMode.value = false;
+  selectedTaskId.value = taskId;
+  showTaskDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showTaskDialog.value = false;
+  getTasks();
+};
 
 const handleSearchChange = (input) => {
   searchQuery.value = input;
@@ -246,5 +260,13 @@ onMounted(async () => {
         </v-pagination>
       </template>
     </CardTable>
+
+    <!-- Task Add/Edit Dialog -->
+    <TaskAddEditDialog
+      v-model="showTaskDialog"
+      :is-add="isAddMode"
+      :task-id="selectedTaskId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>

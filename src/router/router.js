@@ -6,7 +6,7 @@ import EventAddEditPage from "../views/admin/event/EventAddEditPage.vue";
 import { userStore } from "../stores/userStore";
 import NotFound from "../views/NotFound.vue";
 import Unauthorized from "../views/Unauthorized.vue";
-import TaskAddEditPage from "../views/admin/task/TaskAddEditPage.vue";
+//import TaskAddEditPage from "../views/admin/task/TaskAddEditDialog.vue";
 import BadgesPage from "../views/admin/badge/BadgesPage.vue";
 import BadgeAddEditPage from "../views/admin/badge/BadgeAddEditPage.vue";
 import ExperienceAddEditPage from "../views/admin/experience/ExperienceAddEditPage.vue";
@@ -74,18 +74,18 @@ const adminTaskRoutes = [
     name: "task",
     component: TasksPage,
   },
-  {
-    path: "maintenance/task/edit/:id",
-    name: "editTask",
-    component: TaskAddEditPage,
-    props: { isAdd: false },
-  },
-  {
-    path: "maintenance/task/add",
-    name: "addTask",
-    component: TaskAddEditPage,
-    props: { isAdd: true },
-  },
+  // {
+  //   path: "maintenance/task/edit/:id",
+  //   name: "editTask",
+  //   component: TaskAddEditPage,
+  //   props: { isAdd: false },
+  // },
+  // {
+  //   path: "maintenance/task/add",
+  //   name: "addTask",
+  //   component: TaskAddEditPage,
+  //   props: { isAdd: true },
+  // },
 ];
 
 const adminRewardRoutes = [
