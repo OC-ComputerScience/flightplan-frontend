@@ -179,7 +179,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="800">
+  <v-dialog v-model="dialog" max-width="1000">
     <v-card>
       <v-card-title>
         <span class="text-h6">{{ props.isAdd ? "Add Task" : "Edit Task" }}</span>

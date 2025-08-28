@@ -1,11 +1,11 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import experienceServices from "../../services/experienceServices";
-import ExperienceCard from "../../components/cards/ExperienceCard.vue";
-import CardTable from "../../components/CardTable.vue";
-import CardHeader from "../../components/CardHeader.vue";
-import SortSelect from "../../components/SortSelect.vue";
+import experienceServices from "../../../services/experienceServices";
+import ExperienceCard from "../../../components/cards/ExperienceCard.vue";
+import CardTable from "../../../components/CardTable.vue";
+import CardHeader from "../../../components/CardHeader.vue";
+import SortSelect from "../../../components/SortSelect.vue";
 
 // Constants
 const PAGE_SIZE = 8;
