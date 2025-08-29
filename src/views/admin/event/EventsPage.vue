@@ -336,8 +336,6 @@ watch(showInfo, getEvents);
         </v-pagination>
       </template>
     </CardTable>
-    
-    <!-- Task Add/Edit Dialog -->
     <EventAddEditDialog
       v-model="showEventDialog"
       :is-add="isAddMode"

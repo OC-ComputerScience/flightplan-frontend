@@ -51,9 +51,6 @@ const majors = ref([]);
 const initialMajors = ref([]);
 const majorOptions = ref([]);
 
-//const route = useRoute();
-//const router = useRouter();
-
 const confirmCancelDialog = ref(false);
 const isCancel = ref(false);
 const eventToCancel = ref(null);
@@ -207,7 +204,6 @@ const handleSubmit = async () => {
     console.error("Error saving event:", error);
   }
 };
-
 
 const fetchData = async () => {
   try {

@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import TasksPage from "../views/admin/task/TasksPage.vue";
-import EventCardPage from "../views/admin/EventsPage.vue";
-import EventAddEditPage from "../views/admin/event/EventAddEditPage.vue";
+import EventCardPage from "../views/admin/event/EventsPage.vue";
+//import EventAddEditPage from "../views/admin/event/EventAddEditDialog.vue";
 import { userStore } from "../stores/userStore";
 import NotFound from "../views/NotFound.vue";
 import Unauthorized from "../views/Unauthorized.vue";
@@ -10,9 +10,9 @@ import Unauthorized from "../views/Unauthorized.vue";
 import BadgesPage from "../views/admin/badge/BadgesPage.vue";
 import BadgeAddEditPage from "../views/admin/badge/BadgeAddEditPage.vue";
 import ExperienceAddEditPage from "../views/admin/experience/ExperienceAddEditPage.vue";
-import ExperiencesPage from "../views/admin/ExperiencesPage.vue";
+import ExperiencesPage from "../views/admin/experience/ExperiencesPage.vue";
 import RewardPage from "../views/admin/reward/RewardPage.vue";
-import RewardAddEditPage from "../views/admin/reward/RewardAddEditPage.vue";
+import RewardAddEditPage from "../views/admin/reward/RewardAddEditDialog.vue";
 import RewardRedemptionPage from "../views/admin/reward/RewardRedemptionPage.vue";
 import MaintenanceLandingPage from "../views/admin/MaintenanceLandingPage.vue";
 import MajorsPage from "../views/admin/major/MajorsPage.vue";
@@ -139,18 +139,18 @@ const adminEventRoutes = [
     name: "event",
     component: EventCardPage,
   },
-  {
-    path: "maintenance/event/edit/:id",
-    name: "editEvent",
-    component: EventAddEditPage,
-    props: { isAdd: false },
-  },
-  {
-    path: "maintenance/event/add/:date?",
-    name: "addEvent",
-    component: EventAddEditPage,
-    props: { isAdd: true },
-  },
+  // {
+  //   path: "maintenance/event/edit/:id",
+  //   name: "editEvent",
+  //   component: EventAddEditPage,
+  //   props: { isAdd: false },
+  // },
+  // {
+  //   path: "maintenance/event/add/:date?",
+  //   name: "addEvent",
+  //   component: EventAddEditPage,
+  //   props: { isAdd: true },
+  // },
   {
     path: "maintenance/event/attendance/:id",
     name: "attendanceEvent",
