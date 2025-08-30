@@ -1,10 +1,5 @@
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
-import {
-  required,
-  positiveNumber,
-  isLink,
-} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import taskServices from "../../../services/taskServices";
 import majorServices from "../../../services/majorServices";

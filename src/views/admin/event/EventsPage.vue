@@ -175,12 +175,7 @@ const handleAttendance = (eventId, eventName) => {
 // Initial load
 onMounted(async () => {
   try {
-    const [
-      eventsData,
-      strengthsData,
-      attendanceTypesData,
-      registrationTypesData,
-    ] = await Promise.all([
+    const [attendanceTypesData, registrationTypesData] = await Promise.all([
       getEvents(),
       getStrengths(),
       EventServices.getAttendanceTypes(),

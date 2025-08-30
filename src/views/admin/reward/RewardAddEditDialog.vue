@@ -6,8 +6,8 @@ import ImageInput from "../../../components/modals/ImageInput.vue";
 // Define statements for vue
 const props = defineProps({
   modelValue: Boolean, // Controls dialog visibility
-  isAdd: Boolean,      // True for add, false for edit
-  rewardId: Number,     // ID of the event being edited
+  isAdd: Boolean, // True for add, false for edit
+  rewardId: Number, // ID of the event being edited
 });
 
 const emit = defineEmits(["update:modelValue", "saved"]);
@@ -38,14 +38,15 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
   if (!isValid) return;
-  if (hasQuantity.value) {
-    formData.value.quantityAvaliable = formData.value.quantityAvaliable;
-  } else {
+
+  if (!hasQuantity.value) {
     formData.value.quantityAvaliable = null;
   }
+
   if (!hasMaximumPerUser.value) {
     formData.value.maximumRedemptionsPerUser = null;
   }
+  
   try {
     if (props.isAdd) {
       await uploadImage();
@@ -54,7 +55,6 @@ const handleSubmit = async () => {
       await handleImageUpdate();
       await rewardServices.updateReward(props.rewardId, formData.value);
     }
-    // router.push({ name: "reward" });
     emit("saved");
     dialog.value = false;
   } catch (error) {
@@ -159,7 +159,10 @@ watch(
       {{ props.isAdd ? "Add Reward" : "Edit Reward" }}
     </h1>
     <v-form ref="form" @submit.prevent>
-      <v-container class="bg-backgroundDarken rounded-t-xl">
+      <v-container
+        class="bg-backgroundDarken rounded-t-xl"
+        style="max-height: 90vh; overflow-y: auto"
+      >
         <v-text-field
           v-model="formData.name"
           variant="solo"

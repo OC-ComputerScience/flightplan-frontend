@@ -20,9 +20,10 @@ import { createEventUpdateNotification, createEventCancelNotification } from "..
 // Props for dialog control and event ID
 const props = defineProps({
   modelValue: Boolean, // Controls dialog visibility
-  isAdd: Boolean,      // True for add, false for edit
-  eventId: Number,     // ID of the event being edited
+  isAdd: Boolean, // True for add, false for edit
+  eventId: Number, // ID of the event being edited
 });
+
 const emit = defineEmits(["update:modelValue", "saved"]);
 
 // v-model proxy for dialog
@@ -335,7 +336,7 @@ const validateEndTimeWrapper = (value) => {
           </v-col>
         </v-row>
         <v-row v-if="selectedDate" no-gutters align="center">
-          <v-col cols="2" class="d-flex align-center  ">
+          <v-col cols="2" class="d-flex align-center">
             <v-checkbox
               v-model="isAllDay"
               label="All Day"

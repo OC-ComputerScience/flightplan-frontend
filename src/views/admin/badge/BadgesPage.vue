@@ -1,9 +1,9 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import CardTable from "../../../components/CardTable.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import BadgeCard from "../../../components/cards/BadgeCard.vue";
+import BadgeAddEditDialog from "./BadgeAddEditDialog.vue";
 import badgeServices from "../../../services/badgeServices";
 
 // Constants
@@ -16,7 +16,9 @@ const sortProperties = [
 ];
 
 // Reactive states
-const router = useRouter();
+const showBadgeDialog = ref(false);
+const isAddMode = ref(true);
+const selectedBadgeId = ref(null);
 const badges = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
@@ -35,10 +37,21 @@ const sortOptions = ref({
 
 // Handlers
 const handleAdd = () => {
-  router.push({ name: "addBadge" });
+  isAddMode.value = true;
+  selectedBadgeId.value = null;
+  showBadgeDialog.value = true;
 };
-const handleEdit = (badgeId) =>
-  router.push({ name: "editBadge", params: { id: badgeId } });
+
+const handleEdit = (eventId) => {
+  isAddMode.value = false;
+  selectedBadgeId.value = eventId;
+  showBadgeDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showBadgeDialog.value = false;
+  getBadges();
+};
 
 const handleSearchChange = (input) => {
   searchQuery.value = input;
@@ -170,5 +183,11 @@ onMounted(() => {
       @prev="getBadges"
       @update:model-value="getBadges"
     ></v-pagination>
+    <BadgeAddEditDialog
+      v-model="showBadgeDialog"
+      :is-add="isAddMode"
+      :badge-id="selectedBadgeId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>

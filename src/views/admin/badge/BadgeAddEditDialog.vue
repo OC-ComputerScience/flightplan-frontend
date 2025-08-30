@@ -1,0 +1,503 @@
+<script setup>
+import { onMounted, ref, watch, computed } from "vue";
+import { years } from "../../../utils/semesterFormatter";
+import badgeServices from "../../../services/badgeServices";
+import fileServices from "../../../services/fileServices";
+import { addTaskToBadgeStore } from "../../../stores/addTaskToBadgeStore";
+import { addExperienceToBadgeStore } from "../../../stores/addExperienceToBadgeStore";
+import AddTaskToBadge from "../../../components/dialogs/AddTaskToBadge.vue";
+import AddExperienceToBadge from "../../../components/dialogs/AddExperienceToBadge.vue";
+import ImageInput from "../../../components/modals/ImageInput.vue";
+
+// Props for dialog control and badge ID
+const props = defineProps({
+  modelValue: Boolean, // Controls dialog visibility
+  isAdd: Boolean, // True for add, false for edit
+  badgeId: Number, // ID of the badge being edited
+});
+
+const emit = defineEmits(["update:modelValue", "saved"]);
+
+// v-model proxy for dialog
+const dialog = computed({
+  get: () => props.modelValue,
+  set: (val) => emit("update:modelValue", val),
+});
+
+// Vue specific statements
+const addTaskStore = addTaskToBadgeStore();
+const addExperienceStore = addExperienceToBadgeStore();
+// Reactive states
+const errorMessage = ref("");
+const form = ref(null);
+const formData = ref({ imageName: null });
+const image = ref(null);
+const rules = ref([]);
+const statuses = ref([]);
+const selectedRule = ref("Experiences and Tasks");
+const selectedStatus = ref([]);
+const ruleTasks = ref([]);
+const ruleExperiences = ref([]);
+const yearTypes = ref(years);
+
+// Functions
+const handleCancel = () => {
+  dialog.value = false;
+};
+
+const handleAddTaskToBadge = (response) => {
+  const existingTaskIndex = ruleTasks.value.findIndex(
+    (task) => task.task.id === response.task.id,
+  );
+
+  if (existingTaskIndex !== -1) {
+    ruleTasks.value[existingTaskIndex] = response;
+  } else {
+    ruleTasks.value = [...ruleTasks.value, response];
+  }
+};
+
+const handleAddExperienceToBadge = (response) => {
+  const existingExperienceIndex = ruleExperiences.value.findIndex(
+    (experience) => experience.experience.id === response.experience.id,
+  );
+
+  if (existingExperienceIndex !== -1) {
+    ruleExperiences.value[existingExperienceIndex] = response;
+  } else {
+    ruleExperiences.value = [...ruleExperiences.value, response];
+  }
+};
+
+const removeTask = (task) => {
+  ruleTasks.value = ruleTasks.value.filter((t) => t.task.id !== task.task.id);
+};
+
+const removeExperience = (experience) => {
+  ruleExperiences.value = ruleExperiences.value.filter(
+    (e) => e.experience.id !== experience.experience.id,
+  );
+};
+
+const handleSubmit = async () => {
+  const isValid = (await form.value?.validate())?.valid;
+
+  formData.value.ruleType = selectedRule.value;
+  formData.value.status = selectedStatus.value;
+
+  if (selectedRule.value === "Experiences and Tasks") {
+    if (ruleTasks.value.length === 0 && ruleExperiences.value.length === 0) {
+      errorMessage.value = "You must add at least one task or experience";
+      return;
+    }
+    formData.value.tasks = ruleTasks.value;
+    formData.value.experiences = ruleExperiences.value;
+  }
+
+  if (!isValid) return;
+
+  try {
+    if (props.isAdd) {
+      await uploadImage();
+      await badgeServices.createBadge(formData.value);
+    } else {
+      await handleImageUpdate();
+      await badgeServices.updateBadge(props.badgeId, formData.value);
+    }
+    emit("saved");
+    dialog.value = false;
+  } catch (error) {
+    errorMessage.value = "An error occurred while trying to submit.";
+    console.error("Error saving task:", error);
+  }
+};
+
+const uploadImage = async () => {
+  if (!image.value) return;
+  const response = await fileServices.uploadFile({
+    file: image.value,
+    folder: "photos",
+  });
+  formData.value.imageName = response.data.fileName;
+};
+
+const handleImageUpdate = async () => {
+  if (image.value && !formData.value.imageName) {
+    await uploadImage();
+  }
+  // Case where image is changed
+  else if (image.value && formData.value.imageName !== image.value.name) {
+    await fileServices.deleteFileForName(formData.value.imageName);
+    await uploadImage();
+  }
+  // Case where image is deleted
+  else if (!image.value && formData.value.imageName) {
+    await fileServices.deleteFileForName(formData.value.imageName);
+    formData.value.imageName = null;
+  }
+  formData.value.image = undefined;
+};
+
+// Helper Functions
+const fetchRuleTypes = async () => {
+  try {
+    const response = await badgeServices.getRuleTypes();
+    rules.value = response.data;
+  } catch (error) {
+    console.error("Error fetching rule types:", error);
+    errorMessage.value = "Failed to load rule types";
+  }
+};
+
+const fetchStatusTypes = async () => {
+  try {
+    const response = await badgeServices.getStatusTypes();
+    statuses.value = response.data;
+  } catch (error) {
+    console.error("Error fetching status types:", error);
+    errorMessage.value = "Failed to load status types";
+  }
+};
+
+const mapTasksToRuleFormat = (tasks) => {
+  return (
+    tasks?.map((task) => ({
+      task: task,
+      quantity: task.badExpTask.quantity,
+    })) || []
+  );
+};
+
+const mapExperiencesToRuleFormat = (experiences) => {
+  return (
+    experiences?.map((experience) => ({
+      experience: experience,
+      quantity: experience.badExpTask.quantity,
+    })) || []
+  );
+};
+
+const fetchBadgeImage = async (imageName) => {
+  try {
+    const response = await fileServices.getFileForName(imageName);
+    return new File([response.data.image], imageName);
+  } catch (error) {
+    console.error("Error fetching badge image:", error);
+    return null;
+  }
+};
+
+const fetchData = async () => {
+  await fetchRuleTypes();
+  await fetchStatusTypes();
+  if (props.isAdd) return;
+
+  try {
+    // Fetch badge data
+    const response = await badgeServices.getBadge(props.badgeId);
+    const badgeData = response.data;
+
+    // Update form data
+    formData.value = badgeData;
+
+    // Map tasks and experiences
+    ruleTasks.value = mapTasksToRuleFormat(badgeData.tasks);
+    ruleExperiences.value = mapExperiencesToRuleFormat(badgeData.experiences);
+
+    // Set rule type
+    selectedRule.value = badgeData.ruleType;
+    selectedStatus.value = badgeData.status;
+
+    // Fetch and set image if exists
+    if (badgeData.imageName) {
+      const imageFile = await fetchBadgeImage(badgeData.imageName);
+      if (imageFile) {
+        image.value = imageFile;
+        formData.value.image = imageFile;
+      }
+    }
+  } catch (error) {
+    console.error("Error loading badge data:", error);
+    // TODO: Add user-facing error notification
+  }
+};
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) fetchData();
+  },
+);
+
+onMounted(() => {
+  if (props.modelValue) fetchData();
+});
+</script>
+<template>
+  <v-dialog v-model="dialog" max-width="1000">
+    <v-alert v-if="errorMessage" closable type="error">
+      {{ errorMessage }}
+    </v-alert>
+    <h1 class="text-center ma-5">
+      {{ props.isAdd ? "Add Badge" : "Edit Badge" }}
+    </h1>
+    <v-form ref="form" @submit.prevent>
+      <v-container
+        class="bg-backgroundDarken rounded-t-xl"
+        style="max-height: 90vh; overflow-y: auto"
+      >
+        <v-text-field
+          v-model="formData.name"
+          variant="solo"
+          rounded="lg"
+          label="Name"
+          :rules="[required]"
+        ></v-text-field>
+        <v-textarea
+          v-model="formData.description"
+          variant="solo"
+          rounded="lg"
+          label="Description"
+          :rules="[required]"
+        ></v-textarea>
+
+        <v-tooltip location="top left" style="width: 75%" bottom>
+          <template #activator="{ props: toolTipProps }">
+            <v-select
+              v-model="selectedRule"
+              variant="solo"
+              rounded="lg"
+              label="Rule Type"
+              :items="rules"
+              v-bind="toolTipProps"
+            />
+          </template>
+          <span v-if="selectedRule === 'Experiences and Tasks'"
+            >Gained when an amount experiences and tasks are completed</span
+          >
+          <span v-else-if="selectedRule === 'All Tasks and Experiences for Year'"
+            >Gained when all tasks and experiences for a year are completed</span
+          >
+          <span v-else-if="selectedRule === 'All Tasks for Year'"
+            >Gained when all tasks for a year are completed</span
+          >
+          <span v-else-if="selectedRule === 'Number of Tasks for Year'"
+            >Gained when an amount of tasks for a year are completed</span
+          >
+          <span v-else-if="selectedRule === 'Number of Badges'"
+            >Gained when student gains an amount of badges</span
+          >
+          <span
+            v-else-if="selectedRule === 'Number of Tasks or Experiences for Year'"
+            >Gained when an amount of tasks or experiences for a year are
+            completed</span
+          >
+        </v-tooltip>
+        <div v-if="selectedRule === 'Experiences and Tasks'">
+          <v-expansion-panels class="mb-4 rounded-lg" model-value="0">
+            <v-expansion-panel class="mb-2">
+              <v-expansion-panel-title>Tasks</v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <v-row
+                  v-for="ruleTask in ruleTasks"
+                  :key="ruleTask.id"
+                  class="bg-backgroundDarken my-2 rounded-lg d-flex justify-space-between"
+                  ><div class="ma-5">
+                    {{ ruleTask.task.name }}
+                  </div>
+
+                  <div class="ma-2 d-flex">
+                    <div class="ma-3">Quantity: {{ ruleTask.quantity }}</div>
+                    <v-btn
+                      class="rounded-lg bg-warning mr-3"
+                      @click="addTaskStore.editRuleTask(ruleTask)"
+                    >
+                      <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                    </v-btn>
+                    <v-btn
+                      class="rounded-lg bg-danger"
+                      @click="removeTask(ruleTask)"
+                    >
+                      <v-icon icon="mdi-delete" color="text" size="x-large" />
+                    </v-btn>
+                  </div>
+                </v-row>
+                <v-row>
+                  <v-btn
+                    block
+                    class="rounded-lg bg-backgroundDarken mb-2 mt-4"
+                    @click="addTaskStore.addRuleTask()"
+                    >{{ props.isAdd ? "Add Task" : "Update Task" }}</v-btn
+                  ></v-row
+                >
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+          <v-expansion-panels class="mb-4 rounded-lg" model-value="0">
+            <v-expansion-panel class="mb-2">
+              <v-expansion-panel-title>Experiences</v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <v-row
+                  v-for="ruleExperience in ruleExperiences"
+                  :key="ruleExperience.id"
+                  class="bg-backgroundDarken my-2 rounded-lg d-flex justify-space-between"
+                >
+                  <div class="ma-5">
+                    {{ ruleExperience.experience.name }}
+                  </div>
+
+                  <div class="ma-2 d-flex">
+                    <div class="ma-3">
+                      Quantity: {{ ruleExperience.quantity }}
+                    </div>
+                    <v-btn
+                      class="rounded-lg bg-warning mr-3"
+                      @click="
+                        addExperienceStore.editRuleExperience(ruleExperience)
+                      "
+                    >
+                      <v-icon icon="mdi-pencil" color="text" size="x-large" />
+                    </v-btn>
+                    <v-btn
+                      class="rounded-lg bg-danger"
+                      @click="removeExperience(ruleExperience)"
+                    >
+                      <v-icon icon="mdi-delete" color="text" size="x-large" />
+                    </v-btn>
+                  </div>
+                </v-row>
+                <v-row>
+                  <v-btn
+                    block
+                    class="rounded-lg bg-backgroundDarken mb-2 mt-4"
+                    @click="addExperienceStore.addRuleExperience()"
+                    >{{
+                      props.isAdd ? "Add Experience" : "Update Experience"
+                    }}</v-btn
+                  ></v-row
+                >
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </div>
+        <div v-else-if="selectedRule === 'All Tasks and Experiences for Year'">
+          <v-row dense>
+            <v-col :cols="12">
+              <v-select
+                v-model="formData.yearsFromGrad"
+                variant="solo"
+                rounded="lg"
+                label="Year"
+                :items="yearTypes"
+                item-value="value"
+                item-title="name"
+                :rules="[required]"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="selectedRule === 'All Tasks for Year'">
+          <v-row dense>
+            <v-col :cols="12">
+              <v-select
+                v-model="formData.yearsFromGrad"
+                variant="solo"
+                rounded="lg"
+                label="Year"
+                :items="yearTypes"
+                item-value="value"
+                item-title="name"
+                :rules="[required]"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="selectedRule === 'Number of Tasks for Year'">
+          <v-row dense>
+            <v-col :cols="6">
+              <v-text-field
+                v-model="formData.completionQuantityOne"
+                variant="solo"
+                rounded="lg"
+                label="Quantity"
+                :rules="[required, positiveNumber]"
+              ></v-text-field>
+            </v-col>
+            <v-col :cols="6">
+              <v-select
+                v-model="formData.yearsFromGrad"
+                variant="solo"
+                rounded="lg"
+                label="Year"
+                :items="yearTypes"
+                item-value="value"
+                item-title="name"
+                :rules="[required]"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="selectedRule === 'Number of Badges'">
+          <v-row dense>
+            <v-col :cols="12">
+              <v-text-field
+                v-model="formData.completionQuantityOne"
+                variant="solo"
+                rounded="lg"
+                label="Quantity"
+                :rules="[required, positiveNumber]"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </div>
+        <div
+          v-else-if="selectedRule === 'Number of Tasks or Experiences for Year'"
+        >
+          <v-row dense>
+            <v-col :cols="6">
+              <v-text-field
+                v-model="formData.completionQuantityOne"
+                variant="solo"
+                rounded="lg"
+                label="Quantity"
+                :rules="[required, positiveNumber]"
+              ></v-text-field>
+            </v-col>
+            <v-col :cols="6">
+              <v-select
+                v-model="formData.yearsFromGrad"
+                variant="solo"
+                rounded="lg"
+                label="Year"
+                :items="yearTypes"
+                item-value="value"
+                item-title="name"
+                :rules="[required]"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+        <v-select
+          v-model="selectedStatus"
+          variant="solo"
+          rounded="lg"
+          label="Status"
+          :items="statuses"
+        ></v-select>
+        <ImageInput v-model="image" :image-name="formData.imageName" />
+        <v-row class="justify-center my-1">
+          <v-btn
+            class="mr-2"
+            variant="outlined"
+            rounded="xl"
+            @click="handleCancel"
+            >Cancel</v-btn
+          >
+          <v-btn rounded="xl" color="primary" @click="handleSubmit">Submit</v-btn>
+        </v-row>
+      </v-container>
+    </v-form>
+    <AddTaskToBadge @add-task-to-badge="handleAddTaskToBadge" />
+    <AddExperienceToBadge @add-experience-to-badge="handleAddExperienceToBadge" />
+  </v-dialog>
+</template>

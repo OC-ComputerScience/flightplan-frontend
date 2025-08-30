@@ -7,7 +7,7 @@ import CardHeader from "../../../components/CardHeader.vue";
 import { useDisplay } from "vuetify";
 import strengthServices from "../../../services/strengthServices";
 import SortSelect from "../../../components/SortSelect.vue";
-import TaskAddEditDialog from "./TaskAddEditDialog.vue"; // Import dialog
+import TaskAddEditDialog from "./TaskAddEditDialog.vue";
 
 // Constants
 const label = "Tasks";
@@ -15,7 +15,6 @@ const label = "Tasks";
 const sortProperties = [
   {
     title: "Semesters from Graduation",
-
     value: "semestersFromGrad",
   },
   {

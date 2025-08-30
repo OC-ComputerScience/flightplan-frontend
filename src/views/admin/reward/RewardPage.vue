@@ -28,7 +28,7 @@ const sortProperties = [
 ];
 
 // Reactive states
-const showRewardAddEditDialog = ref(false);
+const showRewardDialog = ref(false);
 const isAddMode = ref(true);
 const selectedRewardId = ref(null);
 
@@ -101,13 +101,18 @@ const getRewards = async () => {
 const handleAdd = () => {
   isAddMode.value = true;
   selectedRewardId.value = null;
-  showRewardAddEditDialog.value = true;
+  showRewardDialog.value = true;
 };
 
 const handleEdit = (rewardId) => {
   isAddMode.value = false;
   selectedRewardId.value = rewardId;
-  showRewardAddEditDialog.value = true;
+  showRewardDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showRewardDialog.value = false;
+  getRewards();
 };
 
 const handleShop = (rewardId) => {
@@ -229,7 +234,7 @@ onMounted(() => {
       </template>
     </CardTable>
     <RewardAddEditDialog
-      v-model="showRewardAddEditDialog"
+      v-model="showRewardDialog"
       :is-add="isAddMode"
       :reward-id="selectedRewardId"
       @saved="handleDialogSaved"

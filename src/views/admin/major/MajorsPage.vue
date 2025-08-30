@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useRouter } from "vue-router";
 import majorServices from "../../../services/majorServices";
 import MajorCard from "../../../components/cards/MajorCard.vue";
+import MajorAddEditDialog from "./MajorAddEditDialog.vue";
 import CardTable from "../../../components/CardTable.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import { useDisplay } from "vuetify";
@@ -19,7 +19,9 @@ const sortProperties = [
 ];
 
 // Reactive states
-const router = useRouter();
+const showMajorDialog = ref(false);
+const isAddMode = ref(true);
+const selectedMajorId = ref(null);
 const majors = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
@@ -80,9 +82,22 @@ const getMajors = async (pageNumber = page.value) => {
 };
 
 // Handlers
-const handleAdd = () => router.push({ name: "addMajor" });
-const handleEdit = (majorId) =>
-  router.push({ name: "editMajor", params: { id: majorId } });
+const handleAdd = () => {
+  isAddMode.value = true;
+  selectedMajorId.value = null;
+  showMajorDialog.value = true;
+};
+
+const handleEdit = (eventId) => {
+  isAddMode.value = false;
+  selectedMajorId.value = eventId;
+  showMajorDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showMajorDialog.value = false;
+  getMajors();
+};
 
 const handleDelete = async (majorId) => {
   try {
@@ -184,5 +199,11 @@ onMounted(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <MajorAddEditDialog
+      v-model="showMajorDialog"
+      :is-add="isAddMode"
+      :major-id="selectedMajorId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>
