@@ -1,15 +1,19 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import userServices from "../../../services/userServices";
 import studentServices from "../../../services/studentServices";
 import strengthServices from "../../../services/strengthServices";
 import majorServices from "../../../services/majorServices";
 import linkServices from "../../../services/linkServices";
-import { required, atLeast, fromWebsite, noGreaterThan } from "../../../utils/formValidators";
+import {
+  required,
+  atLeast,
+  fromWebsite,
+  noGreaterThan,
+} from "../../../utils/formValidators";
 import { semesters } from "../../../utils/semesterFormatter";
 import DatePickerFieldForModal from "../../../components/DatePickerFieldForModal.vue";
-import { userStore } from "../../../stores/userStore";
 import { linkOptions } from "../../../utils/linkOptions";
 import { addLinkToUserStore } from "../../../stores/addLinkToUserStore";
 import AddLinkToUser from "../../../components/dialogs/AddLinkToUser.vue";
@@ -21,7 +25,6 @@ const props = defineProps({
     default: false,
   },
 });
-const store = userStore();
 
 const form = ref(null);
 const formData = ref({});
@@ -39,6 +42,7 @@ const initialLinks = ref([]);
 const addLinkStore = addLinkToUserStore();
 
 const isStudent = ref(true);
+const fieldDisable = ref(!props.isAdmin); // New reactive variable for admin status for when to enable/disable fields
 
 const route = useRoute();
 const router = useRouter();
@@ -197,6 +201,13 @@ const handleSubmit = async () => {
     console.error("Error saving event:", error);
   }
 };
+
+watch(
+  () => props.isAdmin,
+  (newIsAdmin) => {
+    fieldDisable.value = !newIsAdmin;
+  },
+);
 
 onMounted(async () => {
   try {
@@ -393,6 +404,10 @@ onMounted(async () => {
             v-model="selectedDate"
             :rules="[required]"
             label="Graduation Date"
+            :disabled="fieldDisable"
+            @update:disabled="
+              (val) => console.log('Disabled state changed to:', val)
+            "
           />
         </v-col>
         <v-col cols="5.3" class="mr-2">
@@ -406,6 +421,7 @@ onMounted(async () => {
             :items="semesterTypes"
             item-title="name"
             :rules="[required]"
+            :disabled="fieldDisable"
             @update:model-value="
               (val) => (formData.student.semestersFromGrad = val)
             "
@@ -425,7 +441,6 @@ onMounted(async () => {
           multiple
           chips
           :rules="[noGreaterThan(strengths, maximumNumberOfStrengths)]"
-
         />
 
         <v-autocomplete
@@ -438,6 +453,7 @@ onMounted(async () => {
           item-title="title"
           multiple
           chips
+          :disabled="fieldDisable"
           :rules="[atLeast(majors, requiredNumberOfMajors)]"
         />
       </div>
