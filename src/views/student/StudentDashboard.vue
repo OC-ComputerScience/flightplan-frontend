@@ -138,12 +138,14 @@ const fetchFlightPlan = async () => {
         return {
           label: "Unknown Semester",
           value: flightPlan.id,
+          flightPlanItems: flightPlan.flightPlanItems
         };
       }
       return {
         label: `${flightPlan.semester.term.charAt(0).toUpperCase() + flightPlan.semester.term.slice(1)} ${flightPlan.semester.year}`,
         value: flightPlan.id,
         semestersFromGrad: flightPlan.semestersFromGrad,
+        flightPlanItems: flightPlan.flightPlanItems
       };
     });
 
@@ -152,12 +154,14 @@ const fetchFlightPlan = async () => {
       (a.semestersFromGrad ?? Infinity) - (b.semestersFromGrad ?? Infinity),
     );
 
+    response.value = flightPlans.value
+
     if (flightPlans.value.length > 0) {
       selectedFlightPlan.value = flightPlans.value[0];
-      flightPlanItems.value = response.data[0].flightPlanItems.filter(
+      flightPlanItems.value = selectedFlightPlan.value.flightPlanItems.filter(
         (item) => item.status !== "Complete",
       );
-      allFlightPlanItems.value = response.data[0].flightPlanItems;
+      allFlightPlanItems.value = selectedFlightPlan.value.flightPlanItems;
       await fetchFlightPlanProgress();
     }
   } catch (err) {
