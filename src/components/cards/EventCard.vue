@@ -22,6 +22,7 @@ const emit = defineEmits([
   "register",
   "unregister",
   "click",
+  "refresh",
 ]);
 const store = userStore();
 const localStudentStore = studentStore();

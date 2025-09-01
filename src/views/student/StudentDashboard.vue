@@ -257,18 +257,16 @@ const handlePendingButtonClick = (flightPlanItem) => {
 const fetchFlightPlanAndItems = async () => {
     const params = {
     page: 1,
-    pageSize: 1,
+    pageSize: 1000,
     searchQuery: "",
     filters: null,
   };
   const response =
     await flightPlanItemServices.getAllFlightPlanItemsForFlightPlan(
-      selectedFlightPlan.value.id,
+      selectedFlightPlan.value.value,
       params
     );
-
   flightPlanItems.value = response.data.flightPlanItems;
-  
   const pointsResponse = await studentServices.getPoints(studentId.value);
   points.value = pointsResponse.data.points;
   await fetchFlightPlanProgress()
@@ -284,6 +282,7 @@ const handleShow = (flightPlanItem) => {
 
 const handleRefresh = async () => {
   await fetchFlightPlanAndItems();
+  await fetchFlightPlan();
   await fetchStudentStatus();
   await getEvents();  
   await getNotifications();
@@ -313,7 +312,6 @@ const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
 };
 
 const handleRegister = async (event) => {
-  console.log("Handling register")
   if (!studentId.value) return;
   const eventExperiences = (
     await experienceServices.getAllExperiencesForEvent(event.id)
@@ -354,6 +352,7 @@ const handleRegister = async (event) => {
   } else {
     handleRegisterEventExperience(event);
   }
+  handleRefresh();
 };
 
 const handleUnregisterEventExperience = async (
@@ -405,6 +404,8 @@ const handleUnregister = async (event) => {
   } else {
     handleUnregisterEventExperience(event);
   }
+    handleRefresh();
+
 };
 
 onMounted(async () => {
@@ -586,6 +587,7 @@ onMounted(async () => {
             :event="event"
             @register="handleRegister(event)"
             @unregister="handleUnregister(event)"
+            @refresh="handleRefresh"
           />
         </div>
         <v-btn
@@ -600,10 +602,10 @@ onMounted(async () => {
   </div>
 
   <StudentApprovalDialog
-    @submit="fetchFlightPlanAndItems"
+    @submit="handleRefresh"
   ></StudentApprovalDialog>
   <ViewSubmissionDialog
-    @discard="fetchFlightPlanAndItems"
+    @discard="handleRefresh"
   ></ViewSubmissionDialog>
 
   <SelectEventExperience

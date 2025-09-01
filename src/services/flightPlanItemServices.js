@@ -43,6 +43,11 @@ export default {
       },
     });
   },
+  approveFlightPlanItemsForTaskForStudents(studentEmails, taskId) {
+    return apiClient.put(`/flightPlanItem/task/${taskId}/approve`, {
+      studentEmails,
+    });
+  },
   approveFlightPlanItem(flightPlanItemId) {
     return apiClient.put(`/flightPlanItem/${flightPlanItemId}/approve`);
   },

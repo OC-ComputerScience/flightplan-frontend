@@ -4,6 +4,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  approval: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(["edit", "delete"]);
 </script>
@@ -19,14 +23,14 @@ const emit = defineEmits(["edit", "delete"]);
       <p class="text-subtitle-1 font-weight-regular">
         Category: {{ props.task.category }}
       </p>
-      <p class="text-subtitle-1 font-weight-regular">
+      <p v-if="!props.approval" class="text-subtitle-1 font-weight-regular">
         Completion Type: {{ props.task.submissionType }}
       </p>
-      <p class="text-subtitle-1 font-weight-regular">
+      <p v-if="!props.approval" class="text-subtitle-1 font-weight-regular">
         Status: {{ props.task.status }}
       </p>
     </v-card-text>
-    <v-row class="ma-2 float-right">
+    <v-row v-if="!props.approval" class="ma-2 float-right">
       <v-btn
         color="warning"
         class="mr-2 cardButton"

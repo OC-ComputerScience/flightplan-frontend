@@ -30,7 +30,11 @@ const errorMessage = ref("");
 const loading = ref(false);
 
 const showFilters = ref(false);
-const filters = ref({});
+const filters = ref({
+  status: null,
+  sortAttribute: sortProperties[0].value,
+  sortDirection: "asc",
+});
 
 const sortOptions = ref({
   sortAttribute: sortProperties[0].value,
@@ -56,9 +60,16 @@ const getMajors = async (pageNumber = page.value) => {
       pageNumber,
       pageSize.value,
       searchQuery.value,
-      { ...filters.value, ...sortOptions.value },
+      {
+        ...filters.value,
+        ...sortOptions.value,
+      },
     );
-   
+
+    if (result.data.error) {
+      throw new Error(result.data.error);
+    }
+
     majors.value = result.data.majors;
     count.value = result.data.count;
   } catch (error) {
@@ -93,11 +104,16 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
+  page.value = 1; // Reset to first page when filters change
   getMajors();
 };
 
 const handleClearFilters = () => {
-  filters.value = {};
+  filters.value = {
+    status: null,
+    sortAttribute: sortProperties[0].value,
+    sortDirection: "asc",
+  };
   getMajors();
 };
 
@@ -112,10 +128,12 @@ onMounted(() => {
   <v-container fluid>
     <CardHeader
       :label="label"
+      :filter-button="true"
       @changed="handleSearchChange"
       @add="handleAdd"
       @toggle-filters="showFilters = !showFilters"
     ></CardHeader>
+
     <CardTable
       :items="majors"
       :show-filters="showFilters"
@@ -133,12 +151,15 @@ onMounted(() => {
           @delete="handleDelete"
         ></MajorCard>
       </template>
+
       <template #filters>
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
+
       <template #pagination>
         <v-pagination
           v-model="page"
@@ -148,8 +169,7 @@ onMounted(() => {
           @next="getMajors"
           @prev="getMajors"
           @update:model-value="getMajors"
-        >
-        </v-pagination>
+        ></v-pagination>
       </template>
     </CardTable>
 
