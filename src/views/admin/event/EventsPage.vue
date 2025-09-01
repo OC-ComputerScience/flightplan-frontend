@@ -2,15 +2,16 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
-import EventServices from "../../services/eventServices.js";
-import StrengthServices from "../../services/strengthServices.js";
-import EventCard from "../../components/cards/EventCard.vue";
-import CardTable from "../../components/CardTable.vue";
-import CardHeader from "../../components/CardHeader.vue";
-import DatePickerField from "../../components/DatePickerField.vue";
-import SortSelect from "../../components/SortSelect.vue";
-import QRCodeGenerationModal from "../../components/modals/QRCodeGenerationModal.vue";
-import { useEventCheckIn } from "../../utils/useEventCheckin.js";
+import EventServices from "../../../services/eventServices.js";
+import StrengthServices from "../../../services/strengthServices.js";
+import EventCard from "../../../components/cards/EventCard.vue";
+import EventAddEditDialog from "./EventAddEditDialog.vue";
+import CardTable from "../../../components/CardTable.vue";
+import CardHeader from "../../../components/CardHeader.vue";
+import DatePickerField from "../../../components/DatePickerField.vue";
+import SortSelect from "../../../components/SortSelect.vue";
+import QRCodeGenerationModal from "../../../components/modals/QRCodeGenerationModal.vue";
+import { useEventCheckIn } from "../../../utils/useEventCheckin.js";
 
 // Constants
 const label = "Events";
@@ -22,6 +23,11 @@ const sortProperties = [
   { title: "Name", value: "name" },
   { title: "Location", value: "location" },
 ];
+
+// Reactive states
+const showEventDialog = ref(false);
+const isAddMode = ref(true);
+const selectedEventId = ref(null);
 
 // Pagination / filtering / search
 const page = ref(1);
@@ -98,10 +104,22 @@ const getStrengths = () => {
 };
 
 // Handlers
-const handleAdd = () => router.push({ name: "addEvent" });
+const handleAdd = () => {
+  isAddMode.value = true;
+  selectedEventId.value = null;
+  showEventDialog.value = true;
+};
 
-const handleEdit = (eventId) =>
-  router.push({ name: "editEvent", params: { id: eventId } });
+const handleEdit = (eventId) => {
+  isAddMode.value = false;
+  selectedEventId.value = eventId;
+  showEventDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showEventDialog.value = false;
+  getEvents();
+};
 
 const handleDelete = async (eventId) => {
   try {
@@ -157,12 +175,7 @@ const handleAttendance = (eventId, eventName) => {
 // Initial load
 onMounted(async () => {
   try {
-    const [
-      eventsData,
-      strengthsData,
-      attendanceTypesData,
-      registrationTypesData,
-    ] = await Promise.all([
+    const [attendanceTypesData, registrationTypesData] = await Promise.all([
       getEvents(),
       getStrengths(),
       EventServices.getAttendanceTypes(),
@@ -318,5 +331,11 @@ watch(showInfo, getEvents);
         </v-pagination>
       </template>
     </CardTable>
+    <EventAddEditDialog
+      v-model="showEventDialog"
+      :is-add="isAddMode"
+      :event-id="selectedEventId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>
