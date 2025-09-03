@@ -3,6 +3,7 @@ import { computed, ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import rewardServices from "../../../services/rewardServices";
 import RewardCard from "../../../components/cards/RewardCard.vue";
+import RewardAddEditDialog from "./RewardAddEditDialog.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import CardTable from "../../../components/CardTable.vue";
 import { useDisplay } from "vuetify";
@@ -27,6 +28,10 @@ const sortProperties = [
 ];
 
 // Reactive states
+const showRewardDialog = ref(false);
+const isAddMode = ref(true);
+const selectedRewardId = ref(null);
+
 const router = useRouter();
 const rewards = ref([]);
 const page = ref(1);
@@ -82,21 +87,34 @@ const getRewards = async () => {
   }
 };
 
-const getRedemptionTypes = async () => {
-  try {
-    const response = await rewardServices.getRedemptionTypes();
-    redemptionTypes.value = response.data;
-  } catch (error) {
-    console.error("Error fetching redemption types:", error);
-  }
-};
+// Obsolete function? no getRedemptionTypes in rewardServices
+// const getRedemptionTypes = async () => {
+//   try {
+//     const response = await rewardServices.getRedemptionTypes();
+//     redemptionTypes.value = response.data;
+//   } catch (error) {
+//     console.error("Error fetching redemption types:", error);
+//   }
+// };
 
 // Handlers
 const handleAdd = () => {
-  router.push({ name: "addReward" });
+  isAddMode.value = true;
+  selectedRewardId.value = null;
+  showRewardDialog.value = true;
 };
-const handleEdit = (rewardId) =>
-  router.push({ name: "editReward", params: { id: rewardId } });
+
+const handleEdit = (rewardId) => {
+  isAddMode.value = false;
+  selectedRewardId.value = rewardId;
+  showRewardDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showRewardDialog.value = false;
+  getRewards();
+};
+
 const handleShop = (rewardId) => {
   router.push({ name: "redeemReward", params: { id: rewardId } });
 };
@@ -130,7 +148,7 @@ watch([page, searchQuery, showFilters], getRewards, { immediate: true });
 
 onMounted(() => {
   getRewards();
-  getRedemptionTypes();
+  //getRedemptionTypes();
 });
 </script>
 <template>
@@ -215,5 +233,11 @@ onMounted(() => {
         </v-pagination>
       </template>
     </CardTable>
+    <RewardAddEditDialog
+      v-model="showRewardDialog"
+      :is-add="isAddMode"
+      :reward-id="selectedRewardId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>

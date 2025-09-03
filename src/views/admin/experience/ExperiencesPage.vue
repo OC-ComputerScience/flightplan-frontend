@@ -1,11 +1,11 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import experienceServices from "../../services/experienceServices";
-import ExperienceCard from "../../components/cards/ExperienceCard.vue";
-import CardTable from "../../components/CardTable.vue";
-import CardHeader from "../../components/CardHeader.vue";
-import SortSelect from "../../components/SortSelect.vue";
+import experienceServices from "../../../services/experienceServices";
+import ExperienceCard from "../../../components/cards/ExperienceCard.vue";
+import ExperienceAddEditDialog from "./ExperienceAddEditDialog.vue";
+import CardTable from "../../../components/CardTable.vue";
+import CardHeader from "../../../components/CardHeader.vue";
+import SortSelect from "../../../components/SortSelect.vue";
 
 // Constants
 const PAGE_SIZE = 8;
@@ -31,7 +31,10 @@ const semesterOptions = [
 ];
 
 // Reactive states
-const router = useRouter();
+const showExperienceDialog = ref(false);
+const isAddMode = ref(true);
+const selectedExperienceId = ref(null);
+
 const experiences = ref([]);
 const page = ref(1);
 const searchQuery = ref("");
@@ -119,9 +122,22 @@ const fetchFilterOptions = async () => {
 };
 
 // Handlers
-const handleAdd = () => router.push({ name: "addExperience" });
-const handleEdit = (experienceId) =>
-  router.push({ name: "editExperience", params: { id: experienceId } });
+const handleAdd = () => {
+  isAddMode.value = true;
+  selectedExperienceId.value = null;
+  showExperienceDialog.value = true;
+};
+
+const handleEdit = (experienceId) => {
+  isAddMode.value = false;
+  selectedExperienceId.value = experienceId;
+  showExperienceDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showExperienceDialog.value = false;
+  getExperiences();
+};
 
 const handleSearchChange = (input) => {
   searchQuery.value = input;
@@ -236,5 +252,11 @@ onMounted(async () => {
       @prev="getExperiences"
       @update:model-value="getExperiences"
     ></v-pagination>
+    <ExperienceAddEditDialog
+      v-model="showExperienceDialog"
+      :is-add="isAddMode"
+      :experience-id="selectedExperienceId"
+      @saved="handleDialogSaved"
+    />
   </v-container>
 </template>

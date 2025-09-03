@@ -92,8 +92,8 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
 </script>
 
 <template>
-  <v-card :color="'backgroundDarken'" class="rounded-xl" @click="emitShow()">
-    <v-card-text>
+  <v-card :color="'backgroundDarken'" class="rounded-xl h-100 cardContainer d-flex flex-column" @click="emitShow()">
+    <v-card-text class="flex-grow-1">
       <!-- Image Section -->
       <v-img
         v-if="imageSrc"
@@ -147,9 +147,10 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
       <p v-if="props.maintenanceView" class="text-subtitle-1 text-center my-2">
         Status: {{ props.reward.status }}
       </p>
-
-      <!-- Action Buttons -->
-      <v-row class="ma-2 justify-center">
+    </v-card-text>
+    <!-- Action Buttons -->
+    <v-card-subtitle class="mt-auto pa-0">
+      <div class="ma-2 float-end">
         <!-- Default Variant Buttons -->
         <template v-if="props.variant === 'default'">
           <v-btn
@@ -198,8 +199,8 @@ onUnmounted(() => URL.revokeObjectURL(imageSrc.value));
             }}
           </v-btn>
         </template>
-      </v-row>
-    </v-card-text>
+      </div>
+    </v-card-subtitle>
   </v-card>
 </template>
 
