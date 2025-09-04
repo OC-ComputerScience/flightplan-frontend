@@ -12,6 +12,7 @@ import { createNotification } from "../../utils/notificationHandler";
 import { userStore } from "../../stores/userStore";
 import eventServices from "../../services/eventServices";
 import studentServices from "../../services/studentServices";
+import debounce from "lodash/debounce";
 
 const emit = defineEmits(["submit"]);
 const dialogStore = studentApprovalDialogStore();
@@ -464,6 +465,10 @@ const debounceSubmit = () => {
   }, 2000);
 };
 
+const debounceSubmitButton = debounce(() => {
+  handleSubmit();
+}, 500);
+
 const submitFiles = async (autoSubmission = false) => {
   const submissionData = {
     flightPlanItemId: flightPlanItem.value.id,
@@ -803,7 +808,7 @@ onMounted(() => {
                 @click="handleCancel"
                 >Cancel</v-btn
               >
-              <v-btn rounded="xl" color="primary" @click="handleSubmit"
+              <v-btn rounded="xl" color="primary" @click="debounceSubmitButton"
                 >Submit</v-btn
               >
             </div>
