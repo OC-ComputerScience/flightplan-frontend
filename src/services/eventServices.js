@@ -71,6 +71,10 @@ export default {
     return apiClient.post(`/event/${eventId}/attend`, { studentIds });
   },
 
+  toggleAttendance(eventId, studentIds) {
+    return apiClient.post(`/event/${eventId}/toggleAttend`, { studentIds });
+  },
+
   getRegisteredStudents(eventId) {
     return apiClient.get(`/event/${eventId}/registered-students`);
   },
