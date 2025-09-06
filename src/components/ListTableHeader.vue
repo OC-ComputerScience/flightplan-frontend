@@ -100,7 +100,7 @@ const handleBatchDelete = async () => {
   await Promise.all(
     attending.map((s) =>
       eventServices
-        .markAttendance(s.eventId, [s.studentId])
+        .toggleAttendance(s.eventId, [s.studentId])
         .catch((err) => console.error(`Error deleting ${s.studentId}:`, err)),
     ),
   );
