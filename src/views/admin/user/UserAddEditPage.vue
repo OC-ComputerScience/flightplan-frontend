@@ -326,7 +326,7 @@ onMounted(async () => {
         label="Profile Description"
       ></v-textarea>
 
-      <v-expansion-panels v-model="openPanels"class="mb-4 rounded-lg" eager>
+      <v-expansion-panels v-model="openPanels" class="mb-4 rounded-lg" eager>
         <v-expansion-panel class="mb-2">
           <v-expansion-panel-title>Links</v-expansion-panel-title>
           <v-expansion-panel-text>
