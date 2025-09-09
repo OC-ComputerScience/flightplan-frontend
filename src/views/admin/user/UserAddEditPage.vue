@@ -40,6 +40,7 @@ const semesterTypes = ref(semesters);
 const links = ref([]);
 const initialLinks = ref([]);
 const addLinkStore = addLinkToUserStore();
+var openPanels = [0];
 
 const isStudent = ref(true);
 const fieldDisable = ref(!props.isAdmin); // New reactive variable for admin status for when to enable/disable fields
@@ -284,6 +285,7 @@ onMounted(async () => {
         rounded="lg"
         label="Full Name"
         :rules="[required]"
+        disabled
       ></v-text-field>
 
       <v-row no-gutters>
@@ -294,6 +296,7 @@ onMounted(async () => {
             rounded="lg"
             label="First Name"
             :rules="[required]"
+            disabled
           ></v-text-field>
         </v-col>
         <v-col size="6">
@@ -303,6 +306,7 @@ onMounted(async () => {
             rounded="lg"
             label="Last Name"
             :rules="[required]"
+            disabled
           ></v-text-field>
         </v-col>
       </v-row>
@@ -322,7 +326,7 @@ onMounted(async () => {
         label="Profile Description"
       ></v-textarea>
 
-      <v-expansion-panels class="mb-4 rounded-lg" eager>
+      <v-expansion-panels v-model="openPanels"class="mb-4 rounded-lg" eager>
         <v-expansion-panel class="mb-2">
           <v-expansion-panel-title>Links</v-expansion-panel-title>
           <v-expansion-panel-text>
