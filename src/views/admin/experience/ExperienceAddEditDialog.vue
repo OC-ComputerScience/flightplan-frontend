@@ -189,12 +189,38 @@ const fetchData = async () => {
 watch(
   () => props.modelValue,
   (val) => {
+    resetFields();
     if (val) fetchData();
   },
 );
 
+const resetFields = () => {
+  formData.value = {
+    name: "",
+    category: null,
+    schedulingType: null,
+    submissionType: null,
+    eventRequired: false,
+    points: null,
+    semestersFromGrad: null,
+    semesterEnd: null,
+    sequenceNumber: null,
+    status: null,
+    description: "",
+    instructions: "",
+    instructionsLinkDescription: "",
+    instructionsLink: "",
+    rationale: "",
+  };
+  strengths.value = [];
+  majors.value = [];
+  initialStrengths.value = [];
+  initialMajors.value = [];
+};
+
 onMounted(async () => {
   if (props.modelValue) fetchData();
+  if (props.isAdd) resetFields();
 });
 </script>
 

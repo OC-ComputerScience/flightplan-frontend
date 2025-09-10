@@ -285,12 +285,37 @@ const fetchData = async () => {
 watch(
   () => props.modelValue,
   (val) => {
+    resetFields();
     if (val) fetchData();
   },
 );
 
-onMounted(() => {
+const resetFields = () => {
+  formData.value = {
+    name: "",
+    location: "",
+    date: null,
+    startTime: "",
+    endTime: "",
+    registration: null,
+    attendanceType: null,
+    description: "",
+    experiences: [],
+    status: "Scheduled",
+  };
+  selectedDate.value = null;
+  isAllDay.value = false;
+  tempStartTime.value = undefined;
+  tempEndTime.value = undefined;
+  strengths.value = [];
+  majors.value = [];
+  initialStrengths.value = [];
+  initialMajors.value = [];
+};
+
+onMounted(async () => {
   if (props.modelValue) fetchData();
+  if (props.isAdd) resetFields();
 });
 
 const filteredEndTimeOptions = computed(() => {
