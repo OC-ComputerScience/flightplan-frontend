@@ -119,9 +119,25 @@ const fetchData = async () => {
   }
 };
 
+const resetFields = () => {
+  formData.value.imageName = "";
+  formData.value.quantityAvaliable = null;
+  formData.value.points = null;
+  formData.value.name = null;
+  formData.value.redemptionType = null;
+  formData.value.redemptionInfo = null;
+  formData.value.status = null;
+  formData.value.description = null;
+  formData.value.maximumRedemptionsPerUser = null;
+  image.value = null;
+};
+
 // Vue functions
 onMounted(() => {
   if (props.modelValue) fetchData();
+  if (props.isAdd) {
+    resetFields();
+  }
 });
 
 const initial = ref(true);
@@ -129,6 +145,7 @@ const initial = ref(true);
 watch(
   () => props.modelValue,
   (val) => {
+    resetFields();
     if (val) fetchData();
   },
 );
