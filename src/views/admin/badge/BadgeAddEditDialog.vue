@@ -225,12 +225,34 @@ const fetchData = async () => {
 watch(
   () => props.modelValue,
   (val) => {
+    resetFields();
     if (val) fetchData();
   },
 );
 
-onMounted(() => {
+const resetFields = () => {
+  formData.value = {
+    name: "",
+    description: "",
+    imageName: null,
+    image: undefined,
+    ruleType: "Experiences and Tasks",
+    status: null,
+    yearsFromGrad: null,
+    completionQuantityOne: null,
+    tasks: [],
+    experiences: [],
+  };
+  selectedRule.value = "Experiences and Tasks";
+  selectedStatus.value = [];
+  ruleTasks.value = [];
+  ruleExperiences.value = [];
+  image.value = null;
+};
+
+onMounted(async () => {
   if (props.modelValue) fetchData();
+  if (props.isAdd) resetFields();
 });
 </script>
 <template>
