@@ -17,7 +17,7 @@
     "@mdi/font": "^7.4.47",
     "@popperjs/core": "^2.11.8",
     "add-to-calendar-button": "^2.8.9",
-    "axios": "^1.7.9",
+    "axios": "^1.12.2",
     "chart.js": "^4.4.9",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
