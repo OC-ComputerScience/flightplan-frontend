@@ -84,11 +84,35 @@ const pageSize = computed(() => numCardColumns.value * 2);
 // Fetch events and strengths
 const getEvents = async (pageNumber = page.value) => {
   try {
+    // Prepare filters for API
+    const apiFilters = { ...filters.value };
+
+    // Convert strengths to array of IDs if needed
+    if (apiFilters.strengths && apiFilters.strengths.length > 0 && typeof apiFilters.strengths[0] === 'object') {
+      apiFilters.strengths = apiFilters.strengths.map(s => s.id);
+    }
+
+    // Convert dates to ISO strings if not null
+    if (apiFilters.startDate) {
+      apiFilters.startDate = new Date(apiFilters.startDate).toISOString();
+    }
+    if (apiFilters.endDate) {
+      apiFilters.endDate = new Date(apiFilters.endDate).toISOString();
+    }
+
+    // Trim location and set to null if empty
+    if (apiFilters.location) {
+      apiFilters.location = apiFilters.location.trim();
+      if (apiFilters.location === "") apiFilters.location = null;
+    }
+
+    // status, attendanceType, registrationType are already strings or null
+
     const result = await EventServices.getAllEvents(
       pageNumber,
       pageSize.value,
       searchQuery.value,
-      { ...filters.value, ...sortOptions.value },
+      { ...apiFilters, ...sortOptions.value },
     );
     events.value = result.data.events;
     count.value = result.data.count;
@@ -137,11 +161,7 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
-  if (filters.value.strengths && filters.value.strengths.length > 0) {
-    filters.value.strengths = filters.value.strengths.map(
-      (strength) => strength.id,
-    );
-  }
+  page.value = 1;
   getEvents();
 };
 
@@ -150,11 +170,12 @@ const handleClearFilters = () => {
     startDate: null,
     endDate: null,
     location: null,
-    strengths: null,
+    strengths: [],
     status: null,
     attendanceType: null,
     registrationType: null,
   };
+  page.value = 1;
   getEvents();
 };
 
@@ -174,10 +195,10 @@ const handleAttendance = (eventId, eventName) => {
 
 // Initial load
 onMounted(async () => {
+  getEvents();
+  getStrengths();
   try {
     const [attendanceTypesData, registrationTypesData] = await Promise.all([
-      getEvents(),
-      getStrengths(),
       EventServices.getAttendanceTypes(),
       EventServices.getRegistrationTypes(),
     ]);
@@ -235,7 +256,7 @@ watch(showInfo, getEvents);
         <DatePickerField v-model="filters.endDate" label="End Date" />
         <v-select
           v-model="filters.status"
-          :items="['Upcoming', 'Cancelled', 'Past']"
+          :items="['Upcoming', 'Completed', 'Cancelled', 'Past']"
           label="Status"
           clearable
         ></v-select>
