@@ -195,33 +195,32 @@ const resolvedStatusLabel = computed(() => {
     return props.statusLabel;
   }
 
-
   if (props.adminView) {
-    switch (props.status) {
+    switch (props.event.status) {
       case "checkedin":
         return "Upcoming";
       case "canceled":
         return "Cancelled";
-      case "past":
-        return "Passed";
+      case "Past":
+        return "Past";
       case "registered":
-        return "Upcoming"
-      case "upcoming":
+        return "Upcoming";
+      case "Upcoming":
         return "Upcoming";
       default:
         return "Upcoming";
     }
   } else {
-    switch (props.status) {
+    switch (props.event.status) {
       case "checkedin":
         return "Checked In";
       case "canceled":
         return "Cancelled";
-      case "past":
-        return "registered";
+      case "Past":
+        return "Registered";
       case "registered":
-        return "Registered"
-      case "upcoming":
+        return "Registered";
+      case "Upcoming":
         return "Upcoming (Not Registered)";
       default:
         return "Upcoming";

@@ -224,6 +224,7 @@ watch(showInfo, getEvents);
       <template #item="{ item }">
         <EventCard
           :event="item"
+          :admin-view="true"
           @edit="handleEdit"
           @delete="handleDelete"
           @show-info="handleShowInfo"
