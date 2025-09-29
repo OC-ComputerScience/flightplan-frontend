@@ -60,15 +60,22 @@ const fetchData = async () => {
   }
 };
 
+
 watch(
   () => props.modelValue,
   (val) => {
+    resetFields();
     if (val) fetchData();
   },
 );
 
-onMounted(() => {
+const resetFields = () => {
+  formData.value.name = "";
+};
+
+onMounted(async () => {
   if (props.modelValue) fetchData();
+  if (props.isAdd) resetFields();
 });
 </script>
 
