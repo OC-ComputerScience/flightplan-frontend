@@ -38,8 +38,25 @@ const admin = [
   { "route-name": "admin", "link-text": "Dashboard" },
   { "route-name": "admin-calendar", "link-text": "Calendar" },
   { "route-name": "admin-notifications", "link-text": "Notifications" },
-  { "route-name": "maintenance", "link-text": "Maintenance" },
   { "route-name": "admin-approvals", "link-text": "Approvals" },
+  { "route-name": "maintenance", "link-text": "Maintenance" },
+];
+
+// Maintenance dropdown links (mirrors MaintenanceLandingPage)
+const maintenanceLinks = [
+  { name: "Rewards", routeName: "reward", icon: "mdi-cart" },
+  { name: "Tasks", routeName: "task", icon: "mdi-clipboard-check" },
+  { name: "Experiences", routeName: "experience", icon: "mdi-bag-personal" },
+  { name: "Events", routeName: "event", icon: "mdi-calendar-star" },
+  { name: "Users", routeName: "user", icon: "mdi-account-group" },
+  { name: "Badges", routeName: "badge", icon: "mdi-seal" },
+  // Majors route appears unnamed in router; use path fallback
+  {
+    name: "Majors",
+    routeName: null,
+    path: "/admin/maintenance/major",
+    icon: "mdi-school",
+  },
 ];
 
 const student = [
@@ -99,11 +116,18 @@ const getIcon = (linkText) => {
     Notifications: "mdi-bell",
     Maintenance: "mdi-cog",
     Approvals: "mdi-check",
-    "Rewards" : "mdi-cart",
+    Rewards: "mdi-cart",
   };
 
 
   return icons[linkText] || "mdi-circle"; // Default if not found
+};
+
+const getMaintenanceTo = (item) => {
+  if (item.routeName) {
+    return { name: item.routeName };
+  }
+  return { path: item.path };
 };
 
 const handleLogout = async () => {
@@ -149,7 +173,50 @@ const handleLogout = async () => {
     >
       <div class="flex-grow-1">
         <div v-for="(item, index) in admin" :key="index">
+          <!-- Maintenance dropdown -->
+          <v-menu v-if="item['link-text'] === 'Maintenance'" location="bottom" contained open-on-hover>
+            <template #activator="{ props }">
+              <v-list-item v-bind="props" class="bg-secondary">
+                <div>
+                  <v-list-item-title
+                    class="text-body-1 font-weight-bold text-backgroundDarken"
+                  >
+                    <div class="nav-item-content">
+                      <v-icon :size="32" color="backgroundDarken" class="mr-2">
+                        {{ getIcon(item["link-text"]) }}
+                      </v-icon>
+                      <span class="nav-text text-backgroundDarken">
+                        Maintenance
+                      </span>
+                    </div>
+                  </v-list-item-title>
+                </div>
+              </v-list-item>
+            </template>
+            <v-list class="bg-secondary nav-text">
+              <v-list-item
+                v-for="(mItem, mIndex) in maintenanceLinks"
+                :key="mIndex"
+                :to="getMaintenanceTo(mItem)"
+                class="bg-secondary"
+              >
+                <v-list-item-title
+                  class="text-body-1 font-weight-bold text-backgroundDarken"
+                >
+                  <div class="nav-item-content">
+                    <v-icon :size="24" color="backgroundDarken" class="mr-2">
+                      {{ mItem.icon }}
+                    </v-icon>
+                    <span class="text-backgroundDarken">{{ mItem.name }}</span>
+                  </div>
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+          <!-- Default single link items -->
           <v-list-item
+            v-else
             :to="
               item['link-text'] === 'Profile' && userId
                 ? {
@@ -169,9 +236,7 @@ const handleLogout = async () => {
                   <v-icon :size="32" color="backgroundDarken" class="mr-2">
                     {{ getIcon(item["link-text"]) }}
                   </v-icon>
-                  <span class="nav-text text-backgroundDarken">{{
-                    item["link-text"]
-                  }}</span>
+                  <span class="nav-text text-backgroundDarken">{{ item["link-text"] }}</span>
                 </div>
               </v-list-item-title>
             </div>
