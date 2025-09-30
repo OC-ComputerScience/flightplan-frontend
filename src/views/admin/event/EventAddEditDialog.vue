@@ -301,7 +301,7 @@ const resetFields = () => {
     attendanceType: null,
     description: "",
     experiences: [],
-    status: "Scheduled",
+    status: "Upcoming",
   };
   selectedDate.value = null;
   isAllDay.value = false;
