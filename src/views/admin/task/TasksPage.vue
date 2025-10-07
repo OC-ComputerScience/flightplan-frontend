@@ -82,11 +82,34 @@ const pageSize = computed(() => numCardColumns.value * 3);
 // Fetch tasks
 const getTasks = async (pageNumber = page.value) => {
   try {
+    // Prepare filters for API
+    const apiFilters = { ...filters.value };
+
+    // Convert strengths to array of IDs if needed
+    if (apiFilters.strengths && Array.isArray(apiFilters.strengths) && apiFilters.strengths.length > 0 && typeof apiFilters.strengths[0] === "object") {
+      apiFilters.strengths = apiFilters.strengths.map(s => s.id);
+    }
+
+    // Convert semestersFromGrad to number if not null/empty
+    if (apiFilters.semestersFromGrad != null && apiFilters.semestersFromGrad !== "") {
+      apiFilters.semestersFromGrad = Number(apiFilters.semestersFromGrad);
+    } else {
+      apiFilters.semestersFromGrad = null;
+    }
+
+    // Trim category, schedulingType, submissionType if they are strings
+    ["category", "schedulingType", "submissionType"].forEach(key => {
+      if (typeof apiFilters[key] === "string") {
+        apiFilters[key] = apiFilters[key].trim();
+        if (apiFilters[key] === "") apiFilters[key] = null;
+      }
+    });
+
     const result = await taskServices.getAllTasks(
       pageNumber,
       pageSize.value,
       searchQuery.value,
-      { ...filters.value, ...sortOptions.value },
+      { ...apiFilters, ...sortOptions.value },
     );
     tasks.value = result.data.tasks;
     count.value = result.data.count;
@@ -125,11 +148,6 @@ const handleSearchChange = (input) => {
 };
 
 const handleChangeFilters = () => {
-  if (filters.value.strengths && filters.value.strengths.length > 0) {
-    filters.value.strengths = filters.value.strengths.map(
-      (strength) => strength.id,
-    );
-  }
   getTasks();
 };
 

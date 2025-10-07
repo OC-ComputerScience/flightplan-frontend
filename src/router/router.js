@@ -9,7 +9,7 @@ import BadgesPage from "../views/admin/badge/BadgesPage.vue";
 import ExperiencesPage from "../views/admin/experience/ExperiencesPage.vue";
 import RewardPage from "../views/admin/reward/RewardPage.vue";
 import RewardRedemptionPage from "../views/admin/reward/RewardRedemptionPage.vue";
-import MaintenanceLandingPage from "../views/admin/MaintenanceLandingPage.vue";
+
 import MajorsPage from "../views/admin/major/MajorsPage.vue";
 import Profile from "../views/Profile.vue";
 import Notifications from "../views/Notification.vue";
@@ -134,11 +134,7 @@ const adminMajorRoutes = [
 ];
 
 const adminMaintenanceRoutes = [
-  {
-    path: "maintenance",
-    name: "maintenance",
-    component: MaintenanceLandingPage,
-  },
+
   {
     path: "maintenance/user",
     name: "user",
