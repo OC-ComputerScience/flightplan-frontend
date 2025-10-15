@@ -62,6 +62,7 @@ const isRegistered = ref(false);
 const confirmCancelDialog = ref(false);
 const canCancel = ref(true);
 const isRecommendedEvent = ref(false);
+const registrationCount = ref(0);
 
 const calculateRecommended = async () => {
   const eventStrengths = (
@@ -98,6 +99,15 @@ onMounted(async () => {
     })
     .catch((err) => {
       console.error("Error: ", err);
+    });
+
+  await eventServices
+    .getRegisteredStudents(props.event.id)
+    .then((res) => {
+      registrationCount.value = res.data.length;
+    })
+    .catch((err) => {
+      console.error("Error fetching registration count: ", err);
     });
 });
 
@@ -177,6 +187,21 @@ const confirmCancel = async () => {
     console.error("Error cancelling event:", err);
   }
 };
+
+watch(
+  () => props.event,
+  async (newEvent) => {
+    await eventServices
+      .getRegisteredStudents(newEvent.id)
+      .then((res) => {
+        registrationCount.value = res.data.length;
+      })
+      .catch((err) => {
+        console.error("Error fetching registration count: ", err);
+      });
+  },
+  { immediate: true },
+);
 
 watch(() => props.event.status, (newStatus) => {
   canCancel.value = newStatus !== 'Cancelled';
@@ -265,6 +290,9 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
           </p>
+          <p class="text-subtitle-2 font-weight-medium">
+            Registration Count: {{ registrationCount }}
+          </p>
         </v-card-text>
         <v-row class="ma-2 float-right">
           <v-btn
@@ -344,6 +372,9 @@ const handleRegistration = () => {
           </p>
           <p class="text-subtitle-2 font-weight-medium">
             Event Status: {{ resolvedStatusLabel }}
+          </p>
+          <p class="text-subtitle-2 font-weight-medium">
+            Registration Count: {{ registrationCount }}
           </p>
         </v-card-text>
         <v-row v-if="props.adminView && !props.noActions && props.event.status !== 'Cancelled' && props.event.status !== 'Past'" class="ma-2 float-left">
