@@ -33,6 +33,8 @@ const flightPlanItems = ref([]);
 const studentId = ref(null);
 const student = ref(null);
 const showEventDialog = ref(false);
+const isAddMode = ref(true);
+const selectedEventId = ref(null);
 
 const router = useRouter();
 const props = defineProps({
@@ -66,6 +68,14 @@ const getEvents = async () => {
 };
 
 const handleAdd = () => {
+  isAddMode.value = true;
+  selectedEventId.value = null;
+  showEventDialog.value = true;
+};
+
+const handleEdit = (eventId) => {
+  isAddMode.value = false;
+  selectedEventId.value = eventId;
   showEventDialog.value = true;
 };
 
@@ -73,9 +83,6 @@ const handleDialogSaved = () => {
   showEventDialog.value = false;
   getEvents();
 };
-
-const handleEdit = (eventId) =>
-  router.push({ name: "editEvent", params: { id: eventId } });
 
 const handleCancel = (eventId) => {
   eventToCancel.value = eventId;
@@ -703,7 +710,8 @@ function selectThisMonth() {
     </div>
     <EventAddEditDialog
       v-model="showEventDialog"
-      :is-add="true"
+      :is-add="isAddMode"
+      :event-id="selectedEventId"
       :date="today"
       @saved="handleDialogSaved"
     />
