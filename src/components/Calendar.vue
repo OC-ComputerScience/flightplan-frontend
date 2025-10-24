@@ -3,6 +3,7 @@ import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import EventCard from "./cards/EventCard.vue";
 import SelectEventExperience from "./dialogs/SelectEventExperience.vue";
 import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
+import EventAddEditDialog from "../views/admin/event/EventAddEditDialog.vue";
 import { useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
 import strengthServices from "../services/strengthServices";
@@ -31,6 +32,7 @@ const viewSelectExperienceStore = viewSelectEventExperienceStore();
 const flightPlanItems = ref([]);
 const studentId = ref(null);
 const student = ref(null);
+const showEventDialog = ref(false);
 
 const router = useRouter();
 const props = defineProps({
@@ -61,6 +63,15 @@ const getEvents = async () => {
   } catch (error) {
     console.error("Failed to refresh events:", error);
   }
+};
+
+const handleAdd = () => {
+  showEventDialog.value = true;
+};
+
+const handleDialogSaved = () => {
+  showEventDialog.value = false;
+  getEvents();
 };
 
 const handleEdit = (eventId) =>
@@ -132,15 +143,6 @@ const confirmCancel = async () => {
   } catch (err) {
     console.error("Error cancelling event:", err);
   }
-};
-
-const handleAdd = () => {
-  router.push({
-    name: "addEvent",
-    params: {
-      date: selectedDates.value[0].toISOString(),
-    },
-  });
 };
 
 const handleRegisterEventExperience = async (event, flightPlanItem = null) => {
@@ -510,198 +512,206 @@ function selectThisMonth() {
 </script>
 
 <template>
-  <div class="calendar-container mt-4 pa-6">
-    <div class="calendar-row">
-      <!-- Left card: Calendar -->
-      <v-card class="calendar-card pa-4 bg-backgroundDarken" flat>
-        <div class="d-flex justify-space-between align-center mb-3 px-4">
-          <div>
-            <v-btn
-              color="secondary"
-              size="small"
-              prepend-icon="mdi-calendar-today"
-              @click="goToToday"
-            >
-              Today
-            </v-btn>
-            <v-btn
-              size="small"
-              color="secondary"
-              prepend-icon="mdi-calendar-week"
-              class="ml-2"
-              @click="selectThisWeek"
-            >
-              This Week
-            </v-btn>
-            <v-btn
-              size="small"
-              color="secondary"
-              prepend-icon="mdi-calendar-month"
-              class="ml-2"
-              @click="selectThisMonth"
-            >
-              This Month
-            </v-btn>
-          </div>
-
-          <div v-if="selectedDates.length > 1">
-            <v-btn
-              size="small"
-              color="danger"
-              prepend-icon="mdi-close-circle-outline"
-              @click="clearSelection"
-            >
-              Clear
-            </v-btn>
-          </div>
-          <v-tooltip location="right" style="width: 75%">
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" size="24" class="ml-2"
-                >mdi-information-outline</v-icon
+  <div>
+    <div class="calendar-container mt-4 pa-6">
+      <div class="calendar-row">
+        <!-- Left card: Calendar -->
+        <v-card class="calendar-card pa-4 bg-backgroundDarken" flat>
+          <div class="d-flex justify-space-between align-center mb-3 px-4">
+            <div>
+              <v-btn
+                color="secondary"
+                size="small"
+                prepend-icon="mdi-calendar-today"
+                @click="goToToday"
               >
-            </template>
-            <span>
-              To view more than one day at a time, click on the first date and
-              shift+click on another date to select a range of date, or
-              ctrl+click on several dates to select a specific group of
-              dates.</span
-            >
-          </v-tooltip>
-        </div>
+                Today
+              </v-btn>
+              <v-btn
+                size="small"
+                color="secondary"
+                prepend-icon="mdi-calendar-week"
+                class="ml-2"
+                @click="selectThisWeek"
+              >
+                This Week
+              </v-btn>
+              <v-btn
+                size="small"
+                color="secondary"
+                prepend-icon="mdi-calendar-month"
+                class="ml-2"
+                @click="selectThisMonth"
+              >
+                This Month
+              </v-btn>
+            </div>
 
-        <VCalendar
-          :rows="calendarRows"
-          :attributes="attributes"
-          is-dark="system"
-          view="monthly"
-          borderless
-          title-position="left"
-          expanded
-          class="fill-height bg-backgroundDarken"
-          @dayclick="handleDayClick"
-        />
-      </v-card>
-
-      <!-- Right card: Timeline -->
-      <v-card class="calendarDetails-card pa-4" color="backgroundDarken">
-        <div class="timeline-header">
-          <strong class="timeline-title">Event Timeline</strong>
-          <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
-          <p class="timeline-range" style="padding: 5px">
-            What do these colors mean?
-            <v-tooltip location="right">
+            <div v-if="selectedDates.length > 1">
+              <v-btn
+                size="small"
+                color="danger"
+                prepend-icon="mdi-close-circle-outline"
+                @click="clearSelection"
+              >
+                Clear
+              </v-btn>
+            </div>
+            <v-tooltip location="right" style="width: 75%">
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props" size="24" class="ml-2"
                   >mdi-information-outline</v-icon
                 >
               </template>
               <span>
-                <div class="pb-1">
-                  <v-icon color="upcoming">mdi-circle</v-icon>:
-                  <strong>Upcoming</strong>
-                </div>
-                <div class="pb-1">
-                  <v-icon color="registered">mdi-circle</v-icon>:
-                  <strong>Registered</strong>
-                </div>
-                <div class="pb-1">
-                  <v-icon color="checkedin">mdi-circle</v-icon>:
-                  <strong>Completed</strong>
-                </div>
-                <div class="pb-1">
-                  <v-icon color="recommended">mdi-circle</v-icon>:
-                  <strong>Recommended</strong>
-                </div>
-                <div class="pb-1">
-                  <v-icon color="cancelled">mdi-circle</v-icon>:
-                  <strong>Cancelled</strong>
-                </div>
-                <div class="pb-1">
-                  <v-icon color="past">mdi-circle</v-icon>:
-                  <strong>Past</strong>
-                </div>
-              </span>
-            </v-tooltip>
-          </p>
-          <v-btn
-            v-if="props.isAdmin"
-            rounded="xl"
-            color="primary"
-            @click="handleAdd"
-            >Add Event</v-btn
-          >
-        </div>
-
-        <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0" style="  overflow-y: auto;">
-          <div
-            v-for="(dayEvents, dateLabel) in filteredEventsGroupedByDate"
-            :key="dateLabel"
-            class="timeline-day"
-          >
-            <div v-if="dayEvents.length > 0" class="timeline">
-              <div
-                v-for="(group, time) in groupByStartTime(dayEvents)"
-                :key="time"
-                class="timeline-item"
+                To view more than one day at a time, click on the first date and
+                shift+click on another date to select a range of date, or
+                ctrl+click on several dates to select a specific group of
+                dates.</span
               >
-                <div class="timeline-time">
-                  <strong>{{ dateLabel }}</strong>
+            </v-tooltip>
+          </div>
+
+          <VCalendar
+            :rows="calendarRows"
+            :attributes="attributes"
+            is-dark="system"
+            view="monthly"
+            borderless
+            title-position="left"
+            expanded
+            class="fill-height bg-backgroundDarken"
+            @dayclick="handleDayClick"
+          />
+        </v-card>
+
+        <!-- Right card: Timeline -->
+        <v-card class="calendarDetails-card pa-4" color="backgroundDarken">
+          <div class="timeline-header">
+            <strong class="timeline-title">Event Timeline</strong>
+            <span class="timeline-range">{{ selectedDateRangeLabel }}</span>
+            <p class="timeline-range" style="padding: 5px">
+              What do these colors mean?
+              <v-tooltip location="right">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="24" class="ml-2"
+                    >mdi-information-outline</v-icon
+                  >
+                </template>
+                <span>
+                  <div class="pb-1">
+                    <v-icon color="upcoming">mdi-circle</v-icon>:
+                    <strong>Upcoming</strong>
+                  </div>
+                  <div class="pb-1">
+                    <v-icon color="registered">mdi-circle</v-icon>:
+                    <strong>Registered</strong>
+                  </div>
+                  <div class="pb-1">
+                    <v-icon color="checkedin">mdi-circle</v-icon>:
+                    <strong>Completed</strong>
+                  </div>
+                  <div class="pb-1">
+                    <v-icon color="recommended">mdi-circle</v-icon>:
+                    <strong>Recommended</strong>
+                  </div>
+                  <div class="pb-1">
+                    <v-icon color="cancelled">mdi-circle</v-icon>:
+                    <strong>Cancelled</strong>
+                  </div>
+                  <div class="pb-1">
+                    <v-icon color="past">mdi-circle</v-icon>:
+                    <strong>Past</strong>
+                  </div>
+                </span>
+              </v-tooltip>
+            </p>
+            <v-btn
+              v-if="props.isAdmin"
+              rounded="xl"
+              color="primary"
+              @click="handleAdd()"
+              >Add Event</v-btn
+            >
+          </div>
+
+          <div v-if="Object.keys(filteredEventsGroupedByDate).length > 0" style="  overflow-y: auto;">
+            <div
+              v-for="(dayEvents, dateLabel) in filteredEventsGroupedByDate"
+              :key="dateLabel"
+              class="timeline-day"
+            >
+              <div v-if="dayEvents.length > 0" class="timeline">
+                <div
+                  v-for="(group, time) in groupByStartTime(dayEvents)"
+                  :key="time"
+                  class="timeline-item"
+                >
+                  <div class="timeline-time">
+                    <strong>{{ dateLabel }}</strong>
+                  </div>
+                  <div class="timeline-group">
+                    <EventCard
+                      v-for="(event, idx) in group"
+                      :key="idx"
+                      :event="event"
+                      :view-only="true"
+                      :status="
+                        getEventCardColor(
+                          event,
+                          checkedInEvents,
+                          registeredEvents,
+                          cancelledEvents,
+                        )
+                      "
+                      :admin-view="props.isAdmin"
+                      @edit="handleEdit"
+                      @cancel="handleCancel"
+                      @register="handleRegister"
+                      @unregister="handleUnregister"
+                    />
+                  </div>
                 </div>
-                <div class="timeline-group">
-                  <EventCard
-                    v-for="(event, idx) in group"
-                    :key="idx"
-                    :event="event"
-                    :view-only="true"
-                    :status="
-                      getEventCardColor(
-                        event,
-                        checkedInEvents,
-                        registeredEvents,
-                        cancelledEvents,
-                      )
-                    "
-                    :admin-view="props.isAdmin"
-                    @edit="handleEdit"
-                    @cancel="handleCancel"
-                    @register="handleRegister"
-                    @unregister="handleUnregister"
-                  />
-                </div>
+              </div>
+
+              <div v-else>
+                <p class="no-events-text">No events for this date.</p>
               </div>
             </div>
 
-            <div v-else>
-              <p class="no-events-text">No events for this date.</p>
-            </div>
+            <ConfirmDialog
+              v-model="confirmCancelDialog"
+              title="Cancel Event?"
+              confirm-text="Yes, Cancel Event"
+              cancel-text="No, Close"
+              confirm-color="error"
+              @confirm="confirmCancel"
+            />
+
+            <SelectEventExperience
+              :event="selectedEvent"
+              :flight-plan-items="flightPlanItems"
+              @register="handleRegisterEventExperience"
+            />
           </div>
 
-          <ConfirmDialog
-            v-model="confirmCancelDialog"
-            title="Cancel Event?"
-            confirm-text="Yes, Cancel Event"
-            cancel-text="No, Close"
-            confirm-color="error"
-            @confirm="confirmCancel"
-          />
-
-          <SelectEventExperience
-            :event="selectedEvent"
-            :flight-plan-items="flightPlanItems"
-            @register="handleRegisterEventExperience"
-          />
-        </div>
-
-        <div v-else>
-          <p>Click a date to view or manage events here.</p>
-        </div>
-      </v-card>
+          <div v-else>
+            <p>Click a date to view or manage events here.</p>
+          </div>
+        </v-card>
+      </div>
     </div>
-  </div>
+    <EventAddEditDialog
+      v-model="showEventDialog"
+      :is-add="true"
+      :date="today"
+      @saved="handleDialogSaved"
+    />
     <EventRegistrationConfirmation
-    v-model="useEventRegistrationConfirmationStore.visible"
-    :message="registrationUpdateMessage"
-  />
+      v-model="useEventRegistrationConfirmationStore.visible"
+      :message="registrationUpdateMessage"
+    />
+  </div>
 </template>
 
 <style scoped>
