@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import defaultImage from "../../assets/DefaultBadgeImage.png";
 import { loadImage } from "../componentUtilities";
 import fileServices from "../../services/fileServices";
@@ -7,6 +7,15 @@ const props = defineProps({
   badge: { type: Object, required: true },
   isProfilePage: { type: Boolean, default: false },
 });
+
+watch(
+  () => props.badge.imageName,
+  () => {
+    fetchImage();
+  },
+  { deep: true },
+);
+
 const emit = defineEmits(["edit", "delete", "view"]);
 
 const emitView = () => {
@@ -17,7 +26,7 @@ const imageSrc = ref("");
 
 const fetchImage = async () => {
   const response = await fileServices.getFileForName(props.badge.imageName);
-  if (!response.data.image) return;
+  if (!response.data.image) imageSrc.value = defaultImage;
   imageSrc.value = loadImage(response.data.image.data);
 };
 
