@@ -1,13 +1,14 @@
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import CardTable from "../../../components/CardTable.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import BadgeCard from "../../../components/cards/BadgeCard.vue";
 import BadgeAddEditDialog from "./BadgeAddEditDialog.vue";
 import badgeServices from "../../../services/badgeServices";
+import { useDisplay } from "vuetify";
 
 // Constants
-const PAGE_SIZE = 8;
+//const PAGE_SIZE = 8;
 const label = "Badges";
 const sortProperties = [
   { title: "Name", value: "name" },
@@ -34,6 +35,17 @@ const sortOptions = ref({
   sortAttribute: sortProperties[0].value,
   sortDirection: "asc",
 });
+
+const display = useDisplay();
+
+const numCardColumns = computed(() => {
+  if (display.xxl.value) return 4;
+  if (display.xl.value || display.lg.value) return showFilters.value ? 3 : 4;
+  if (display.md.value) return showFilters.value ? 2 : 3;
+  if (display.sm.value) return showFilters.value ? 1 : 2;
+  return 1; // Default for xs
+});
+const pageSize = computed(() => numCardColumns.value);
 
 // Handlers
 const handleAdd = () => {
@@ -79,14 +91,12 @@ const handleClearFilters = () => {
 
 // Fetch badges
 const getBadges = async (
-  pageNumber = page.value,
-  query = searchQuery.value,
 ) => {
   try {
     const result = await badgeServices.getAllBadges(
-      pageNumber,
-      PAGE_SIZE,
-      query,
+      page.value,
+      pageSize.value,
+      searchQuery.value,
       {
         ...filters.value,
         ...sortOptions.value,
