@@ -217,6 +217,7 @@ onMounted(() => {
         <SortSelect
           v-model="sortOptions"
           :sort-options="sortProperties"
+          @update:model-value="handleChangeFilters"
         ></SortSelect>
       </template>
 
