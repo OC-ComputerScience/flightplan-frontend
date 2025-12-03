@@ -67,29 +67,33 @@ const getEvents = async () => {
   }
 };
 
-const handleAdd = () => {
+const handleAdd = async () => {
   isAddMode.value = true;
   selectedEventId.value = null;
   showEventDialog.value = true;
+  await generateEventDots(allEvents.value);
 };
 
-const handleEdit = (eventId) => {
+const handleEdit = async (eventId) => {
   isAddMode.value = false;
   selectedEventId.value = eventId;
   showEventDialog.value = true;
+  await generateEventDots(allEvents.value);
 };
 
-const handleDialogSaved = () => {
+const handleDialogSaved = async () => {
   showEventDialog.value = false;
-  getEvents();
+  await getEvents();
+  await generateEventDots(allEvents.value);
 };
 
-const handleCancel = (eventId) => {
+const handleCancel = async (eventId) => {
   eventToCancel.value = eventId;
-  eventToCancelObject.value = allEvents.value.find(
+  eventToCancelObject.value = await allEvents.value.find(
     (event) => event.id === eventId,
   );
   confirmCancelDialog.value = true;
+  await generateEventDots(allEvents.value);
 };
 
 const confirmCancel = async () => {
