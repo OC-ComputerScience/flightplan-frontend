@@ -41,7 +41,7 @@ const handleCardCrud = () => {
   const newAttendedStatus = !props.student.attendedStatus;
 
   eventServices
-    .markAttendance(props.student.eventId, [props.student.studentId])
+    .toggleAttendance(props.student.eventId, [props.student.studentId])
     .then(() => {
       const updatedStudent = {
         ...props.student,
