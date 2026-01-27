@@ -51,7 +51,6 @@ const fetchPendingApprovals = async () => {
     );
     pendingApprovals.value = response.data.flightPlanItems;
     count.value = response.data.count;
-    page.value = 1;
   } catch (error) {
     console.error("Error fetching pending approvals:", error);
   }
