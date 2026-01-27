@@ -41,7 +41,7 @@ const confirm = () => {
 };
 </script>
 <template>
-  <v-dialog v-model="internalValue" width="300px">
+  <v-dialog v-model="internalValue" width="auto">
     <v-card color="backgroundDarken" class="rounded-lg">
       <v-card-text>
         <div style="text-align: center">

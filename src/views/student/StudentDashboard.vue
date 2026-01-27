@@ -209,11 +209,20 @@ const getEvents = async () => {
   yesterday.setDate(today.getDate() - 1);
 
   await eventServices
-    .getAllEvents(1, 1000, "", { startDate: yesterday, endDate: nextSaturday })
+    .getAllEvents(1, 6, "", {
+      startDate: yesterday,
+      sortAttribute: "date",
+      sortDirection: "ASC",
+    })
     .then((res) => {
       events.value = res.data.events
         .filter((event) => {
-          if (event.status === 'Cancelled' || event.status === 'Completed' || event.status === 'Past') return false;
+          if (
+            event.status === "Cancelled" ||
+            event.status === "Completed" ||
+            event.status === "Past"
+          )
+            return false;
 
           const eventDate = new Date(event.date);
           if (eventDate.toDateString() === today.toDateString()) {

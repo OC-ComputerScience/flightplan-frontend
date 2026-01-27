@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import defaultImage from "../../assets/DefaultBadgeImage.png";
 import { loadImage } from "../componentUtilities";
 import fileServices from "../../services/fileServices";
@@ -7,13 +7,26 @@ const props = defineProps({
   badge: { type: Object, required: true },
   isProfilePage: { type: Boolean, default: false },
 });
+
+watch(
+  () => props.badge.imageName,
+  () => {
+    fetchImage();
+  },
+  { deep: true },
+);
+
 const emit = defineEmits(["edit", "delete", "view"]);
+
+const emitView = () => {
+  emit("view", { ...props.badge });
+};
 
 const imageSrc = ref("");
 
 const fetchImage = async () => {
   const response = await fileServices.getFileForName(props.badge.imageName);
-  if (!response.data.image) return;
+  if (!response.data.image) imageSrc.value = defaultImage;
   imageSrc.value = loadImage(response.data.image.data);
 };
 
@@ -32,13 +45,8 @@ const cardClass = computed(() => {
 <template>
   <v-card
     :class="['rounded-xl', cardClass, 'bg-backgroundDarken']"
-    v-bind="
-      props.isProfilePage
-        ? {
-            onClick: () => emit('view', props.badge),
-          }
-        : {}
-    "
+    class="rounded-xl h-100 cardContainer d-flex flex-column"
+    @click="emitView()"
   >
     <v-card-text>
       <v-img
@@ -56,7 +64,9 @@ const cardClass = computed(() => {
       <p class="text-subtitle-1 text-center my-2">
         {{ props.badge.name }}
       </p>
-      <v-row v-show="!props.isProfilePage" class="ma-2 justify-center">
+    </v-card-text>
+    <v-card-subtitle v-show="!props.isProfilePage" class="mt-auto pa-0">
+      <div class="ma-2 float-end">
         <v-btn
           color="warning"
           class="mr-2 rounded-lg"
@@ -64,8 +74,8 @@ const cardClass = computed(() => {
         >
           <v-icon icon="mdi-pencil" color="text" size="x-large"></v-icon>
         </v-btn>
-      </v-row>
-    </v-card-text>
+      </div>
+    </v-card-subtitle>
   </v-card>
 </template>
 

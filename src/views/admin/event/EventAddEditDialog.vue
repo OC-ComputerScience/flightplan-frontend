@@ -22,6 +22,7 @@ const props = defineProps({
   modelValue: Boolean, // Controls dialog visibility
   isAdd: Boolean, // True for add, false for edit
   eventId: Number, // ID of the event being edited
+  date: Date, // Pre-selected date for adding an event
 });
 
 const emit = defineEmits(["update:modelValue", "saved"]);
@@ -34,7 +35,7 @@ const dialog = computed({
 
 const form = ref(null);
 const formData = ref({});
-const selectedDate = ref();
+const selectedDate = ref(props.date);
 const registrationTypes = ref([]);
 const attendanceTypes = ref([]);
 const timeOptions = ref(generateTimeOptions());

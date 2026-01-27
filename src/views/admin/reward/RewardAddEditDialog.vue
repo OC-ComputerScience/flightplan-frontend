@@ -120,6 +120,7 @@ const fetchData = async () => {
 };
 
 const resetFields = () => {
+  formData.value.id = null;
   formData.value.imageName = "";
   formData.value.quantityAvaliable = null;
   formData.value.points = null;

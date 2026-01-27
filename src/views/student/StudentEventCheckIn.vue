@@ -35,7 +35,7 @@ const getEvent = async () => {
     const response = await EventServices.getEventByToken(props.eventToken);
     event.value = response.data;
 
-    EventServices.getFulfillableFlightPlanItems(event.value.id, 3).then(
+    EventServices.getFulfillableFlightPlanItems(event.value.id, student.value.id).then(
       (response) => {
         flightPlanItem.value = response.data.fulfillableFlightPlanItems[0];
       },
@@ -59,6 +59,8 @@ const checkIn = async () => {
       props.eventToken,
     );
     // Handle successful check-in
+    await EventServices.markAttendance(event.value.id, [student.value.id]);
+
     errorMessage.value = ""; // Clear any previous error message
     isSuccess.value = true;
     showDialog.value = true;
@@ -81,8 +83,8 @@ const goToFlightPlan = () => {
 };
 
 onMounted(() => {
-  getEvent();
   getStudent();
+  getEvent();
 });
 </script>
 <template>

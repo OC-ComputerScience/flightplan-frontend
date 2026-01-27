@@ -71,6 +71,10 @@ export default {
     return apiClient.post(`/event/${eventId}/attend`, { studentIds });
   },
 
+  toggleAttendance(eventId, studentIds) {
+    return apiClient.post(`/event/${eventId}/toggleAttend`, { studentIds });
+  },
+
   getRegisteredStudents(eventId) {
     return apiClient.get(`/event/${eventId}/registered-students`);
   },
@@ -107,8 +111,8 @@ export default {
     return apiClient.get(`/event/${eventId}/check-in-token`);
   },
 
-  checkInWithToken(eventId, studentId, token) {
-    return apiClient.post(`/event/${eventId}/check-in/${studentId}`, { token });
+  checkInWithToken(eventId, studentId, eventCheckInToken) {
+    return apiClient.post(`/event/${eventId}/check-in/${studentId}`, { eventCheckInToken });
   },
 
   importAttendance(attendanceData) {
