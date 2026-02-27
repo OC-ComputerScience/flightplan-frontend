@@ -419,7 +419,6 @@ const handleLogout = async () => {
   border-top-right-radius: 25px;
   border-top-left-radius: 25px;
   margin: 2vh 2vh 0vh 2vh;
-  grid-area: auto;
 }
 
 .userNav:hover {

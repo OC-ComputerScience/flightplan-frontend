@@ -634,7 +634,6 @@ onMounted(async () => {
 
 <style>
 .dashboard-container {
-  /* height: 100vh; */
   display: flex;
   flex-direction: column;
   padding: 0vh 1vw;
