@@ -291,7 +291,6 @@ const fetchFlightPlanAndItems = async () => {
   const pointsResponse = await studentServices.getPoints(studentId.value);
   points.value = pointsResponse.data.points;
   await fetchFlightPlanProgress();
-  
 };
 
 const showFlightPlanItem = ref(false);
