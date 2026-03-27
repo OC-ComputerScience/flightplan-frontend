@@ -248,6 +248,15 @@ const deleteNotifications = () => {
   }
 };
 
+const deleteNotification = (notification) => {
+  try {
+    notificationServices.deleteNotification(notification.id);
+    handleRefresh();
+  } catch (error) {
+    console.log("Error: ", error);
+  }
+};
+
 // getting cookie - w3 schools
 const getCookie = (cname) => {
   let name = cname + "=";
@@ -569,6 +578,7 @@ onMounted(async () => {
             :notification="item"
             class="notification"
             @click="openNotification(item.id)"
+            @deleteNotification="deleteNotification"
           />
         </div>
         <v-btn
@@ -686,7 +696,7 @@ onMounted(async () => {
   padding: 0px 10px 0px 10px;
   margin: 10px 5px 10px 5px;
   height: 9vh;
-  width: 100%;
+  width: 98%;
 }
 
 .flightPlanItem {
