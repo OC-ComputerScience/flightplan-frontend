@@ -112,7 +112,7 @@ onMounted(async () => {
 });
 
 const eventDate = computed(() => {
-  const dateString = dayjs(props.event.date).format("dddd, MMMM Do");
+  const dateString = dayjs(props.event.date).format("dddd, MMMM Do, YYYY");
   return dateString;
 });
 
