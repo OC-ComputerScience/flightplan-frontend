@@ -396,6 +396,10 @@ const handleLogout = async () => {
 
 <style>
 /* Styling for the navigation bar */
+.v-list-item__content {
+  grid-area: auto;
+}
+
 .userNav .nav-item-content {
   display: flex;
   align-items: center;
@@ -411,7 +415,6 @@ const handleLogout = async () => {
 
 .userNav {
   width: 80px;
-  height: 98vh;
   transition: width 0.5s;
   border-top-right-radius: 25px;
   border-top-left-radius: 25px;
