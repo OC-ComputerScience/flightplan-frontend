@@ -26,8 +26,8 @@ export const fileTypeRule = (value) => {
 };
 
 export const fromWebsite = (value, websiteRoot) => {
-  const urlPattern = /^(https?:\/\/)([\w.-]+)\.([a-z]{2,})(:[0-9]{2,5})?(\/[^\s]*)?\s*$/i;
-  
+  const urlPattern =
+  /^(https?:\/\/)|(www\.)([\w.-]+)\.([a-z]{2,})(:[0-9]{2,5})?(\/[^\s]*)?\s*$/i;
   if (!websiteRoot) {
     return `Invalid Website`;
   }
