@@ -1,6 +1,7 @@
 <script setup>
 import eventServices from "../../services/eventServices";
 import notificationServices from "../../services/notificationServices";
+import statisticsServices from "../../services/statisticsServices";
 import EventCard from "../../components/cards/EventCard.vue";
 import { userStore } from "../../stores/userStore";
 import { onMounted, ref, computed } from "vue";
@@ -46,6 +47,7 @@ const getChartColors = () => {
     return {
       primary: "rgba(17, 138, 203, 1)", // primary
       secondary: "rgba(213, 223, 231, 1)", // secondary
+      tertiary: "rgba(255, 99, 132, 1)", // tertiary
       accent: "rgba(244, 236, 208, 1)", // accent
       warning: "rgba(249, 198, 51, 1)", // warning
     };
@@ -53,6 +55,7 @@ const getChartColors = () => {
     return {
       primary: "rgba(17, 138, 203, 1)", // primary
       secondary: "rgba(53, 56, 65, 1)", // secondary
+      tertiary: "rgba(255, 99, 132, 1)", // tertiary
       accent: "rgba(244, 236, 208, 1)", // accent
       warning: "rgba(249, 198, 51, 1)", // warning
     };
@@ -60,52 +63,80 @@ const getChartColors = () => {
 };
 
 // Chart data
-const engagementData = ref({
-  labels: ["Freshman", "Sophomore", "Junior", "Senior"],
-  datasets: [
-    {
-      label: "Completed Flight Plan Items",
-      data: [45, 65, 80, 90],
-      backgroundColor: computed(() => [
-        getChartColors().primary,
-        getChartColors().secondary,
-        getChartColors().accent,
-        getChartColors().warning,
-      ]),
-      borderColor: computed(() => [
-        getChartColors().primary,
-        getChartColors().secondary,
-        getChartColors().accent,
-        getChartColors().warning,
-      ]),
-      borderWidth: 2,
-      hoverOffset: 15,
-      weight: 1,
-    },
-  ],
+const studentCountsData = ref([]);
+const studentSemesterCount = ref(0);
+
+const engagementData = computed(() => {
+  // Group data into ranges: 1-2, 3-6, 7-10, 11-15, 16-20
+  const groupedData = {
+    "1-2": 0,
+    "3-6": 0,
+    "7-10": 0,
+    "11-15": 0,
+    "16-20": 0,
+  };
+
+  studentCountsData.value.forEach((item) => {
+    const count = item.fpItemCount;
+    const students = item.numOfStudents;
+
+    if (count >= 1 && count <= 2) {
+      groupedData["1-2"] += students;
+    } else if (count >= 3 && count <= 6) {
+      groupedData["3-6"] += students;
+    } else if (count >= 7 && count <= 10) {
+      groupedData["7-10"] += students;
+    } else if (count >= 11 && count <= 15) {
+      groupedData["11-15"] += students;
+    } else if (count >= 16 && count <= 20) {
+      groupedData["16-20"] += students;
+    }
+  });
+
+  const labels = Object.keys(groupedData);
+  const data = Object.values(groupedData);
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Students by Number of Completed Flight Plan Items",
+        data,
+        backgroundColor: [
+          getChartColors().primary,
+          getChartColors().warning,
+          getChartColors().secondary,
+          getChartColors().accent,
+          getChartColors().tertiary,
+        ],
+        borderColor: [
+          getChartColors().primary,
+          getChartColors().warning,
+          getChartColors().secondary,
+          getChartColors().accent,
+          getChartColors().tertiary,
+        ],
+        borderWidth: 2,
+        hoverOffset: 15,
+        weight: 1,
+      },
+    ],
+  };
 });
 
-const onTrackData = ref({
-  labels: ["Freshman", "Sophomore", "Junior", "Senior"],
-  datasets: [
-    {
-      label: "Students On Track (%)",
-      data: [60, 75, 85, 90],
-      backgroundColor: computed(() => [
-        getChartColors().primary,
-        getChartColors().primary,
-        getChartColors().primary,
-        getChartColors().primary,
-      ]),
-      borderColor: computed(() => [
-        getChartColors().primary,
-        getChartColors().primary,
-        getChartColors().primary,
-        getChartColors().primary,
-      ]),
-      borderWidth: 2,
-    },
-  ],
+const onTrackData = computed(() => {
+  return {
+    labels: ["Active Students This Semester"],
+    datasets: [
+      {
+        label: "Number of Students",
+        data: [studentSemesterCount.value],
+        backgroundColor: [getChartColors().primary],
+        borderColor: [getChartColors().primary],
+        borderWidth: 2,
+      },
+    ],
+  };
 });
 
 const chartOptions = {
@@ -123,7 +154,7 @@ const chartOptions = {
     },
     title: {
       display: true,
-      text: "Engagement by Classification",
+      text: "Students by Number of Completed Flight Plan Items",
       color: "white",
       font: {
         size: 16,
@@ -134,7 +165,7 @@ const chartOptions = {
         label: function (context) {
           const label = context.label || "";
           const value = context.raw;
-          return `${label}: ${value}%`;
+          return `${label} items: ${value} students`;
         },
       },
     },
@@ -172,7 +203,7 @@ const onTrackOptions = {
     },
     title: {
       display: true,
-      text: "Students On Track by Classification",
+      text: "Active Students This Semester",
       color: "white",
       font: {
         size: 16,
@@ -183,7 +214,7 @@ const onTrackOptions = {
         label: function (context) {
           const label = context.dataset.label || "";
           const value = context.raw;
-          return `${label}: ${value}%`;
+          return `${label}: ${value} students`;
         },
       },
     },
@@ -191,17 +222,14 @@ const onTrackOptions = {
   scales: {
     y: {
       beginAtZero: true,
-      max: 100,
       title: {
         display: true,
-        text: "Percentage",
+        text: "Number of Students",
         color: "white",
       },
       ticks: {
         color: "white",
-        callback: function (value) {
-          return value + "%";
-        },
+        stepSize: 1,
       },
       grid: {
         color: "rgba(255, 255, 255, 0.1)",
@@ -261,6 +289,26 @@ const getNotifications = async (page = 1) => {
   }
 };
 
+const getStudentCounts = async () => {
+  try {
+    const res = await statisticsServices.getStudentCountsForCompletedItems();
+    studentCountsData.value = res.data.studentCounts || [];
+  } catch (err) {
+    console.error("Error fetching student counts:", err);
+    studentCountsData.value = [];
+  }
+};
+
+const getStudentSemesterCount = async () => {
+  try {
+    const res = await statisticsServices.getStudentSemesterCount();
+    studentSemesterCount.value = res.data.studentCount || 0;
+  } catch (err) {
+    console.error("Error fetching student semester count:", err);
+    studentSemesterCount.value = 0;
+  }
+};
+
 const openNotification = (x) => {
   notifStore.setActiveNotification(x);
 };
@@ -268,6 +316,8 @@ const openNotification = (x) => {
 onMounted(() => {
   getEvents();
   getNotifications();
+  getStudentCounts();
+  getStudentSemesterCount();
 });
 </script>
 
