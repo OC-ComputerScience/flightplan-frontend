@@ -112,7 +112,7 @@ onMounted(async () => {
 });
 
 const eventDate = computed(() => {
-  const dateString = dayjs(props.event.date).format("dddd, MMMM Do");
+  const dateString = dayjs(props.event.date).format("dddd, MMMM Do, YYYY");
   return dateString;
 });
 
@@ -363,7 +363,7 @@ const handleRegistration = () => {
           <p class="text-subtitle-2 font-weight-regular">
             {{ props.event.location }}
           </p>
-          <p class="text-subtitle-2 font-weight-regular">
+          <p class="text-subtitle-2 font-weight-regular descriptionText">
             {{ props.event.description }}
           </p>
 
@@ -446,5 +446,13 @@ const handleRegistration = () => {
 
 .cardButton {
   border-radius: 13px;
+}
+
+.descriptionText {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(1.2em * 5);
+  overflow: auto;
+  white-space: normal;
 }
 </style>

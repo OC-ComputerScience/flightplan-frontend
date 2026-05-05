@@ -333,6 +333,12 @@ watch(selectedSubmissionIndex, () => {
                   @click="selectedSubmissionIndex++"
                   >Next</v-btn
                 >
+                <p class="ml-6">
+                  Submission #
+                    {{
+                    submissions[selectedSubmissionIndex].reSubmissionCount + 1
+                    }}
+                </p>
               </v-col>
             </v-row>
             <v-alert v-else type="error" class="text-center"

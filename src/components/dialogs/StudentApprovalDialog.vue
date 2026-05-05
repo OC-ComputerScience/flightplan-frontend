@@ -32,6 +32,8 @@ const cannotSubmitText = ref("");
 
 const avaliableToSubmit = ref(false);
 
+let reSubmissionCount = 0;
+
 watch(
   () => flightPlanItem.value,
   async (item) => {
@@ -152,7 +154,6 @@ const handleCancel = () => {
 };
 
 const handleSubmit = async () => {
-  // Validate input
   const noFiles = !files.value || files.value.length === 0;
   const noText =
     !reflectionText.value || reflectionText.value.trim().length === 0;
@@ -161,11 +162,29 @@ const handleSubmit = async () => {
   const automaticSubmission =
     submissionType.value.includes("Auto") ||
     submissionType.value.includes("Self-Approved");
-  const reviewRequired = submissionType.value.includes("Review")
+  const reviewRequired = submissionType.value.includes("Review");
 
   if (noFiles && noText && !manualSubmission && !automaticSubmission) {
     errorMessage.value = "Please upload a file or write a reflection";
     return;
+  }
+
+  // If this flightplanitem has been rejected (hence this is a resubmission) then connect the previous submission to this new submission
+  if (flightPlanItem.value.status == "Rejected") {
+    await submissionServices
+      .getSubmissionsForFlightPlanItem(flightPlanItem.value.id)
+      .then((res) => {
+        let totalSubmissionCount = 0;
+        console.log(res);
+        res.data.submissions.forEach((submission) => {
+          console.log(totalSubmissionCount);
+          if (submission.reSubmissionCount > totalSubmissionCount) {
+            totalSubmissionCount = submission.reSubmissionCount;
+          }
+        });
+        reSubmissionCount = totalSubmissionCount + 1;
+        console.log(`Resubmission Count: ${reSubmissionCount}`);
+    });
   }
 
   try {
@@ -176,7 +195,6 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-
         if (reflectionText.value.length < 400) {
           errorMessage.value =
             "Your reflection must be at least 400 characters";
@@ -192,6 +210,7 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
+
         await submitReflection(automaticSubmission);
         break;
 
@@ -211,7 +230,6 @@ const handleSubmit = async () => {
           await handleAutoApproval();
         }
         await submitFiles(automaticSubmission);
-
         break;
 
       case "Upload Document & Reflection - Review":
@@ -220,18 +238,15 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-
         if (reflectionText.value.length < 400) {
           errorMessage.value =
             "Your reflection must be at least 400 characters";
           return;
         }
-
         if (noFiles) {
           errorMessage.value = "Please upload a file";
           return;
         }
-
         if (automaticSubmission) {
           if (!selfApprovedCheck.value) {
             errorMessage.value =
@@ -241,7 +256,6 @@ const handleSubmit = async () => {
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
-
         await submitFiles(automaticSubmission);
         await submitReflection(automaticSubmission);
         break;
@@ -252,27 +266,28 @@ const handleSubmit = async () => {
           errorMessage.value = "Please write a reflection";
           return;
         }
-
         if (reflectionText.value.length < 400) {
           errorMessage.value =
             "Your reflection must be at least 400 characters";
           return;
         }
-
         if (automaticSubmission) {
           if (!selfApprovedCheck.value) {
             errorMessage.value =
               "You must certify that you have completed this item.";
             return;
           }
-
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
-
         await submitAttendanceReflection();
 
-        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
+        // special handling if attendance has been posted
+        if (
+          didStudentAttend.value &&
+          !flightPlanItem.value.reviewed &&
+          reviewRequired
+        ) {
           successMessage.value = "Submission successful!";
           await flightPlanItemServices
             .updateFlightPlanItem({
@@ -300,6 +315,7 @@ const handleSubmit = async () => {
           return;
         }
         break;
+
       case "Attendance - Auto Approve":
         if (didStudentAttend.value) {
           successMessage.value = "Submission successful!";
@@ -317,26 +333,29 @@ const handleSubmit = async () => {
           return;
         }
         break;
+
       case "Attendance - Document - Review":
       case "Attendance - Document - Auto Approve":
         if (noFiles) {
           errorMessage.value = "Please upload a file";
           return;
         }
-
         if (automaticSubmission) {
           if (!selfApprovedCheck.value) {
             errorMessage.value =
               "You must certify that you have completed this item.";
             return;
           }
-
           successMessage.value = "Submission successful!";
           await handleAutoApproval();
         }
         await submitAttendanceDocument();
 
-        if (didStudentAttend.value && !flightPlanItem.value.reviewed && reviewRequired) {
+        if (
+          didStudentAttend.value &&
+          !flightPlanItem.value.reviewed &&
+          reviewRequired
+        ) {
           successMessage.value = "Submission successful!";
           await flightPlanItemServices
             .updateFlightPlanItem({
@@ -366,8 +385,6 @@ const handleSubmit = async () => {
         break;
 
       default:
-        // Mixed or other types
-        /* eslint-disable no-case-declarations*/
         const submissions = [];
         if (!noFiles) {
           const fileNames = await Promise.all(
@@ -385,23 +402,24 @@ const handleSubmit = async () => {
               flightPlanItemId: flightPlanItem.value.id,
               submissionType: "file",
               value: fileName,
+              reSubmissionCount: reSubmissionCount,
             });
           });
         }
-
         if (!noText) {
           submissions.push({
             flightPlanItemId: flightPlanItem.value.id,
             submissionType: "text",
             value: reflectionText.value,
+            reSubmissionCount: reSubmissionCount,
           });
         }
-
         if (manualSubmission) {
           submissions.push({
             flightPlanItemId: flightPlanItem.value.id,
             submissionType: "manual",
             value: null,
+            reSubmissionCount: reSubmissionCount,
           });
         }
 
@@ -414,7 +432,6 @@ const handleSubmit = async () => {
           let responseMessage = await automaticSubmissionHandler(
             submissionType.value,
           );
-
           if (responseMessage) {
             errorMessage.value = responseMessage;
           } else {
@@ -425,8 +442,8 @@ const handleSubmit = async () => {
               submissionType: "automatic",
               value: `This was an automatic approval submission for ${flightPlanItem.value.name} flight plan item`,
               isAutomatic: true,
+              reSubmissionCount: reSubmissionCount,
             };
-
             await submissionServices.createSubmission(submissionData);
             handleAutoApproval();
             debounceSubmit();
@@ -434,7 +451,6 @@ const handleSubmit = async () => {
           }
           break;
         }
-
         if (!automaticSubmission) {
           submissionId.value = (
             await submissionServices.createSubmissions(submissions)
@@ -444,6 +460,7 @@ const handleSubmit = async () => {
         }
         break;
     }
+
     if (!automaticSubmission) {
       generateNotification();
       successMessage.value = "Submission successful!";
@@ -481,6 +498,7 @@ const submitFiles = async (autoSubmission = false) => {
         ...submissionData,
         value: data.fileName,
         isAutomatic: autoSubmission,
+        reSubmissionCount: reSubmissionCount
       });
     }),
   );

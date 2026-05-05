@@ -174,9 +174,7 @@ const closeDialogs = () => {
         </v-card>
         <v-row justify="center" class="mr-2">
           <v-col cols="12">
-            <v-card color="backgroundDarken" style="border-radius: 25px">
-              </v-card
-            >
+            <v-card color="backgroundDarken" style="border-radius: 25px" />
           </v-col>
         </v-row>
         <v-btn
@@ -195,6 +193,14 @@ const closeDialogs = () => {
           Selected:
           {{ selectedNotificationsStore.selectedNotificationIds.length }}
         </div>
+        <v-btn
+          color="primary"
+          class="rounded-lg ml-2"
+          size="small"
+          @click="getNotifications(currentPage.value)"
+        >
+          <v-icon icon="mdi-refresh" size="x-large" color="white" />
+        </v-btn>
       </div>
       <div v-if="!noNotifications" id="notifList">
         <div
