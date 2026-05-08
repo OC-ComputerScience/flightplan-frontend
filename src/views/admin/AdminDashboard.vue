@@ -20,6 +20,13 @@ import {
 import { Pie, Bar } from "vue-chartjs";
 import { getEventCardColor } from "../../utils/eventStatus";
 
+const props = defineProps({
+  hideNotifications: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 ChartJS.register(
   ArcElement,
   Tooltip,
@@ -315,9 +322,11 @@ const openNotification = (x) => {
 
 onMounted(() => {
   getEvents();
-  getNotifications();
+  if (!props.hideNotifications) {
+    getNotifications();
+    getStudentSemesterCount();
+  }
   getStudentCounts();
-  getStudentSemesterCount();
 });
 </script>
 
@@ -356,7 +365,11 @@ onMounted(() => {
         </v-card>
       </div>
       <div class="dashboard-row">
-        <v-card color="backgroundDarken" class="adminItem adminItemSmall">
+        <v-card
+          v-if="!props.hideNotifications"
+          color="backgroundDarken"
+          class="adminItem adminItemSmall"
+        >
           <strong style="font-size: 20px; padding-bottom: 5px"
             >Notifications</strong
           >
@@ -389,7 +402,14 @@ onMounted(() => {
             See More...
           </v-btn>
         </v-card>
-        <v-card color="backgroundDarken" class="adminItem adminItemBig">
+        <v-card
+          v-if="!props.hideNotifications"
+          color="backgroundDarken"
+          :class="[
+            'adminItem',
+            props.hideNotifications ? 'adminItemWide' : 'adminItemBig',
+          ]"
+        >
           <Bar
             :data="onTrackData"
             :options="onTrackOptions"
@@ -442,6 +462,12 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   width: 45vw;
+}
+
+.adminItemWide {
+  justify-content: center;
+  align-items: center;
+  width: 80vw;
 }
 
 .see-more-btn {
