@@ -2,6 +2,7 @@
 import eventServices from "../../services/eventServices";
 import notificationServices from "../../services/notificationServices";
 import statisticsServices from "../../services/statisticsServices";
+import semesterServices from "../../services/semesterServices";
 import EventCard from "../../components/cards/EventCard.vue";
 import { userStore } from "../../stores/userStore";
 import { onMounted, ref, computed } from "vue";
@@ -45,6 +46,8 @@ const notifStore = useNotificationStore();
 const currentPage = ref(1);
 const pageSize = ref(14);
 const totalPages = ref(1);
+const semesters = ref([]);
+const selectedSemesterId = ref(null);
 
 const theme = useTheme();
 const isDark = computed(() => theme.global.current.value.dark);
@@ -160,7 +163,7 @@ const chartOptions = {
       },
     },
     title: {
-      display: true,
+      display: false,
       text: "Students by Number of Completed Flight Plan Items",
       color: "white",
       font: {
@@ -209,8 +212,8 @@ const onTrackOptions = {
       },
     },
     title: {
-      display: true,
-      text: "Active Students This Semester",
+      display: false,
+      text: "Active Students in Selected Semester",
       color: "white",
       font: {
         size: 16,
@@ -298,7 +301,9 @@ const getNotifications = async (page = 1) => {
 
 const getStudentCounts = async () => {
   try {
-    const res = await statisticsServices.getStudentCountsForCompletedItems();
+    const res = await statisticsServices.getStudentCountsForCompletedItems(
+      selectedSemesterId.value,
+    );
     studentCountsData.value = res.data.studentCounts || [];
   } catch (err) {
     console.error("Error fetching student counts:", err);
@@ -308,7 +313,9 @@ const getStudentCounts = async () => {
 
 const getStudentSemesterCount = async () => {
   try {
-    const res = await statisticsServices.getStudentSemesterCount();
+    const res = await statisticsServices.getStudentSemesterCount(
+      selectedSemesterId.value,
+    );
     studentSemesterCount.value = res.data.studentCount || 0;
   } catch (err) {
     console.error("Error fetching student semester count:", err);
@@ -320,19 +327,58 @@ const openNotification = (x) => {
   notifStore.setActiveNotification(x);
 };
 
-onMounted(() => {
+const loadSemesters = async () => {
+  try {
+    const res = await semesterServices.getAllSemestersUnfiltered();
+    semesters.value = res.data || [];
+    if (!selectedSemesterId.value && semesters.value.length > 0) {
+      const currentSemester = semesters.value.find((semester) => {
+        const now = new Date();
+        return (
+          new Date(semester.startDate) <= now && new Date(semester.endDate) >= now
+        );
+      });
+      selectedSemesterId.value = currentSemester?.id || semesters.value[0].id;
+    }
+  } catch (err) {
+    console.error("Error fetching semesters:", err);
+    semesters.value = [];
+  }
+};
+
+const semesterOptions = computed(() =>
+  semesters.value.map((semester) => ({
+    title: `${semester.term.charAt(0).toUpperCase()}${semester.term.slice(1)} ${semester.year}`,
+    value: semester.id,
+  })),
+);
+
+const handleSemesterChange = async () => {
+  await getStudentCounts();
+  if (!props.hideNotifications) {
+    await getStudentSemesterCount();
+  }
+};
+
+onMounted(async () => {
+  await loadSemesters();
   getEvents();
   if (!props.hideNotifications) {
     getNotifications();
-    getStudentSemesterCount();
+    await getStudentSemesterCount();
   }
-  getStudentCounts();
+  await getStudentCounts();
 });
 </script>
 
 <template>
   <div class="dashboard-wrapper">
     <div class="dashboard-container">
+      <div class="header-ui-section">
+        <h2 class="text-h4 font-weight-bold mb-2">
+          Welcome, {{ store.user ? store.user.fullName : "User" }}!
+        </h2>
+      </div>
       <div class="dashboard-row">
         <v-card color="backgroundDarken" class="adminItem adminItemSmall">
           <strong style="font-size: 20px; padding-bottom: 5px"
@@ -357,11 +403,30 @@ onMounted(() => {
           </v-btn>
         </v-card>
         <v-card color="backgroundDarken" class="adminItem adminItemBig">
-          <Pie
-            :data="engagementData"
-            :options="chartOptions"
-            style="height: 100%; width: 100%"
-          />
+          <div class="chart-header">
+            <strong class="chart-title">
+              Students by Number of Completed Flight Plan Items
+            </strong>
+            <v-select
+              v-model="selectedSemesterId"
+              :items="semesterOptions"
+              item-title="title"
+              item-value="value"
+              label="Semester"
+              variant="solo"
+              rounded="lg"
+              density="compact"
+              class="chart-semester-select"
+              @update:model-value="handleSemesterChange"
+            />
+          </div>
+          <div class="chart-body">
+            <Pie
+              :data="engagementData"
+              :options="chartOptions"
+              style="height: 100%; width: 100%"
+            />
+          </div>
         </v-card>
       </div>
       <div class="dashboard-row">
@@ -410,11 +475,30 @@ onMounted(() => {
             props.hideNotifications ? 'adminItemWide' : 'adminItemBig',
           ]"
         >
-          <Bar
-            :data="onTrackData"
-            :options="onTrackOptions"
-            style="height: 100%; width: 100%"
-          />
+          <div class="chart-header">
+            <strong class="chart-title">
+              Active Students in Selected Semester
+            </strong>
+            <v-select
+              v-model="selectedSemesterId"
+              :items="semesterOptions"
+              item-title="title"
+              item-value="value"
+              label="Semester"
+              variant="solo"
+              rounded="lg"
+              density="compact"
+              class="chart-semester-select"
+              @update:model-value="handleSemesterChange"
+            />
+          </div>
+          <div class="chart-body">
+            <Bar
+              :data="onTrackData"
+              :options="onTrackOptions"
+              style="height: 100%; width: 100%"
+            />
+          </div>
         </v-card>
       </div>
     </div>
@@ -438,6 +522,48 @@ onMounted(() => {
   max-width: 95vw;
 }
 
+.semester-filter-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.semester-select {
+  max-width: 320px;
+}
+
+.header-ui-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-header {
+  width: 100%;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-title {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: rgb(var(--v-theme-text));
+  font-weight: 700;
+}
+
+.chart-semester-select {
+  max-width: 320px;
+  width: 100%;
+}
+
+.chart-body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
 .dashboard-row {
   display: flex;
   justify-content: center;
@@ -459,14 +585,14 @@ onMounted(() => {
 }
 
 .adminItemBig {
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: stretch;
   width: 45vw;
 }
 
 .adminItemWide {
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: stretch;
   width: 80vw;
 }
 
