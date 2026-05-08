@@ -4,7 +4,7 @@ import EventCard from "./cards/EventCard.vue";
 import SelectEventExperience from "./dialogs/SelectEventExperience.vue";
 import ConfirmDialog from "./dialogs/ConfirmDialog.vue";
 import EventAddEditDialog from "../views/admin/event/EventAddEditDialog.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import eventServices from "../services/eventServices";
 import strengthServices from "../services/strengthServices";
 import studentServices from "../services/studentServices";
@@ -37,6 +37,7 @@ const isAddMode = ref(true);
 const selectedEventId = ref(null);
 
 const router = useRouter();
+const route = useRoute();
 const props = defineProps({
   events: {
     type: Array,
@@ -47,6 +48,10 @@ const props = defineProps({
     default: false,
   },
 });
+
+const showAddEventButton = computed(
+  () => props.isAdmin && !route.path.startsWith("/faculty"),
+);
 
 const selectedEvent = ref({});
 const registeredEvents = ref([]);
@@ -638,7 +643,7 @@ function selectThisMonth() {
               </v-tooltip>
             </p>
             <v-btn
-              v-if="props.isAdmin"
+              v-if="showAddEventButton"
               rounded="xl"
               color="primary"
               @click="handleAdd()"

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import linkServices from "../services/linkServices";
 import strengthServices from "../services/strengthServices";
@@ -42,6 +42,7 @@ const selectedStudent = ref(null);
 const selectedMajor = ref([]);
 
 const showStrengthsDialog = ref(false);
+const isFacultyProfileView = computed(() => route.path.startsWith("/faculty"));
 
 // Add pagination variables
 const currentPage = ref(1);
@@ -164,14 +165,16 @@ const openStrengthsDialog = () => {
 onMounted(async () => {
   const passedId = route.params.userId;
 
-  if (store.user.userId == route.params.userId) {
+  if (!isFacultyProfileView.value && store.user.userId == route.params.userId) {
     await fetchUnviewedBadges();
   }
   await getUser(passedId);
   await getStudent(passedId);
   getLinks(passedId);
-  getStrengths();
-  getBadges(selectedStudent.value.id);
+  if (!isFacultyProfileView.value) {
+    getStrengths();
+    getBadges(selectedStudent.value.id);
+  }
 });
 </script>
 
@@ -265,7 +268,7 @@ onMounted(async () => {
       </v-col>
     </v-row>
 
-    <v-row class="mb-6" dense>
+    <v-row v-if="!isFacultyProfileView" class="mb-6" dense>
       <!-- Badges Section -->
       <v-col cols="12" md="6">
         <v-card color="backgroundDarken" class="dashboard-cell pa-4">
@@ -364,10 +367,10 @@ onMounted(async () => {
       </v-col>
     </v-row>
   </v-container>
-  <ViewBadgeAwards :badges="unviewedBadges" />
-  <ViewAwardedBadge :badge="selectedBadge" />
+  <ViewBadgeAwards v-if="!isFacultyProfileView" :badges="unviewedBadges" />
+  <ViewAwardedBadge v-if="!isFacultyProfileView" :badge="selectedBadge" />
   <StudentMaintainCliftonStrengths
-    v-if="showStrengthsDialog"
+    v-if="showStrengthsDialog && !isFacultyProfileView"
     :id="route.params.userId"
     @close="showStrengthsDialog = false"
     @submit="

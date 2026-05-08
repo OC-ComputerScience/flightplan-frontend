@@ -4,8 +4,28 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(["edit", "delete"]);
+
+const semesterLabelMap = {
+  8: "Freshman 1",
+  7: "Freshman 2",
+  6: "Sophomore 1",
+  5: "Sophomore 2",
+  4: "Junior 1",
+  3: "Junior 2",
+  2: "Senior 1",
+  1: "Senior 2",
+};
+
+const getSemesterDescription = (semestersFromGrad) => {
+  if (semestersFromGrad == null) return "Not specified";
+  return semesterLabelMap[semestersFromGrad] || `Semester ${semestersFromGrad}`;
+};
 </script>
 <template>
   <v-card
@@ -29,10 +49,14 @@ const emit = defineEmits(["edit", "delete"]);
         Category: {{ props.experience.category }}
       </p>
       <p class="text-subtitle-1 font-weight-regular">
+        Semester from Graduation:
+        {{ getSemesterDescription(props.experience.semestersFromGrad) }}
+      </p>
+      <p class="text-subtitle-1 font-weight-regular">
         Status: {{ props.experience.status }}
       </p>
     </v-card-text>
-    <v-card-subtitle class="mt-auto">
+    <v-card-subtitle v-if="!props.readOnly" class="mt-auto">
       <div class="ma-2 float-end">
         <v-btn
           color="warning"

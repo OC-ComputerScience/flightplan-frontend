@@ -42,6 +42,15 @@ const admin = [
   { "route-name": "maintenance", "link-text": "Maintenance" },
 ];
 
+const faculty = [
+  { "route-name": "faculty-profile", "link-text": "Profile" },
+  { "route-name": "faculty", "link-text": "Dashboard" },
+  { "route-name": "faculty-calendar", "link-text": "Calendar" },
+  { "route-name": "faculty-task", "link-text": "Tasks" },
+  { "route-name": "faculty-experienceList", "link-text": "Experiences" },
+  { "route-name": "faculty-taskCompletion", "link-text": "Task Completion" },
+];
+
 // Maintenance dropdown links (mirrors MaintenanceLandingPage)
 const maintenanceLinks = [
   { name: "Rewards", routeName: "reward", icon: "mdi-cart" },
@@ -116,6 +125,9 @@ const getIcon = (linkText) => {
     Maintenance: "mdi-cog",
     Approvals: "mdi-check",
     Rewards: "mdi-cart",
+    Tasks: "mdi-clipboard-check",
+    Experiences: "mdi-bag-personal",
+    "Task Completion": "mdi-file-document-edit-outline",
   };
 
 
@@ -127,6 +139,17 @@ const getMaintenanceTo = (item) => {
     return { name: item.routeName };
   }
   return { path: item.path };
+};
+
+const getRoleNavigation = () => {
+  if (role.value === "faculty") {
+    return faculty;
+  }
+  return admin;
+};
+
+const getRoleMaintenanceLinks = () => {
+  return maintenanceLinks;
 };
 
 const handleLogout = async () => {
@@ -166,12 +189,12 @@ const handleLogout = async () => {
 <template>
   <v-container class="d-flex flex-column pa-2 userNav bg-secondary">
     <v-list
-      v-if="role === 'admin'"
+      v-if="role === 'admin' || role === 'faculty'"
       class="pa-0 d-flex flex-column bg-secondary"
       style="height: 100%"
     >
       <div class="flex-grow-1">
-        <div v-for="(item, index) in admin" :key="index">
+        <div v-for="(item, index) in getRoleNavigation()" :key="index">
           <!-- Maintenance dropdown -->
           <v-menu v-if="item['link-text'] === 'Maintenance'" location="bottom" contained open-on-hover>
             <template #activator="{ props }">
@@ -194,7 +217,7 @@ const handleLogout = async () => {
             </template>
             <v-list class="bg-secondary nav-text">
               <v-list-item
-                v-for="(mItem, mIndex) in maintenanceLinks"
+                v-for="(mItem, mIndex) in getRoleMaintenanceLinks()"
                 :key="mIndex"
                 :to="getMaintenanceTo(mItem)"
                 class="bg-secondary"

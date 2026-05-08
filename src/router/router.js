@@ -26,12 +26,10 @@ import StudentEventCheckIn from "../views/student/StudentEventCheckIn.vue";
 import StudentShop from "../views/student/StudentShop.vue";
 import StudentBadges from "../views/student/StudentBadges.vue";
 
-import FacultyLanding from "../views/faculty/FacultyLanding.vue";
-import FacultyCalendar from "../views/faculty/FacultyCalendar.vue";
-import FacultyFlightPlan from "../views/faculty/FacultyFlightPlan.vue";
 import FlightPlan from "../views/FlightPlan.vue";
 import AddFlightPlanItem from "../views/admin/flightPlan/AddFlightPlanItem.vue";
 import EventAttendancePage from "../views/admin/event/EventAttendancePage.vue";
+import FacultyTaskCompletion from "../views/faculty/FacultyTaskCompletion.vue";
 
 const adminRoutes = [
   {
@@ -172,12 +170,14 @@ const facultyRoutes = [
   {
     path: "calendar",
     name: "faculty-calendar",
-    component: FacultyCalendar,
+    component: AdminCalendar,
+    props: { isAdmin: true },
   },
   {
-    path: "flightPlan",
-    name: "faculty-flightPlan",
-    component: FacultyFlightPlan,
+    path: "dashboard",
+    name: "faculty-dashboard",
+    component: AdminDashboard,
+    props: { hideNotifications: true },
   },
   {
     path: "notifications",
@@ -185,10 +185,133 @@ const facultyRoutes = [
     component: Notifications,
   },
   {
-    path: "faculty-profile/:userId",
+    path: "approvals/:id?",
+    name: "faculty-approvals",
+    component: Approvals,
+  },
+  {
+    path: "profile/:userId",
     name: "faculty-profile",
     component: Profile,
   },
+  {
+    path: "task-completion",
+    name: "faculty-taskCompletion",
+    component: FacultyTaskCompletion,
+  },
+  {
+    path: "experiences",
+    name: "faculty-experienceList",
+    component: ExperiencesPage,
+    props: { readOnly: true },
+  },
+];
+
+const facultyTaskRoutes = [
+  {
+    path: "tasks",
+    name: "faculty-task",
+    component: TasksPage,
+    props: { readOnly: true },
+  },
+];
+
+const facultyRewardRoutes = [
+  {
+    path: "maintenance/reward",
+    name: "faculty-reward",
+    component: RewardPage,
+  },
+  {
+    path: "maintenance/reward/redeem/:studentId",
+    name: "faculty-redeemReward",
+    component: RewardRedemptionPage,
+  },
+];
+
+const facultyExperienceRoutes = [
+  {
+    path: "maintenance/experience",
+    name: "faculty-experience",
+    component: ExperiencesPage,
+  },
+];
+
+const facultyEventRoutes = [
+  {
+    path: "maintenance/event",
+    name: "faculty-event",
+    component: EventCardPage,
+  },
+  {
+    path: "maintenance/event/attendance/:id",
+    name: "faculty-attendanceEvent",
+    component: EventAttendancePage,
+  },
+];
+
+const facultyBadgeRoutes = [
+  {
+    path: "maintenance/badge",
+    name: "faculty-badge",
+    component: BadgesPage,
+  },
+];
+
+const facultyFlightPlanRoutes = [
+  {
+    path: "maintenance/user/studentFlightPlan/:id",
+    name: "faculty-studentFlightPlan",
+    component: FlightPlan,
+    props: { isAdmin: true },
+  },
+  {
+    path: "user/:studentName/flightPlan/:id/add",
+    name: "faculty-addItemToFlightPlan",
+    component: AddFlightPlanItem,
+  },
+];
+
+const facultyMajorRoutes = [
+  {
+    path: "maintenance/major",
+    name: "faculty-majors",
+    component: MajorsPage,
+  },
+];
+
+const facultyMaintenanceRoutes = [
+  {
+    path: "maintenance/user",
+    name: "faculty-user",
+    component: AdminUserPage,
+  },
+  {
+    path: "maintenanc/user/edit/:id",
+    name: "faculty-editUser",
+    component: UserAddEditPage,
+    props: { isAdd: false, isAdmin: true },
+  },
+  {
+    path: "user/profile/:userId",
+    name: "faculty-userProfile",
+    component: Profile,
+    props: { isAdmin: true },
+  },
+  {
+    path: "profile/:id/edit",
+    name: "faculty-editProfile",
+    beforeEnter: isCorrectUserOrAdmin,
+    component: UserAddEditPage,
+    props: { isAdd: false, isAdmin: true },
+  },
+  ...facultyTaskRoutes,
+  ...facultyRewardRoutes,
+  ...facultyExperienceRoutes,
+  ...facultyEventRoutes,
+  ...facultyBadgeRoutes,
+  ...facultyFlightPlanRoutes,
+  ...facultyMajorRoutes,
 ];
 
 const studentRoutes = [
@@ -267,9 +390,9 @@ const router = createRouter({
     {
       path: "/faculty",
       name: "faculty",
-      component: FacultyLanding,
+      redirect: { name: "faculty-dashboard" },
       beforeEnter: isFaculty,
-      children: [...facultyRoutes],
+      children: [...facultyRoutes, ...facultyMaintenanceRoutes],
     },
 
     // Student Routes
