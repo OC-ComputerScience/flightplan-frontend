@@ -30,6 +30,7 @@ import FlightPlan from "../views/FlightPlan.vue";
 import AddFlightPlanItem from "../views/admin/flightPlan/AddFlightPlanItem.vue";
 import EventAttendancePage from "../views/admin/event/EventAttendancePage.vue";
 import FacultyTaskCompletion from "../views/faculty/FacultyTaskCompletion.vue";
+import FacultyStudentLookup from "../views/faculty/FacultyStudentLookup.vue";
 
 const adminRoutes = [
   {
@@ -204,6 +205,11 @@ const facultyRoutes = [
     name: "faculty-experienceList",
     component: ExperiencesPage,
     props: { readOnly: true },
+  },
+  {
+    path: "student-lookup",
+    name: "faculty-studentLookup",
+    component: FacultyStudentLookup,
   },
 ];
 
