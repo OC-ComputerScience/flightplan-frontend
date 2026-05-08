@@ -115,6 +115,11 @@ const toggleView = () => {
   }
 };
 
+const toggleFacultyView = () => {
+  router.push({ name: "faculty" });
+  role.value = "faculty";
+};
+
 const getIcon = (linkText) => {
   const icons = {
     Profile: "mdi-account",
@@ -282,6 +287,26 @@ const handleLogout = async () => {
             </v-list-item-title>
           </div>
         </v-list-item>
+        <v-list-item
+          v-if="isAdmin && role !== 'faculty'"
+          class="bg-secondary"
+          @click="toggleFacultyView"
+        >
+          <div>
+            <v-list-item-title
+              class="text-body-1 font-weight-bold text-backgroundDarken"
+            >
+              <div class="nav-item-content">
+                <v-icon :size="32" color="backgroundDarken" class="mr-2">
+                  mdi-account-switch
+                </v-icon>
+                <span class="nav-text text-backgroundDarken">
+                  To Faculty
+                </span>
+              </div>
+            </v-list-item-title>
+          </div>
+        </v-list-item>
         <v-list-item class="bg-secondary" @click="toggleTheme">
           <div>
             <v-list-item-title
@@ -363,6 +388,26 @@ const handleLogout = async () => {
                 </v-icon>
                 <span class="nav-text text-backgroundDarken">
                   To {{ role === "admin" ? "Student" : "Admin" }}
+                </span>
+              </div>
+            </v-list-item-title>
+          </div>
+        </v-list-item>
+        <v-list-item
+          v-if="isAdmin && role !== 'faculty'"
+          class="bg-secondary"
+          @click="toggleFacultyView"
+        >
+          <div>
+            <v-list-item-title
+              class="text-body-1 font-weight-bold text-backgroundDarken"
+            >
+              <div class="nav-item-content">
+                <v-icon :size="32" color="backgroundDarken" class="mr-2">
+                  mdi-account-switch
+                </v-icon>
+                <span class="nav-text text-backgroundDarken">
+                  To Faculty
                 </span>
               </div>
             </v-list-item-title>
