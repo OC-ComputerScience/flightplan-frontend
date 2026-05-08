@@ -49,6 +49,7 @@ const faculty = [
   { "route-name": "faculty-task", "link-text": "Tasks" },
   { "route-name": "faculty-experienceList", "link-text": "Experiences" },
   { "route-name": "faculty-taskCompletion", "link-text": "Task Completion" },
+  { "route-name": "faculty-studentLookup", "link-text": "Student Lookup" },
 ];
 
 // Maintenance dropdown links (mirrors MaintenanceLandingPage)
@@ -133,6 +134,7 @@ const getIcon = (linkText) => {
     Tasks: "mdi-clipboard-check",
     Experiences: "mdi-bag-personal",
     "Task Completion": "mdi-file-document-edit-outline",
+    "Student Lookup": "mdi-account-search",
   };
 
 
