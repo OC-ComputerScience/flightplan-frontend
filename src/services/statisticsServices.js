@@ -1,10 +1,14 @@
 import apiClient from "./services.js";
 
 export default {
-  getStudentSemesterCount() {
-    return apiClient.get("/statistics/getStudentSemesterCount");
+  getStudentSemesterCount(semesterId = null) {
+    return apiClient.get("/statistics/getStudentSemesterCount", {
+      params: { semesterId },
+    });
   },
-  getStudentCountsForCompletedItems() {
-    return apiClient.get("/statistics/getStudentCountsForCompletedItems");
+  getStudentCountsForCompletedItems(semesterId = null) {
+    return apiClient.get("/statistics/getStudentCountsForCompletedItems", {
+      params: { semesterId },
+    });
   },
 };
