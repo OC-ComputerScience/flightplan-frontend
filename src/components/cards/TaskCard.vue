@@ -8,8 +8,28 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(["edit", "delete"]);
+
+const semesterLabelMap = {
+  8: "Freshman 1",
+  7: "Freshman 2",
+  6: "Sophomore 1",
+  5: "Sophomore 2",
+  4: "Junior 1",
+  3: "Junior 2",
+  2: "Senior 1",
+  1: "Senior 2",
+};
+
+const getSemesterDescription = (semestersFromGrad) => {
+  if (semestersFromGrad == null) return "Not specified";
+  return semesterLabelMap[semestersFromGrad] || `Semester ${semestersFromGrad}`;
+};
 </script>
 <template>
   <v-card color="backgroundDarken" class="cardContainer">
@@ -23,6 +43,13 @@ const emit = defineEmits(["edit", "delete"]);
       <p class="text-subtitle-1 font-weight-regular">
         Category: {{ props.task.category }}
       </p>
+      <p class="text-subtitle-1 font-weight-regular">
+        Scheduling Type: {{ props.task.schedulingType }}
+      </p>
+      <p class="text-subtitle-1 font-weight-regular">
+        Semester from Graduation:
+        {{ getSemesterDescription(props.task.semestersFromGrad) }}
+      </p>
       <p v-if="!props.approval" class="text-subtitle-1 font-weight-regular">
         Completion Type: {{ props.task.submissionType }}
       </p>
@@ -30,7 +57,7 @@ const emit = defineEmits(["edit", "delete"]);
         Status: {{ props.task.status }}
       </p>
     </v-card-text>
-    <v-row v-if="!props.approval" class="ma-2 float-right">
+    <v-row v-if="!props.approval && !props.readOnly" class="ma-2 float-right">
       <v-btn
         color="warning"
         class="mr-2 cardButton"

@@ -9,6 +9,13 @@ import strengthServices from "../../../services/strengthServices";
 import SortSelect from "../../../components/SortSelect.vue";
 import TaskAddEditDialog from "./TaskAddEditDialog.vue";
 
+const props = defineProps({
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 // Constants
 const label = "Tasks";
 
@@ -196,6 +203,7 @@ onMounted(async () => {
   <v-container fluid>
     <CardHeader
       :label="label"
+      :add-button="!props.readOnly"
       @changed="handleSearchChange"
       @add="handleAdd"
       @toggle-filters="showFilters = !showFilters"
@@ -213,8 +221,8 @@ onMounted(async () => {
       <template #item="{ item }">
         <TaskCard
           :task="item"
+          :read-only="props.readOnly"
           @edit="handleEdit"
-          @delete="handleDelete"
         ></TaskCard>
       </template>
       <template #filters>
@@ -280,6 +288,7 @@ onMounted(async () => {
 
     <!-- Task Add/Edit Dialog -->
     <TaskAddEditDialog
+      v-if="!props.readOnly"
       v-model="showTaskDialog"
       :is-add="isAddMode"
       :task-id="selectedTaskId"

@@ -7,6 +7,13 @@ import CardTable from "../../../components/CardTable.vue";
 import CardHeader from "../../../components/CardHeader.vue";
 import SortSelect from "../../../components/SortSelect.vue";
 
+const props = defineProps({
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 // Constants
 const PAGE_SIZE = 8;
 const label = "Experiences";
@@ -172,6 +179,7 @@ onMounted(async () => {
   <v-container fluid>
     <CardHeader
       :label="label"
+      :add-button="!props.readOnly"
       :filter-button="true"
       @changed="handleSearchChange"
       @add="handleAdd"
@@ -239,7 +247,11 @@ onMounted(async () => {
       </template>
 
       <template #item="{ item }">
-        <ExperienceCard :experience="item" @edit="handleEdit"></ExperienceCard>
+        <ExperienceCard
+          :experience="item"
+          :read-only="props.readOnly"
+          @edit="handleEdit"
+        ></ExperienceCard>
       </template>
     </CardTable>
 
@@ -253,6 +265,7 @@ onMounted(async () => {
       @update:model-value="getExperiences"
     ></v-pagination>
     <ExperienceAddEditDialog
+      v-if="!props.readOnly"
       v-model="showExperienceDialog"
       :is-add="isAddMode"
       :experience-id="selectedExperienceId"
