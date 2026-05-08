@@ -6,6 +6,8 @@ import studentServices from "../../../services/studentServices";
 import strengthServices from "../../../services/strengthServices";
 import majorServices from "../../../services/majorServices";
 import linkServices from "../../../services/linkServices";
+import roleServices from "../../../services/roleServices";
+import userRoleServices from "../../../services/userRoleServices";
 import {
   required,
   atLeast,
@@ -44,12 +46,19 @@ var openPanels = [0];
 
 const isStudent = ref(true);
 const fieldDisable = ref(!props.isAdmin); // New reactive variable for admin status for when to enable/disable fields
+const isFacultyRole = ref(false);
+const isAdminRole = ref(false);
+const originalRoleChecks = ref({ isFacultyRole: false, isAdminRole: false });
+const roleIds = ref({ student: null, faculty: null, admin: null });
 
 const route = useRoute();
 const router = useRouter();
 
 const maximumNumberOfStrengths = 5;
 const requiredNumberOfMajors = 1;
+const shouldRequireMajor = () => !isAdminRole.value && !isFacultyRole.value;
+const shouldRequireStudentAcademicFields = () =>
+  !isAdminRole.value && !isFacultyRole.value;
 
 const handleCancel = () => router.back();
 
@@ -154,18 +163,64 @@ const updateLinks = async (userId) => {
 const getId = (item) =>
   typeof item === "object" && item !== null ? item.id : item;
 
+const isCheckedRole = (roles, roleName) =>
+  roles.some((role) => String(role.name || "").toLowerCase() === roleName);
+
+const syncUserRoles = async (userId) => {
+  const operations = [
+    {
+      roleKey: "faculty",
+      shouldHave: isFacultyRole.value,
+      originallyHad: originalRoleChecks.value.isFacultyRole,
+    },
+    {
+      roleKey: "admin",
+      shouldHave: isAdminRole.value,
+      originallyHad: originalRoleChecks.value.isAdminRole,
+    },
+  ];
+
+  const allUserRoles = (await userRoleServices.getAllUserRoles()).data || [];
+
+  for (const operation of operations) {
+    const roleId = roleIds.value[operation.roleKey];
+    if (!roleId) continue;
+
+    const existingMappings = allUserRoles.filter(
+      (mapping) =>
+        String(mapping.userId) === String(userId) &&
+        String(mapping.roleId) === String(roleId),
+    );
+
+    if (operation.shouldHave && !operation.originallyHad) {
+      if (existingMappings.length === 0) {
+        await userRoleServices.createUserRole({
+          userId,
+          roleId,
+        });
+      }
+    } else if (!operation.shouldHave && operation.originallyHad) {
+      for (const mapping of existingMappings) {
+        await userRoleServices.deleteUserRole(mapping.id);
+      }
+    }
+  }
+};
+
 const handleSubmit = async () => {
   const isValid = (await form.value?.validate())?.valid;
-  if (!isValid || !selectedDate.value) return;
+  if (!isValid) return;
+  if (shouldRequireStudentAcademicFields() && !selectedDate.value) return;
 
-  const date = new Date(selectedDate.value); // Ensure it's a valid Date object
-  if (isNaN(date.getTime())) {
-    console.error("Invalid date selected:", selectedDate.value);
-    return;
+  if (selectedDate.value) {
+    const date = new Date(selectedDate.value); // Ensure it's a valid Date object
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date selected:", selectedDate.value);
+      return;
+    }
+    // Update formData with ISO formatted values
+    formData.value.graduationDate = date.toISOString();
   }
-
-  // Update formData with ISO formatted values
-  formData.value.graduationDate = date.toISOString();
 
   try {
     const submitData = { ...formData.value };
@@ -184,6 +239,7 @@ const handleSubmit = async () => {
     } else {
       await userServices.updateUser(submitData);
       await updateLinks(route.params.id);
+      await syncUserRoles(route.params.id);
 
       if (isStudent.value) {
         if (submitData.student.id) {
@@ -232,6 +288,25 @@ onMounted(async () => {
 
     if (!props.isAdd) {
       const user = (await userServices.getUserById(route.params.id)).data;
+      const allRoles = (await roleServices.getAllRoles()).data || [];
+      roleIds.value.student =
+        allRoles.find((role) => role.name?.toLowerCase() === "student")?.id ||
+        null;
+      roleIds.value.faculty =
+        allRoles.find((role) => role.name?.toLowerCase() === "faculty")?.id ||
+        null;
+      roleIds.value.admin =
+        allRoles.find((role) => role.name?.toLowerCase() === "admin")?.id ||
+        null;
+      const userRoles = (await roleServices.getRolesByEmail(user.email)).data || [];
+
+      isFacultyRole.value = isCheckedRole(userRoles, "faculty");
+      isAdminRole.value = isCheckedRole(userRoles, "admin");
+      originalRoleChecks.value = {
+        isFacultyRole: isFacultyRole.value,
+        isAdminRole: isAdminRole.value,
+      };
+
       const student = (
         await studentServices.getStudentForUserId(route.params.id)
       ).data;
@@ -389,24 +464,34 @@ onMounted(async () => {
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <v-row no-gutters>
-        <v-col v-if="props.isAdmin" cols="1" class="mr-11">
-          <v-tooltip location="top">
-            <template #activator="{ props }">
-              <v-checkbox
-                v-model="isStudent"
-                label="Student"
-                v-bind="props"
-              ></v-checkbox>
-            </template>
-            <span>Functionality Not Implemented</span>
-          </v-tooltip>
+      <v-row v-if="props.isAdmin" no-gutters>
+        <v-col cols="2" class="mr-6">
+          <v-checkbox
+            :model-value="true"
+            label="Student"
+            disabled
+          ></v-checkbox>
         </v-col>
+        <v-col cols="2" class="mr-6">
+          <v-checkbox
+            v-model="isFacultyRole"
+            label="Faculty"
+          ></v-checkbox>
+        </v-col>
+        <v-col cols="2">
+          <v-checkbox
+            v-model="isAdminRole"
+            label="Admin"
+          ></v-checkbox>
+        </v-col>
+      </v-row>
+
+      <v-row no-gutters>
         <v-col cols="5.3" class="mr-2">
           <DatePickerFieldForModal
             v-if="isStudent"
             v-model="selectedDate"
-            :rules="[required]"
+            :rules="shouldRequireStudentAcademicFields() ? [required] : []"
             label="Graduation Date"
             :disabled="fieldDisable"
             @update:disabled="
@@ -424,7 +509,7 @@ onMounted(async () => {
             item-value="value"
             :items="semesterTypes"
             item-title="name"
-            :rules="[required]"
+            :rules="shouldRequireStudentAcademicFields() ? [required] : []"
             :disabled="fieldDisable"
             @update:model-value="
               (val) => (formData.student.semestersFromGrad = val)
@@ -458,7 +543,11 @@ onMounted(async () => {
           multiple
           chips
           :disabled="fieldDisable"
-          :rules="[atLeast(majors, requiredNumberOfMajors)]"
+          :rules="
+            shouldRequireMajor()
+              ? [atLeast(majors, requiredNumberOfMajors)]
+              : []
+          "
         />
       </div>
 
