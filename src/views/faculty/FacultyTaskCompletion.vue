@@ -580,10 +580,10 @@ const exportReportCsv = () => {
         row.status || "Not found",
       ];
       const taskColumns = selectedTaskColumns.value.map(
-        (task) => row.tasks[task.id] || "No",
+        (task) => row.tasks?.[task.id] ?? "",
       );
       const experienceColumns = selectedExperienceColumns.value.map(
-        (experience) => row.experiences[experience.id] || "No",
+        (experience) => row.experiences?.[experience.id] ?? "",
       );
       return [...baseColumns, ...taskColumns, ...experienceColumns]
         .map(csvEscape)
@@ -604,6 +604,14 @@ const exportReportCsv = () => {
 
 watch(csvFile, (file) => {
   handleCsvUpload(toRaw(file));
+});
+
+watch([selectedTasks, selectedExperiences, selectedSemesterId], () => {
+  reportRows.value = reportRows.value.map((row) => ({
+    ...row,
+    tasks: {},
+    experiences: {},
+  }));
 });
 
 onMounted(async () => {
@@ -760,13 +768,13 @@ onMounted(async () => {
             <td>{{ row.lastName }}</td>
             <td>{{ row.status || "Not found" }}</td>
             <td v-for="task in selectedTaskColumns" :key="`${index}-${task.id}`">
-              {{ row.tasks[task.id] || "No" }}
+              {{ row.tasks?.[task.id] ?? "" }}
             </td>
             <td
               v-for="experience in selectedExperienceColumns"
               :key="`${index}-exp-${experience.id}`"
             >
-              {{ row.experiences[experience.id] || "No" }}
+              {{ row.experiences?.[experience.id] ?? "" }}
             </td>
           </tr>
           <tr v-if="reportRows.length === 0">
