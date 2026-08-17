@@ -31,7 +31,10 @@ export default {
     return apiClient.put(`/user/${item.id}`, item);
   },
   getUserByEmail(email) {
-    return apiClient.get(`/user/email/${email}`);
+    return apiClient.get(`/user/email/${encodeURIComponent(email)}`);
+  },
+  lookupUsersByEmails(emails) {
+    return apiClient.post("/user/lookup", { emails });
   },
   promoteToAdmin(userId) {
     return apiClient
