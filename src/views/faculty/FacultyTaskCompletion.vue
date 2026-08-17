@@ -1,5 +1,6 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, toRaw, watch } from "vue";
+import Papa from "papaparse";
 import userServices from "../../services/userServices";
 import studentServices from "../../services/studentServices";
 import flightPlanServices from "../../services/flightPlanServices";
@@ -9,20 +10,29 @@ import experienceServices from "../../services/experienceServices";
 import semesterServices from "../../services/semesterServices";
 const semesters = ref([]);
 const selectedSemesterId = ref(null);
-const selectedTaskIds = ref([]);
-const selectedExperienceIds = ref([]);
+const selectedTasks = ref([]);
+const selectedExperiences = ref([]);
 
 const tasks = ref([]);
 const experiences = ref([]);
 
+const csvFile = ref(null);
 const uploadedEmails = ref([]);
 const reportRows = ref([]);
-const usersByEmail = ref(new Map());
+const usersByEmail = ref({});
 
 const isLoading = ref(false);
 const uploadError = ref("");
 const reportError = ref("");
 const processSummary = ref("");
+
+const asIdList = (value) => {
+  if (Array.isArray(value)) {
+    return value.filter((id) => id != null && id !== "");
+  }
+  if (value == null || value === "") return [];
+  return [value];
+};
 
 const selectedSemester = computed(() =>
   semesters.value.find((semester) => semester.id === selectedSemesterId.value),
@@ -30,40 +40,55 @@ const selectedSemester = computed(() =>
 
 const semesterOptions = computed(() =>
   semesters.value.map((semester) => ({
-    label: `${semester.term.charAt(0).toUpperCase()}${semester.term.slice(1)} ${semester.year}`,
+    title: `${semester.term.charAt(0).toUpperCase()}${semester.term.slice(1)} ${semester.year}`,
     value: semester.id,
   })),
 );
 
+const selectedTaskIds = computed(() =>
+  selectedTasks.value.map((item) => item?.id ?? item),
+);
+
+const selectedExperienceIds = computed(() =>
+  selectedExperiences.value.map((item) => item?.id ?? item),
+);
+
 const selectedTaskColumns = computed(() => {
-  const selectedIds = new Set(selectedTaskIds.value.map((id) => String(id)));
-  return tasks.value.filter((task) => selectedIds.has(String(task.id)));
+  const selectedIds = new Set(asIdList(selectedTaskIds.value).map((id) => String(id)));
+  return (Array.isArray(tasks.value) ? tasks.value : []).filter((task) =>
+    selectedIds.has(String(task.id)),
+  );
 });
 
 const selectedTaskIdSet = computed(
-  () => new Set(selectedTaskIds.value.map((id) => String(id))),
+  () => new Set(asIdList(selectedTaskIds.value).map((id) => String(id))),
 );
 
-const selectedExperienceColumns = computed(() =>
-  experiences.value.filter((experience) => {
-    const selectedIds = new Set(
-      selectedExperienceIds.value.map((id) => String(id)),
-    );
-    return selectedIds.has(String(experience.id));
-  }),
-);
+const selectedExperienceColumns = computed(() => {
+  const selectedIds = new Set(
+    asIdList(selectedExperienceIds.value).map((id) => String(id)),
+  );
+  return (Array.isArray(experiences.value) ? experiences.value : []).filter(
+    (experience) => selectedIds.has(String(experience.id)),
+  );
+});
 
 const parsedStudentCount = computed(() => uploadedEmails.value.length);
+const matchedUserCount = computed(
+  () => reportRows.value.filter((row) => row.userId).length,
+);
 const matchedStudentCount = computed(
   () => reportRows.value.filter((row) => row.studentId).length,
 );
 
-const canProcess = computed(
-  () =>
-    selectedSemesterId.value !== null &&
-    selectedTaskIds.value.length > 0 &&
-    uploadedEmails.value.length > 0,
-);
+const canProcess = computed(() => {
+  const hasSemester =
+    selectedSemesterId.value !== null && selectedSemesterId.value !== "";
+  const hasEmails = uploadedEmails.value.length > 0;
+  const hasTasks = selectedTasks.value.length > 0;
+  const hasExperiences = selectedExperiences.value.length > 0;
+  return hasSemester && hasEmails && (hasTasks || hasExperiences);
+});
 
 const canExport = computed(() => reportRows.value.length > 0);
 
@@ -77,21 +102,153 @@ const csvEscape = (value) => {
 
 const isComplete = (status) =>
   String(status || "").trim().toLowerCase() === "complete";
-const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
+const normalizeEmail = (value) =>
+  String(value || "")
+    .replace(/^\uFEFF/, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .trim()
+    .toLowerCase();
 const getTaskIdFromItem = (item) => item?.taskId ?? item?.task?.id ?? null;
 const getExperienceIdFromItem = (item) =>
   item?.experienceId ?? item?.experience?.id ?? null;
 
-const parseEmailsFromCsv = (csvText) => {
-  const tokens = csvText
-    .replace(/\r/g, "\n")
-    .split(/[\n,;\t]/g)
-    .map((token) => token.trim().replace(/^"|"$/g, ""))
-    .filter(Boolean);
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const uniqueEmails = [...new Set(tokens.map((token) => token.toLowerCase()))];
-  return uniqueEmails.filter((email) => emailRegex.test(email));
+const ocDomainAlias = (email) => {
+  const normalized = normalizeEmail(email);
+  if (normalized.endsWith("@eagles.oc.edu")) {
+    return `${normalized.slice(0, -"@eagles.oc.edu".length)}@oc.edu`;
+  }
+  if (normalized.endsWith("@oc.edu")) {
+    return `${normalized.slice(0, -"@oc.edu".length)}@eagles.oc.edu`;
+  }
+  return null;
+};
+
+const collectEmailsFromValues = (values) => {
+  const emails = [];
+  const seen = new Set();
+
+  for (const value of values) {
+    const text = String(value ?? "")
+      .replace(/^\uFEFF/, "")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .replace(/^mailto:/i, "")
+      .trim();
+    const matches = text.match(EMAIL_PATTERN) || [];
+    for (const match of matches) {
+      const email = match.replace(/[>'"]+$/g, "").toLowerCase();
+      if (!seen.has(email)) {
+        seen.add(email);
+        emails.push(email);
+      }
+    }
+  }
+
+  return emails;
+};
+
+const extractEmailsFromParsedCsv = (data) => {
+  const rows = Array.isArray(data) ? data : [];
+  if (!rows.length) return [];
+
+  const firstRow = Array.isArray(rows[0])
+    ? rows[0]
+    : rows[0] && typeof rows[0] === "object"
+      ? Object.keys(rows[0])
+      : [rows[0]];
+  const header = firstRow.map((cell) => String(cell ?? "").trim().toLowerCase());
+  const emailColIndex = header.findIndex(
+    (col) => col === "email" || col === "e-mail" || col === "email address",
+  );
+
+  if (emailColIndex >= 0 && Array.isArray(rows[0])) {
+    return collectEmailsFromValues(
+      rows.slice(1).map((row) => (Array.isArray(row) ? row[emailColIndex] : "")),
+    );
+  }
+
+  const cells = [];
+  for (const row of rows) {
+    if (Array.isArray(row)) cells.push(...row);
+    else if (row && typeof row === "object") cells.push(...Object.values(row));
+    else cells.push(row);
+  }
+  return collectEmailsFromValues(cells);
+};
+
+const getUploadedFile = (value) => {
+  const raw = toRaw(value);
+  if (!raw) return null;
+  if (raw instanceof File) return raw;
+  if (Array.isArray(raw)) {
+    const file = raw.find((item) => toRaw(item) instanceof File);
+    return file ? toRaw(file) : null;
+  }
+  if (typeof FileList !== "undefined" && raw instanceof FileList) {
+    return raw[0] || null;
+  }
+  return raw?.target?.files?.[0] || value?.target?.files?.[0] || null;
+};
+
+const parseEmailsFromFile = async (file) => {
+  const csvText = await file.text();
+  const parsed = Papa.parse(csvText, { skipEmptyLines: true });
+  const emails = extractEmailsFromParsedCsv(parsed.data);
+  if (emails.length > 0) return emails;
+  return collectEmailsFromValues([csvText]);
+};
+
+const getStudentFromUser = (user) =>
+  user?.student || user?.Student || null;
+
+const indexUsersByEmail = (users) => {
+  const lookup = {};
+  for (const user of users || []) {
+    const normalized = normalizeEmail(user?.email);
+    if (normalized) {
+      lookup[normalized] = user;
+    }
+  }
+  return lookup;
+};
+
+const previewRowsFromEmails = (emails) =>
+  emails.map((email) => {
+    const user = findUserByEmail(email);
+    const names = extractUserNames(user);
+    const student = getStudentFromUser(user);
+    let status = "Not found";
+    if (user?.id && student?.id) status = "Student found";
+    else if (user?.id) status = "User found, no student profile";
+    return {
+      studentEmail: user?.email || email,
+      firstName: names.firstName,
+      lastName: names.lastName,
+      userId: user?.id || null,
+      studentId: student?.id || null,
+      status,
+      tasks: {},
+      experiences: {},
+    };
+  });
+
+const loadUsersForEmails = async (emails) => {
+  await buildUserLookupMap();
+  try {
+    const response = await userServices.lookupUsersByEmails(emails);
+    const users = Array.isArray(response.data)
+      ? response.data
+      : response.data?.users || [];
+    if (users.length > 0) {
+      usersByEmail.value = {
+        ...usersByEmail.value,
+        ...indexUsersByEmail(users),
+      };
+    }
+  } catch (error) {
+    console.warn("Bulk email lookup failed, using full user list:", error);
+  }
 };
 
 const handleCsvUpload = async (file) => {
@@ -99,14 +256,14 @@ const handleCsvUpload = async (file) => {
   processSummary.value = "";
   reportRows.value = [];
 
-  if (!file) {
+  const uploadedFile = getUploadedFile(file);
+  if (!uploadedFile) {
     uploadedEmails.value = [];
     return;
   }
 
   try {
-    const csvText = await file.text();
-    const parsedEmails = parseEmailsFromCsv(csvText);
+    const parsedEmails = await parseEmailsFromFile(uploadedFile);
 
     if (parsedEmails.length === 0) {
       uploadError.value =
@@ -115,11 +272,25 @@ const handleCsvUpload = async (file) => {
       return;
     }
 
+    await loadUsersForEmails(parsedEmails);
     uploadedEmails.value = parsedEmails;
+    reportRows.value = previewRowsFromEmails(parsedEmails);
+    const matchedUsers = reportRows.value.filter((row) => row.userId).length;
+    const matchedStudents = reportRows.value.filter((row) => row.studentId).length;
+    processSummary.value = `Found ${parsedEmails.length} email(s) in the file, ${matchedUsers} user(s) and ${matchedStudents} student record(s).`;
   } catch (error) {
     console.error("CSV upload failed:", error);
-    uploadError.value = "Unable to read the uploaded CSV file.";
+    uploadError.value =
+      error?.message || "Unable to read the uploaded CSV file.";
   }
+};
+
+const unwrapList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.rows)) return data.rows;
+  if (Array.isArray(data?.tasks)) return data.tasks;
+  if (Array.isArray(data?.experiences)) return data.experiences;
+  return [];
 };
 
 const fetchReferenceData = async () => {
@@ -129,9 +300,9 @@ const fetchReferenceData = async () => {
     semesterServices.getAllSemestersUnfiltered(),
   ]);
 
-  tasks.value = tasksResponse.data || [];
-  experiences.value = experiencesResponse.data || [];
-  semesters.value = semestersResponse.data || [];
+  tasks.value = unwrapList(tasksResponse.data);
+  experiences.value = unwrapList(experiencesResponse.data);
+  semesters.value = unwrapList(semestersResponse.data);
 };
 
 const getFlightPlanItems = async (flightPlanId) => {
@@ -179,127 +350,184 @@ const extractUserNames = (user) => {
 
 const buildUserLookupMap = async () => {
   const allUsersResponse = await userServices.getAllUser();
-  const allUsers = allUsersResponse.data?.rows || [];
-  const lookup = new Map();
-  for (const user of allUsers) {
-    const normalized = normalizeEmail(user?.email);
-    if (normalized) {
-      lookup.set(normalized, user);
-    }
+  const allUsers =
+    allUsersResponse.data?.rows ||
+    allUsersResponse.data?.users ||
+    (Array.isArray(allUsersResponse.data) ? allUsersResponse.data : []);
+  usersByEmail.value = indexUsersByEmail(allUsers);
+  if (Object.keys(usersByEmail.value).length === 0) {
+    throw new Error("User list is empty. Unable to match uploaded emails.");
   }
-  usersByEmail.value = lookup;
+};
+
+const findUserByEmail = (email) => {
+  const normalized = normalizeEmail(email);
+  const exactMatch = usersByEmail.value[normalized];
+  if (exactMatch?.id) return exactMatch;
+
+  const alias = ocDomainAlias(normalized);
+  if (alias) {
+    const aliasMatch = usersByEmail.value[alias];
+    if (aliasMatch?.id) return aliasMatch;
+  }
+
+  return null;
+};
+
+const emptyCompletionMaps = () => {
+  const tasks = {};
+  const experiences = {};
+  for (const task of selectedTaskColumns.value) {
+    tasks[task.id] = "No";
+  }
+  for (const experience of selectedExperienceColumns.value) {
+    experiences[experience.id] = "No";
+  }
+  return { tasks, experiences };
 };
 
 const buildStudentRow = async (email) => {
+  const unmatchedRow = {
+    studentEmail: email,
+    firstName: "",
+    lastName: "",
+    userId: null,
+    studentId: null,
+    status: "Not found",
+    ...emptyCompletionMaps(),
+  };
+
   try {
-    const userResponse = await userServices.getUserByEmail(email);
-    let user = userResponse.data;
+    let user = findUserByEmail(email);
     if (!user?.id) {
-      user = usersByEmail.value.get(normalizeEmail(email)) || user;
+      try {
+        const userResponse = await userServices.getUserByEmail(email);
+        if (userResponse.data?.id) {
+          user = userResponse.data;
+        } else {
+          const alias = ocDomainAlias(email);
+          if (alias) {
+            const aliasResponse = await userServices.getUserByEmail(alias);
+            if (aliasResponse.data?.id) {
+              user = aliasResponse.data;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn(`User email lookup failed for ${email}:`, error);
+      }
     }
+
     const names = extractUserNames(user);
-
     if (!user?.id) {
-      return {
-        studentEmail: email,
-        firstName: "",
-        lastName: "",
-        studentId: null,
-        tasks: {},
-        experiences: {},
-      };
+      return unmatchedRow;
     }
 
-    const studentResponse = await studentServices.getStudentForUserId(user.id);
-    const student = studentResponse.data;
+    const includedStudent = getStudentFromUser(user);
+    try {
+      let student = includedStudent;
+      if (!student?.id) {
+        const studentResponse = await studentServices.getStudentForUserId(user.id);
+        student = studentResponse.data;
+      }
 
-    if (!student?.id) {
+      if (!student?.id) {
+        return {
+          studentEmail: user.email || email,
+          firstName: names.firstName,
+          lastName: names.lastName,
+          userId: user.id,
+          studentId: null,
+          status: "User found, no student profile",
+          ...emptyCompletionMaps(),
+        };
+      }
+
+      const flightPlansResponse =
+        await flightPlanServices.getFlightPlanForStudent(student.id);
+      const flightPlans = flightPlansResponse.data || [];
+      const flightPlan = flightPlans.find(
+        (plan) =>
+          String(plan.semester?.id ?? plan.semesterId) ===
+          String(selectedSemesterId.value),
+      );
+
+      if (!flightPlan?.id) {
+        return {
+          studentEmail: user.email || email,
+          firstName: names.firstName,
+          lastName: names.lastName,
+          userId: user.id,
+          studentId: student.id,
+          status: "No flight plan for semester",
+          ...emptyCompletionMaps(),
+        };
+      }
+
+      const flightPlanItems = await getFlightPlanItems(flightPlan.id);
+
+      const completedTaskIds = new Set(
+        flightPlanItems
+          .filter(
+            (item) =>
+              getTaskIdFromItem(item) != null &&
+              selectedTaskIdSet.value.has(String(getTaskIdFromItem(item))) &&
+              isComplete(item.status),
+          )
+          .map((item) => String(getTaskIdFromItem(item))),
+      );
+
+      const completedExperienceIds = new Set(
+        flightPlanItems
+          .filter(
+            (item) =>
+              getExperienceIdFromItem(item) != null &&
+              isComplete(item.status),
+          )
+          .map((item) => String(getExperienceIdFromItem(item))),
+      );
+
+      const taskCompletionMap = {};
+      for (const task of selectedTaskColumns.value) {
+        taskCompletionMap[task.id] = completedTaskIds.has(String(task.id))
+          ? "Yes"
+          : "No";
+      }
+
+      const experienceCompletionMap = {};
+      for (const experience of selectedExperienceColumns.value) {
+        experienceCompletionMap[experience.id] = completedExperienceIds.has(
+          String(experience.id),
+        )
+          ? "Yes"
+          : "No";
+      }
+
       return {
         studentEmail: user.email || email,
         firstName: names.firstName,
         lastName: names.lastName,
-        studentId: null,
-        tasks: {},
-        experiences: {},
-      };
-    }
-
-    const flightPlansResponse = await flightPlanServices.getFlightPlanForStudent(
-      student.id,
-    );
-    const flightPlans = flightPlansResponse.data || [];
-    const flightPlan = flightPlans.find(
-      (plan) => String(plan.semester?.id) === String(selectedSemesterId.value),
-    );
-
-    if (!flightPlan?.id) {
-      return {
-        studentEmail: user.email || email,
-        firstName: names.firstName,
-        lastName: names.lastName,
+        userId: user.id,
         studentId: student.id,
-        tasks: {},
-        experiences: {},
+        status: "Matched",
+        tasks: taskCompletionMap,
+        experiences: experienceCompletionMap,
+      };
+    } catch (error) {
+      console.warn(`Unable to load completion data for ${email}:`, error);
+      return {
+        studentEmail: user.email || email,
+        firstName: names.firstName,
+        lastName: names.lastName,
+        userId: user.id,
+        studentId: null,
+        status: "User found, completion lookup failed",
+        ...emptyCompletionMaps(),
       };
     }
-
-    const flightPlanItems = await getFlightPlanItems(flightPlan.id);
-
-    const completedTaskIds = new Set(
-      flightPlanItems
-        .filter(
-          (item) =>
-            getTaskIdFromItem(item) != null &&
-            selectedTaskIdSet.value.has(String(getTaskIdFromItem(item))) &&
-            isComplete(item.status),
-        )
-        .map((item) => String(getTaskIdFromItem(item))),
-    );
-
-    const completedExperienceIds = new Set(
-      flightPlanItems
-        .filter(
-          (item) =>
-            getExperienceIdFromItem(item) != null &&
-            isComplete(item.status),
-        )
-        .map((item) => String(getExperienceIdFromItem(item))),
-    );
-
-    const taskCompletionMap = {};
-    for (const task of selectedTaskColumns.value) {
-      taskCompletionMap[task.id] = completedTaskIds.has(String(task.id))
-        ? "Yes"
-        : "No";
-    }
-
-    const experienceCompletionMap = {};
-    for (const experience of selectedExperienceColumns.value) {
-      experienceCompletionMap[experience.id] = completedExperienceIds.has(
-        String(experience.id),
-      )
-        ? "Yes"
-        : "No";
-    }
-
-    return {
-      studentEmail: user.email || email,
-      firstName: names.firstName,
-      lastName: names.lastName,
-      studentId: student.id,
-      tasks: taskCompletionMap,
-      experiences: experienceCompletionMap,
-    };
   } catch (error) {
     console.warn(`Unable to process student for ${email}:`, error);
-    return {
-      studentEmail: email,
-      firstName: "",
-      lastName: "",
-      studentId: null,
-      tasks: {},
-      experiences: {},
-    };
+    return unmatchedRow;
   }
 };
 
@@ -309,17 +537,17 @@ const generateReport = async () => {
 
   if (!canProcess.value) {
     reportError.value =
-      "Upload a CSV and select semester and at least one task before generating the report.";
+      "Upload a CSV and select a semester and at least one task or experience before generating the report.";
     return;
   }
 
   isLoading.value = true;
   try {
-    await buildUserLookupMap();
+    await loadUsersForEmails(uploadedEmails.value);
     const rows = await Promise.all(uploadedEmails.value.map(buildStudentRow));
     reportRows.value = rows;
 
-    processSummary.value = `Processed ${rows.length} email(s), matched ${rows.filter((row) => row.studentId).length} student record(s).`;
+    processSummary.value = `Processed ${rows.length} email(s), matched ${rows.filter((row) => row.userId).length} user(s) and ${rows.filter((row) => row.studentId).length} student record(s).`;
   } catch (error) {
     console.error("Report generation failed:", error);
     reportError.value = "Failed to generate report data.";
@@ -335,6 +563,7 @@ const exportReportCsv = () => {
     "Student Email",
     "First Name",
     "Last Name",
+    "Status",
     ...selectedTaskColumns.value.map((task) => `Task: ${task.name}`),
     ...selectedExperienceColumns.value.map(
       (experience) => `Experience: ${experience.name}`,
@@ -348,6 +577,7 @@ const exportReportCsv = () => {
         row.studentEmail,
         row.firstName,
         row.lastName,
+        row.status || "Not found",
       ];
       const taskColumns = selectedTaskColumns.value.map(
         (task) => row.tasks[task.id] || "No",
@@ -372,8 +602,23 @@ const exportReportCsv = () => {
   URL.revokeObjectURL(url);
 };
 
+watch(csvFile, (file) => {
+  handleCsvUpload(toRaw(file));
+});
+
 onMounted(async () => {
-  await fetchReferenceData();
+  try {
+    await fetchReferenceData();
+  } catch (error) {
+    console.error("Failed to load tasks/semesters:", error);
+    reportError.value = "Could not load tasks, experiences, or semesters.";
+  }
+  try {
+    await buildUserLookupMap();
+  } catch (error) {
+    console.error("Failed to load users:", error);
+    reportError.value = "Could not load users for email matching.";
+  }
 });
 </script>
 
@@ -385,39 +630,49 @@ onMounted(async () => {
       <v-row>
         <v-col cols="12" md="6">
           <v-file-input
+            v-model="csvFile"
             label="Upload Student Emails CSV"
             accept=".csv,text/csv"
             prepend-icon="mdi-file-delimited"
             show-size
-            @update:model-value="handleCsvUpload"
+            clearable
           />
           <div class="text-body-2">
-            Students in file: <strong>{{ parsedStudentCount }}</strong>
+            Emails in file: <strong>{{ parsedStudentCount }}</strong>
+            <span class="ml-4">
+              Matched users: <strong>{{ matchedUserCount }}</strong>
+            </span>
+          </div>
+          <div class="text-caption text-medium-emphasis mt-1">
+            Use an Email column, or a list of addresses. Matching is case-insensitive.
+            <code>@eagles.oc.edu</code> and <code>@oc.edu</code> are treated as the same person when only one exists.
           </div>
         </v-col>
         <v-col cols="12" md="6">
           <v-select
             v-model="selectedSemesterId"
             :items="semesterOptions"
-            item-title="label"
+            item-title="title"
             item-value="value"
             label="Select Semester"
           />
           <v-select
-            v-model="selectedTaskIds"
+            v-model="selectedTasks"
             :items="tasks"
             item-title="name"
             item-value="id"
+            return-object
             label="Select Task(s)"
             multiple
             chips
             clearable
           />
           <v-select
-            v-model="selectedExperienceIds"
+            v-model="selectedExperiences"
             :items="experiences"
             item-title="name"
             item-value="id"
+            return-object
             label="Select Experience(s)"
             multiple
             chips
@@ -472,7 +727,10 @@ onMounted(async () => {
 
     <v-card class="pa-4" color="backgroundDarken">
       <div class="text-body-1 mb-2">
-        Matched student records: <strong>{{ matchedStudentCount }}</strong>
+        Matched users: <strong>{{ matchedUserCount }}</strong>
+        <span class="ml-4">
+          Matched student records: <strong>{{ matchedStudentCount }}</strong>
+        </span>
       </div>
       <v-table density="compact">
         <thead>
@@ -480,6 +738,7 @@ onMounted(async () => {
             <th>Student Email</th>
             <th>First Name</th>
             <th>Last Name</th>
+            <th>Status</th>
             <th v-for="task in selectedTaskColumns" :key="task.id">
               {{ task.name }}
             </th>
@@ -492,23 +751,27 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in reportRows" :key="row.studentEmail">
+          <tr
+            v-for="(row, index) in reportRows"
+            :key="`${index}-${row.studentEmail}`"
+          >
             <td>{{ row.studentEmail }}</td>
             <td>{{ row.firstName }}</td>
             <td>{{ row.lastName }}</td>
-            <td v-for="task in selectedTaskColumns" :key="`${row.studentEmail}-${task.id}`">
+            <td>{{ row.status || "Not found" }}</td>
+            <td v-for="task in selectedTaskColumns" :key="`${index}-${task.id}`">
               {{ row.tasks[task.id] || "No" }}
             </td>
             <td
               v-for="experience in selectedExperienceColumns"
-              :key="`${row.studentEmail}-${experience.id}`"
+              :key="`${index}-exp-${experience.id}`"
             >
               {{ row.experiences[experience.id] || "No" }}
             </td>
           </tr>
           <tr v-if="reportRows.length === 0">
-            <td :colspan="3 + selectedTaskColumns.length + selectedExperienceColumns.length" class="text-center">
-              Upload CSV and generate a report to view results.
+            <td :colspan="4 + selectedTaskColumns.length + selectedExperienceColumns.length" class="text-center">
+              Upload CSV to preview matched users, then generate a report.
             </td>
           </tr>
         </tbody>
