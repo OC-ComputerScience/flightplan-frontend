@@ -47,17 +47,31 @@ const handleCredentialResponse = async (response) => {
     email = user.value.email;
 
     const roles = await roleServices.getRolesByEmail(email);
-    store.$patch({ user: user.value, roles: roles.data });
+    const userRoles = Array.isArray(roles.data) ? roles.data : [];
+    store.$patch({ user: user.value, roles: userRoles });
 
-    const student = (
-      await StudentServices.getStudentForUserId(user.value.userId)
-    ).data;
-    if (student?.id) {
-      Utils.setStore("student", student);
-      const strengths = (
-        await StrengthServices.getStrengthsForStudent(student.id)
-      ).data;
-      localStudentStore.$patch({ student: student, strengths: strengths });
+    const isAdmin = userRoles.some(
+      (role) => role.name?.toLowerCase() === "admin",
+    );
+    const isFaculty = userRoles.some(
+      (role) => role.name?.toLowerCase() === "faculty",
+    );
+
+    if (!isAdmin && !isFaculty) {
+      try {
+        const student = (
+          await StudentServices.getStudentForUserId(user.value.userId)
+        ).data;
+        if (student?.id) {
+          Utils.setStore("student", student);
+          const strengths = (
+            await StrengthServices.getStrengthsForStudent(student.id)
+          ).data;
+          localStudentStore.$patch({ student: student, strengths: strengths });
+        }
+      } catch (studentError) {
+        console.error("Could not load student during login:", studentError);
+      }
     }
 
     // Emit the login success event with the user data
