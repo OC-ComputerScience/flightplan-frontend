@@ -21,10 +21,10 @@ const loadingMessage = ref("Loading...");
 const handleLoginSuccess = async (userData) => {
   isLoading.value = true;
   try {
-    // Skip onboarding for admin users
-    if (await store.isAdmin()) {
-      const redirect = await loginRedirect();
-      router.push(redirect);
+    // Faculty and admin do not need student/Colleague onboarding.
+    // New @oc.edu users were getting stuck here because Colleague has no student record.
+    if ((await store.isAdmin()) || (await store.isFaculty())) {
+      router.push(await loginRedirect());
       return;
     }
 
@@ -69,13 +69,21 @@ const handleLoginSuccess = async (userData) => {
         }
       }
     }
-  } catch {
-    const student = await createNewStudentWithColleague(userData.userId);
-    await generateNewFlightPlan(student);
+  } catch (error) {
+    console.error("Student onboarding failed during login:", error);
+    try {
+      const student = await createNewStudentWithColleague(userData.userId);
+      await generateNewFlightPlan(student);
+    } catch (onboardingError) {
+      console.error(
+        "Could not create student during login; continuing to app:",
+        onboardingError,
+      );
+    }
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
-  const redirect = await loginRedirect();
-  router.push(redirect);
+  router.push(await loginRedirect());
 };
 
 const createNewStudentWithColleague = async (userId) => {
@@ -84,7 +92,7 @@ const createNewStudentWithColleague = async (userId) => {
 };
 
 const generateNewFlightPlan = async (student) => {
-  if (student.semestersFromGrad > 0) {
+  if (student?.semestersFromGrad > 0) {
     try {
       loadingMessage.value = "Creating Flight Plan For Student";
       await flightPlanServices.generateFlightPlan(student.id);
