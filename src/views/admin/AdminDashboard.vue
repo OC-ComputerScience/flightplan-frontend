@@ -6,6 +6,7 @@ import semesterServices from "../../services/semesterServices";
 import EventCard from "../../components/cards/EventCard.vue";
 import { userStore } from "../../stores/userStore";
 import { onMounted, ref, computed } from "vue";
+import { useRoute } from "vue-router";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { useTheme } from "vuetify";
 import {
@@ -42,6 +43,11 @@ const events = ref([]);
 const notifications = ref([]);
 const isLoaded = ref(false);
 const store = userStore();
+const route = useRoute();
+const upcomingEvents = computed(() => events.value.slice(0, 2));
+const calendarRouteName = computed(() =>
+  route.path.startsWith("/faculty") ? "faculty-calendar" : "admin-calendar",
+);
 const notifStore = useNotificationStore();
 const currentPage = ref(1);
 const pageSize = ref(14);
@@ -258,30 +264,37 @@ const onTrackOptions = {
 
 const getEvents = async () => {
   const today = new Date();
-  const nextSaturday = new Date(today);
-  nextSaturday.setDate(today.getDate() + 7);
-
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  await eventServices
-    .getAllEvents(1, 1000, "", { startDate: yesterday, endDate: nextSaturday })
-    .then((res) => {
-      events.value = res.data.events
-        .filter((event) => {
-          if (event.status === 'Cancelled' || event.status === 'Completed' || event.status === 'Past') return false;
+  try {
+    const res = await eventServices.getAllEvents(1, 1000, "", {
+      startDate: yesterday,
+    });
+    events.value = (res.data?.events || [])
+      .filter((event) => {
+        if (
+          event.status === "Cancelled" ||
+          event.status === "Completed" ||
+          event.status === "Past"
+        ) {
+          return false;
+        }
 
-          const eventDate = new Date(event.date);
-          if (eventDate.toDateString() === today.toDateString()) {
-            const endTime = new Date(event.endTime);
-            return endTime > today;
-          }
-          return true;
-        })
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-      isLoaded.value = true;
-    })
-    .catch((err) => console.error(err));
+        const eventDate = new Date(event.date);
+        if (eventDate.toDateString() === today.toDateString()) {
+          const endTime = new Date(event.endTime);
+          return endTime > today;
+        }
+        return eventDate > today;
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch (err) {
+    console.error("Error fetching upcoming events:", err);
+    events.value = [];
+  } finally {
+    isLoaded.value = true;
+  }
 };
 
 const getNotifications = async (page = 1) => {
@@ -386,18 +399,21 @@ onMounted(async () => {
           >
           <div class="scrollable-content">
             <EventCard
-              v-for="(item, index) in events.splice(0, 2)"
-              :key="index"
+              v-for="item in upcomingEvents"
+              :key="item.id"
               :event="item"
               :view-only="true"
               :no-actions="true"
               :status-label="getEventCardColor(item, [], [], [])"
             ></EventCard>
+            <p v-if="isLoaded && upcomingEvents.length === 0" class="mt-2">
+              No upcoming events.
+            </p>
           </div>
           <v-btn
             variant="text"
             class="see-more-btn"
-            :to="{ name: 'admin-calendar' }"
+            :to="{ name: calendarRouteName }"
           >
             See More...
           </v-btn>
