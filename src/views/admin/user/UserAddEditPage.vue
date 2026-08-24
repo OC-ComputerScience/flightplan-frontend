@@ -239,16 +239,19 @@ const handleSubmit = async () => {
     } else {
       await userServices.updateUser(submitData);
       await updateLinks(route.params.id);
-      await syncUserRoles(route.params.id);
+      if (props.isAdmin) {
+        await syncUserRoles(route.params.id);
+      }
 
-      if (isStudent.value) {
+      if (isStudent.value && submitData.student) {
         if (submitData.student.id) {
           await studentServices.updateStudent(submitData.student);
           await updateMajorsAndStrengths(submitData.student.id);
         } else {
           submitData.student.userId = route.params.id;
-          const student = (await userServices.createUser(submitData.student))
-            .data;
+          const student = (
+            await studentServices.createStudent(submitData.student)
+          ).data;
           await addMajorsAndStrengths(student.id);
         }
       }
@@ -288,54 +291,69 @@ onMounted(async () => {
 
     if (!props.isAdd) {
       const user = (await userServices.getUserById(route.params.id)).data;
-      const allRoles = (await roleServices.getAllRoles()).data || [];
-      roleIds.value.student =
-        allRoles.find((role) => role.name?.toLowerCase() === "student")?.id ||
-        null;
-      roleIds.value.faculty =
-        allRoles.find((role) => role.name?.toLowerCase() === "faculty")?.id ||
-        null;
-      roleIds.value.admin =
-        allRoles.find((role) => role.name?.toLowerCase() === "admin")?.id ||
-        null;
-      const userRoles = (await roleServices.getRolesByEmail(user.email)).data || [];
+      formData.value = user || {};
 
-      isFacultyRole.value = isCheckedRole(userRoles, "faculty");
-      isAdminRole.value = isCheckedRole(userRoles, "admin");
-      originalRoleChecks.value = {
-        isFacultyRole: isFacultyRole.value,
-        isAdminRole: isAdminRole.value,
-      };
+      if (props.isAdmin) {
+        try {
+          const allRoles = (await roleServices.getAllRoles()).data || [];
+          roleIds.value.student =
+            allRoles.find((role) => role.name?.toLowerCase() === "student")
+              ?.id || null;
+          roleIds.value.faculty =
+            allRoles.find((role) => role.name?.toLowerCase() === "faculty")
+              ?.id || null;
+          roleIds.value.admin =
+            allRoles.find((role) => role.name?.toLowerCase() === "admin")
+              ?.id || null;
+          const userRoles =
+            (await roleServices.getRolesByEmail(user.email)).data || [];
+
+          isFacultyRole.value = isCheckedRole(userRoles, "faculty");
+          isAdminRole.value = isCheckedRole(userRoles, "admin");
+          originalRoleChecks.value = {
+            isFacultyRole: isFacultyRole.value,
+            isAdminRole: isAdminRole.value,
+          };
+        } catch (roleError) {
+          console.error("Error fetching roles:", roleError);
+        }
+      }
 
       const student = (
         await studentServices.getStudentForUserId(route.params.id)
       ).data;
-      const studentStrengths = (
-        await strengthServices.getStrengthsForStudent(student.id)
-      ).data;
-      const studentMajors = (
-        await majorServices.getMajorsForStudent(student.id)
-      ).data;
       const userLinks = (await linkServices.getAllLinksForUser(route.params.id))
         .data;
 
-      formData.value = user;
-      formData.value.student = student;
-      links.value = userLinks;
-      initialLinks.value = userLinks;
-      selectedDate.value = new Date(student.graduationDate);
+      formData.value.student = student || {};
+      links.value = userLinks || [];
+      initialLinks.value = userLinks || [];
 
-      strengths.value = studentStrengths.map((studentStrengths) => ({
-        title: studentStrengths.name,
-        value: studentStrengths.id,
-        ...studentStrengths,
+      if (!student?.id) {
+        isStudent.value = false;
+        return;
+      }
+
+      selectedDate.value = student.graduationDate
+        ? new Date(student.graduationDate)
+        : null;
+
+      const studentStrengths =
+        (await strengthServices.getStrengthsForStudent(student.id)).data || [];
+      const studentMajors =
+        (await majorServices.getMajorsForStudent(student.id)).data || [];
+
+      strengths.value = studentStrengths.map((studentStrength) => ({
+        title: studentStrength.name,
+        value: studentStrength.id,
+        ...studentStrength,
       }));
       initialStrengths.value = strengths.value;
 
-      majors.value = studentMajors.map((studentMajors) => ({
-        title: studentMajors.name,
-        value: studentMajors.id,
-        ...studentMajors,
+      majors.value = studentMajors.map((studentMajor) => ({
+        title: studentMajor.name,
+        value: studentMajor.id,
+        ...studentMajor,
       }));
       initialMajors.value = majors.value;
     }
