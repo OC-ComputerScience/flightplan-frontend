@@ -44,7 +44,7 @@ const notifications = ref([]);
 const isLoaded = ref(false);
 const store = userStore();
 const route = useRoute();
-const upcomingEvents = computed(() => events.value.slice(0, 2));
+const upcomingEvents = computed(() => events.value.slice(0, 6));
 const calendarRouteName = computed(() =>
   route.path.startsWith("/faculty") ? "faculty-calendar" : "admin-calendar",
 );
@@ -263,13 +263,15 @@ const onTrackOptions = {
 };
 
 const getEvents = async () => {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
 
   try {
     const res = await eventServices.getAllEvents(1, 1000, "", {
-      startDate: yesterday,
+      startDate: startOfToday,
+      sortAttribute: "date",
+      sortDirection: "ASC",
     });
     events.value = (res.data?.events || [])
       .filter((event) => {
@@ -282,13 +284,16 @@ const getEvents = async () => {
         }
 
         const eventDate = new Date(event.date);
-        if (eventDate.toDateString() === today.toDateString()) {
-          const endTime = new Date(event.endTime);
-          return endTime > today;
+        if (eventDate.toDateString() === now.toDateString()) {
+          return new Date(event.endTime) > now;
         }
-        return eventDate > today;
+        return eventDate > startOfToday;
       })
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => {
+        const dateDiff = new Date(a.date) - new Date(b.date);
+        if (dateDiff !== 0) return dateDiff;
+        return new Date(a.startTime) - new Date(b.startTime);
+      });
   } catch (err) {
     console.error("Error fetching upcoming events:", err);
     events.value = [];
@@ -594,6 +599,12 @@ onMounted(async () => {
   padding: 1vh 1vw;
   border-radius: 25px;
   overflow: hidden;
+}
+
+.scrollable-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .adminItemSmall {
