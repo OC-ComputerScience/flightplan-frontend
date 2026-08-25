@@ -198,37 +198,39 @@ const fetchFlightPlanProgress = async () => {
 };
 
 const getEvents = async () => {
-  const today = new Date();
-  const nextSaturday = new Date(today);
-  nextSaturday.setDate(today.getDate() + 7);
-
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
 
   await eventServices
-    .getAllEvents(1, 6, "", {
-      startDate: yesterday,
+    .getAllEvents(1, 1000, "", {
+      startDate: startOfToday,
       sortAttribute: "date",
       sortDirection: "ASC",
     })
     .then((res) => {
-      events.value = res.data.events
+      events.value = (res.data.events || [])
         .filter((event) => {
           if (
             event.status === "Cancelled" ||
             event.status === "Completed" ||
             event.status === "Past"
-          )
+          ) {
             return false;
+          }
 
           const eventDate = new Date(event.date);
-          if (eventDate.toDateString() === today.toDateString()) {
-            const endTime = new Date(event.endTime);
-            return endTime > today;
+          if (eventDate.toDateString() === now.toDateString()) {
+            return new Date(event.endTime) > now;
           }
-          return true;
+          return eventDate > startOfToday;
         })
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        .sort((a, b) => {
+          const dateDiff = new Date(a.date) - new Date(b.date);
+          if (dateDiff !== 0) return dateDiff;
+          return new Date(a.startTime) - new Date(b.startTime);
+        })
+        .slice(0, 6);
       isLoaded.value = true;
     })
     .catch((err) => console.error(err));
@@ -598,7 +600,7 @@ onMounted(async () => {
                 >mdi-information-outline</v-icon
               >
             </template>
-            <span>Register for upcoming events this week</span>
+            <span>Register for the next upcoming events</span>
           </v-tooltip>
         </div>
         <div id="eventList">
