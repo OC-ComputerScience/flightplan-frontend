@@ -5,6 +5,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import rewardServices from "../../../services/rewardServices";
 import studentServices from "../../../services/studentServices";
+import studentRewardServices from "../../../services/studentRewardServices";
 import CardHeader from "../../../components/CardHeader.vue";
 import CardTable from "../../../components/CardTable.vue";
 import RewardCard from "../../../components/cards/RewardCard.vue";
@@ -30,6 +31,9 @@ const page = ref(1);
 const count = ref(0);
 const searchQuery = ref("");
 const showRedemptionDialog = ref(false);
+const showRedemptionHistoryDialog = ref(false);
+const redemptionHistory = ref([]);
+const loadingRedemptionHistory = ref(false);
 const showRedemptionSuccess = ref(false);
 const showRedemptionError = ref(false);
 const selectedReward = ref(null);
@@ -60,6 +64,14 @@ const studentPoints = computed(() => {
   if (!student.value) return 0;
   return student.value.pointsAwarded - student.value.pointsUsed;
 });
+
+const totalRedeemedPoints = computed(() =>
+  redemptionHistory.value.reduce((total, redemption) => {
+    const points =
+      redemption.pointsDeducted ?? redemption.reward?.points ?? 0;
+    return total + Number(points);
+  }, 0),
+);
 
 // Helper Functions
 const resetDialogState = () => {
@@ -118,16 +130,49 @@ const handleRedeem = (reward) => {
   showRedemptionDialog.value = true;
 };
 
+const formatRedemptionDate = (date) => {
+  if (!date) return "Unknown date";
+  return new Date(date).toLocaleString();
+};
+
+const fetchRedemptionHistory = async () => {
+  if (!student.value?.id) {
+    redemptionHistory.value = [];
+    return;
+  }
+  loadingRedemptionHistory.value = true;
+  try {
+    const response =
+      await studentRewardServices.getAllStudentRewardsForStudent(
+        student.value.id,
+      );
+    redemptionHistory.value = response.data || [];
+  } catch (error) {
+    console.error("Error fetching redemption history:", error);
+    redemptionHistory.value = [];
+  } finally {
+    loadingRedemptionHistory.value = false;
+  }
+};
+
+const openRedemptionHistory = async () => {
+  showRedemptionHistoryDialog.value = true;
+  await fetchRedemptionHistory();
+};
+
 const handleRedeemConfirm = async () => {
   try {
     await rewardServices.redeemReward(
       selectedReward.value.id,
       student.value.id,
-      user.value.id,
+      user.value.userId || user.value.id,
     );
 
     showDialogMessage(true);
     await Promise.all([fetchStudentById(), fetchRewards()]);
+    if (showRedemptionHistoryDialog.value) {
+      await fetchRedemptionHistory();
+    }
   } catch (error) {
     console.error("Error redeeming reward:", error);
     showDialogMessage(false);
@@ -165,6 +210,16 @@ watch([searchQuery], fetchRewards);
       @changed="handleSearchChange"
       @toggle-filters="showFilters = !showFilters"
     ></CardHeader>
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        rounded="xl"
+        color="backgroundDarken"
+        :disabled="!student?.id"
+        @click="openRedemptionHistory"
+      >
+        Previous Redemptions
+      </v-btn>
+    </div>
     <CardTable
       :items="rewards"
       :sort-options="sortOptions"
@@ -256,4 +311,81 @@ watch([searchQuery], fetchRewards);
       </v-card-text>
     </v-card>
   </v-dialog>
+  <v-dialog
+    v-model="showRedemptionHistoryDialog"
+    scrollable
+    max-width="800"
+    transition="dialog-bottom-transition"
+  >
+    <v-card class="rounded-lg bg-backgroundDarken" max-height="80vh">
+      <v-card-title class="text-center">
+        Previous Redemptions for {{ student?.user?.fullName || "Student" }}
+      </v-card-title>
+      <p
+        v-if="!loadingRedemptionHistory && redemptionHistory.length > 0"
+        class="text-center font-weight-bold px-4 pb-2"
+      >
+        Total Points Redeemed: {{ totalRedeemedPoints }}
+      </p>
+      <v-card-text class="redemption-history-list">
+        <div v-if="loadingRedemptionHistory" class="d-flex justify-center py-6">
+          <v-progress-circular indeterminate color="primary" />
+        </div>
+        <p v-else-if="redemptionHistory.length === 0" class="text-center py-4">
+          No previous redemptions for this student.
+        </p>
+        <v-table v-else>
+          <thead>
+            <tr>
+              <th class="text-left">Reward</th>
+              <th class="text-left">Date</th>
+              <th class="text-left">Points</th>
+              <th class="text-left">Fulfilled By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="redemption in redemptionHistory" :key="redemption.id">
+              <td>{{ redemption.reward?.name || "Unknown reward" }}</td>
+              <td>{{ formatRedemptionDate(redemption.date) }}</td>
+              <td>{{ redemption.pointsDeducted ?? redemption.reward?.points ?? 0 }}</td>
+              <td>
+                {{
+                  redemption.fulfilledBy?.fullName ||
+                  [redemption.fulfilledBy?.fName, redemption.fulfilledBy?.lName]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  "—"
+                }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="font-weight-bold">Total</td>
+              <td></td>
+              <td class="font-weight-bold">{{ totalRedeemedPoints }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </v-table>
+      </v-card-text>
+      <v-card-actions class="justify-center pb-4">
+        <v-btn
+          rounded="xl"
+          color="text"
+          variant="outlined"
+          @click="showRedemptionHistoryDialog = false"
+        >
+          Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
+
+<style scoped>
+.redemption-history-list {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+</style>
