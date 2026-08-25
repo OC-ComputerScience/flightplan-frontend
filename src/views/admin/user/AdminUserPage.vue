@@ -1,5 +1,5 @@
 <script setup>
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import CardHeader from "../../../components/CardHeader.vue";
 import UserCard from "../../../components/cards/UserCard.vue";
 import CardTable from "../../../components/CardTable.vue";
@@ -16,6 +16,7 @@ const userToShow = ref(null);
 const hasPermission4 = ref(false);
 
 const router = useRouter();
+const route = useRoute();
 const store = userStore();
 
 // Get current user's roles
@@ -66,7 +67,9 @@ const handleViewProfile = () => {
 
 const handleRedeemRewards = () => {
   router.push({
-    name: "redeemReward",
+    name: route.path.startsWith("/faculty")
+      ? "faculty-redeemReward"
+      : "redeemReward",
     params: { studentId: userToShow.value.student.id },
   });
 };
