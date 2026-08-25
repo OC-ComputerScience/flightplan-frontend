@@ -56,7 +56,9 @@ const fetchPoints = async () => {
   student.value = (
     await studentServices.getStudentForUserId(userId.value)
   ).data;
-  points.value = student.value.pointsAwarded - student.value.pointsUsed;
+  points.value =
+    (Number(student.value.pointsAwarded) || 0) -
+    (Number(student.value.pointsUsed) || 0);
 };
 
 const handleSearch = async (query) => {

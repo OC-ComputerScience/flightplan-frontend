@@ -62,7 +62,10 @@ const dialogState = computed(() => {
 
 const studentPoints = computed(() => {
   if (!student.value) return 0;
-  return student.value.pointsAwarded - student.value.pointsUsed;
+  return (
+    (Number(student.value.pointsAwarded) || 0) -
+    (Number(student.value.pointsUsed) || 0)
+  );
 });
 
 const totalRedeemedPoints = computed(() =>
