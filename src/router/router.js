@@ -11,6 +11,7 @@ import RewardPage from "../views/admin/reward/RewardPage.vue";
 import RewardRedemptionPage from "../views/admin/reward/RewardRedemptionPage.vue";
 
 import MajorsPage from "../views/admin/major/MajorsPage.vue";
+import SemestersPage from "../views/admin/semester/SemestersPage.vue";
 import Profile from "../views/Profile.vue";
 import Notifications from "../views/Notification.vue";
 
@@ -132,6 +133,14 @@ const adminMajorRoutes = [
   },
 ];
 
+const adminSemesterRoutes = [
+  {
+    path: "maintenance/semester",
+    name: "semesters",
+    component: SemestersPage,
+  },
+];
+
 const adminMaintenanceRoutes = [
 
   {
@@ -165,6 +174,7 @@ const adminMaintenanceRoutes = [
   ...adminBadgeRoutes,
   ...adminFlightPlanRoutes,
   ...adminMajorRoutes,
+  ...adminSemesterRoutes,
 ];
 
 const facultyRoutes = [

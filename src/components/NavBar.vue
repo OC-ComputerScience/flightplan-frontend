@@ -67,6 +67,11 @@ const maintenanceLinks = [
     path: "/admin/maintenance/major",
     icon: "mdi-school",
   },
+  {
+    name: "Semesters",
+    routeName: "semesters",
+    icon: "mdi-calendar-range",
+  },
 ];
 
 const student = [
